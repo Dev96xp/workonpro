@@ -45,11 +45,6 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
         tenancy()->initialize($tenant);
 
-        // Migrar si la BD del tenant no tiene tablas aún
-        if (! \Illuminate\Support\Facades\Schema::hasTable('users')) {
-            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        }
-
         \App\Models\User::firstOrCreate(
             ['email' => $tenant->email],
             [
@@ -61,7 +56,8 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
         tenancy()->end();
 
-        $centralDomain = config('tenancy.central_domains')[0];
+        $centralDomain = collect(config('tenancy.central_domains'))
+            ->first(fn ($d) => ! filter_var($d, FILTER_VALIDATE_IP) && $d !== 'localhost');
         $this->businessName = $tenant->name;
         $this->subdomain = $tenantId;
         $scheme = request()->getScheme();

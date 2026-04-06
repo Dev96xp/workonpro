@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('mime_type', 50);
             $table->unsignedBigInteger('size');
             $table->unsignedBigInteger('compressed_size');
+            $table->boolean('is_featured')->default(false);
+            $table->nullableMorphs('imageable');
             $table->timestamps();
         });
     }

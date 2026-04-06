@@ -17,9 +17,14 @@ class CreateTenantsTable extends Migration
     {
         Schema::create('tenants', function (Blueprint $table) {
             $table->string('id')->primary();
-
             $table->string('name');
-
+            $table->string('email')->nullable();
+            $table->string('status')->default('pending');
+            $table->string('plan')->nullable();
+            $table->string('stripe_id')->nullable()->index();
+            $table->string('pm_type')->nullable();
+            $table->string('pm_last_four', 4)->nullable();
+            $table->timestamp('trial_ends_at')->nullable();
             $table->timestamps();
             $table->json('data')->nullable();
         });

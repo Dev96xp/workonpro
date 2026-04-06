@@ -22,7 +22,7 @@ new #[Layout('components.layouts.admin')] class extends Component {
         ]);
 
         $tenant->domains()->create([
-            'domain' => $this->subdomain . '.' . config('app.domain', 'workonpro.test'),
+            'domain' => $this->subdomain,
         ]);
 
         $this->redirectRoute('admin.tenants.show', $tenant, navigate: true);
