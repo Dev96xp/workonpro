@@ -3,9 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-$centralDomain = collect(config('tenancy.central_domains', []))
-    ->first(fn ($d) => ! filter_var($d, FILTER_VALIDATE_IP) && $d !== 'localhost')
-    ?? 'workonpro.test';
+$centralDomain = parse_url(config('app.url'), PHP_URL_HOST);
 
 Route::domain($centralDomain)->group(function () {
     Route::get('/', function () {
