@@ -56,8 +56,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
         tenancy()->end();
 
-        $centralDomain = collect(config('tenancy.central_domains'))
-            ->first(fn ($d) => ! filter_var($d, FILTER_VALIDATE_IP) && $d !== 'localhost');
+        $centralDomain = parse_url(config('app.url'), PHP_URL_HOST);
         $this->businessName = $tenant->name;
         $this->subdomain = $tenantId;
         $scheme = request()->getScheme();
