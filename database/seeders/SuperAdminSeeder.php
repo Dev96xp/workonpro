@@ -13,7 +13,7 @@ class SuperAdminSeeder extends Seeder
             ['email' => 'admin@workonpro.com'],
             [
                 'name'     => 'Super Admin',
-                'password' => bcrypt('admin123'),
+                'password' => bcrypt('password'),
             ]
         );
     }
