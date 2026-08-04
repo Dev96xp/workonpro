@@ -47,6 +47,10 @@
     }
 }
 
+[x-cloak] {
+    display: none !important;
+}
+
 [data-flux-field] {
     @apply grid gap-2;
 }

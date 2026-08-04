@@ -341,11 +341,27 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
     {{-- Gallery --}}
     @if ($images->isNotEmpty())
-        <div class="max-w-7xl mx-auto px-6 pb-20">
+        <div
+            class="max-w-7xl mx-auto px-6 pb-20"
+            x-data="{
+                open: false,
+                index: 0,
+                images: @js($images->map(fn ($img) => ['url' => $img->url(), 'alt' => $img->original_name])),
+                show(i) { this.index = i; this.open = true },
+                next() { this.index = (this.index + 1) % this.images.length },
+                prev() { this.index = (this.index - 1 + this.images.length) % this.images.length },
+            }"
+            @keydown.escape.window="open = false"
+            @keydown.arrow-right.window="if (open) next()"
+            @keydown.arrow-left.window="if (open) prev()"
+        >
             <h2 class="text-2xl font-bold text-zinc-300 mb-8 text-center tracking-wider uppercase">Galería</h2>
             <div class="columns-2 sm:columns-3 lg:columns-4 gap-3 space-y-3">
-                @foreach ($images as $image)
-                    <div class="group relative break-inside-avoid overflow-hidden rounded-xl cursor-pointer">
+                @foreach ($images as $i => $image)
+                    <div
+                        class="group relative break-inside-avoid overflow-hidden rounded-xl cursor-pointer"
+                        @click="show({{ $i }})"
+                    >
                         <img
                             src="{{ $image->url() }}"
                             alt="{{ $image->original_name }}"
@@ -366,6 +382,62 @@ new #[Layout('components.layouts.guest')] class extends Component {
                         </div>
                     </div>
                 @endforeach
+            </div>
+
+            {{-- Lightbox --}}
+            <div
+                x-show="open"
+                x-cloak
+                x-transition.opacity
+                class="fixed inset-0 z-[60] flex items-center justify-center bg-zinc-950/95 p-4 sm:p-8"
+                @click.self="open = false"
+            >
+                <button
+                    type="button"
+                    @click="open = false"
+                    class="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors"
+                    aria-label="Cerrar"
+                >
+                    <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                <button
+                    type="button"
+                    x-show="images.length > 1"
+                    @click="prev()"
+                    class="absolute left-2 sm:left-6 z-10 rounded-full bg-white/10 p-2 sm:p-3 text-white hover:bg-white/20 transition-colors"
+                    aria-label="Anterior"
+                >
+                    <svg class="size-6 sm:size-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+
+                <img
+                    :src="images[index]?.url"
+                    :alt="images[index]?.alt"
+                    class="max-h-[85vh] max-w-full rounded-lg object-contain shadow-2xl"
+                />
+
+                <button
+                    type="button"
+                    x-show="images.length > 1"
+                    @click="next()"
+                    class="absolute right-2 sm:right-6 z-10 rounded-full bg-white/10 p-2 sm:p-3 text-white hover:bg-white/20 transition-colors"
+                    aria-label="Siguiente"
+                >
+                    <svg class="size-6 sm:size-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+
+                <div
+                    x-show="images.length > 1"
+                    class="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 text-sm text-white"
+                    x-text="(index + 1) + ' / ' + images.length"
+                ></div>
             </div>
         </div>
     @else
