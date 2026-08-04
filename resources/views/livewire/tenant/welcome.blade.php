@@ -31,6 +31,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
         return [
             'businessName'    => $profile?->business_name ?? tenant('name'),
+            'businessTitle'   => $profile?->business_title ?: ($profile?->business_name ?? tenant('name')),
             'businessSlogan'  => $profile?->slogan,
             'businessAddress' => $profile?->address,
             'businessPhone'   => $profile?->phone,
@@ -47,7 +48,8 @@ new #[Layout('components.layouts.guest')] class extends Component {
             'businessObjectives'  => $profile?->objectives,
             'featuredImage'       => BusinessImage::gallery()->where('is_featured', true)->first(),
             'images'              => BusinessImage::gallery()->latest()->take(12)->get(),
-            'coupons'         => Coupon::where('is_active', true)
+            'coupons'         => Coupon::with('images')
+                ->where('is_active', true)
                 ->where(function ($q) {
                     $q->whereNull('expires_at')
                         ->orWhere('expires_at', '>', now());
@@ -77,7 +79,8 @@ new #[Layout('components.layouts.guest')] class extends Component {
             RateLimiter::clear($this->throttleKey());
             Session::regenerate();
 
-            $this->redirect(url('/dashboard'), navigate: true);
+            $this->showLogin = false;
+            $this->reset('email', 'password', 'remember');
 
             return;
         }
@@ -100,15 +103,46 @@ new #[Layout('components.layouts.guest')] class extends Component {
     {{-- Navbar --}}
     <nav class="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-6 py-4 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800/50">
         <span class="font-black text-yellow-400 text-xl tracking-tight">{{ $businessName }}</span>
-        <button
-            wire:click="$set('showLogin', true)"
-            class="inline-flex items-center gap-2 text-sm font-semibold text-zinc-300 hover:text-yellow-400 transition-colors duration-200"
-        >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-            </svg>
-            Acceso
-        </button>
+
+        @auth
+            <flux:dropdown position="bottom" align="end">
+                <flux:profile
+                    :name="auth()->user()->name"
+                    icon-trailing="chevron-down"
+                />
+
+                <flux:menu>
+                    <div class="px-3 py-2 text-left text-sm">
+                        <span class="block truncate font-semibold">{{ auth()->user()->name }}</span>
+                        <span class="block truncate text-xs text-zinc-400">Administrador</span>
+                    </div>
+
+                    <flux:menu.separator />
+
+                    <flux:menu.item icon="squares-2x2" :href="url('/dashboard')" wire:navigate>Panel</flux:menu.item>
+                    <flux:menu.item icon="user-circle" :href="url('/settings')" wire:navigate>Mi perfil</flux:menu.item>
+
+                    <flux:menu.separator />
+
+                    <form method="POST" action="{{ url('/logout') }}" class="w-full">
+                        @csrf
+                        <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
+                            Cerrar sesión
+                        </flux:menu.item>
+                    </form>
+                </flux:menu>
+            </flux:dropdown>
+        @else
+            <button
+                wire:click="$set('showLogin', true)"
+                class="inline-flex items-center gap-2 text-sm font-semibold text-zinc-300 hover:text-yellow-400 transition-colors duration-200"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                </svg>
+                Acceso
+            </button>
+        @endauth
     </nav>
 
     {{-- Login Modal --}}
@@ -206,7 +240,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
         {{-- Content --}}
         <div class="relative z-10 px-6 flex flex-col items-center gap-4">
             <h1 class="text-5xl md:text-8xl font-black tracking-tight text-white drop-shadow-2xl">
-                {{ $businessName }}
+                {{ $businessTitle }}
             </h1>
 
             @if ($businessSlogan)
@@ -269,25 +303,36 @@ new #[Layout('components.layouts.guest')] class extends Component {
             <h2 class="text-2xl font-bold text-yellow-400 mb-6 text-center">Cupones Disponibles</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach ($coupons as $coupon)
-                    <div class="bg-zinc-900 border border-yellow-400/20 rounded-2xl p-5 flex flex-col gap-3 hover:border-yellow-400/60 transition-all duration-200">
-                        <div class="flex items-center justify-between">
-                            <span class="bg-yellow-400 text-zinc-900 font-black text-sm px-3 py-1 rounded-full tracking-widest">
-                                {{ $coupon->code }}
-                            </span>
-                            <span class="text-yellow-400 font-black text-xl">
-                                @if ($coupon->type === 'percentage')
-                                    {{ number_format($coupon->value, 0) }}% OFF
-                                @else
-                                    ${{ number_format($coupon->value, 2) }} OFF
-                                @endif
-                            </span>
+                    <div class="bg-zinc-900 border border-yellow-400/20 rounded-2xl overflow-hidden flex flex-col hover:border-yellow-400/60 transition-all duration-200">
+                        @if ($coupon->images->isNotEmpty())
+                            <img
+                                src="{{ $coupon->images->first()->url() }}"
+                                alt="{{ $coupon->code }}"
+                                class="h-40 w-full object-cover"
+                                loading="lazy"
+                            />
+                        @endif
+
+                        <div class="p-5 flex flex-col gap-3">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <span class="bg-yellow-400 text-zinc-900 font-black text-sm px-3 py-1 rounded-full tracking-widest">
+                                    {{ $coupon->code }}
+                                </span>
+                                <span class="text-yellow-400 font-black text-xl">
+                                    @if ($coupon->type === 'percentage')
+                                        {{ number_format($coupon->value, 0) }}% OFF
+                                    @else
+                                        ${{ number_format($coupon->value, 2) }} OFF
+                                    @endif
+                                </span>
+                            </div>
+                            @if ($coupon->description)
+                                <p class="text-zinc-300 text-sm">{{ $coupon->description }}</p>
+                            @endif
+                            @if ($coupon->expires_at)
+                                <p class="text-zinc-500 text-xs">Válido hasta: {{ $coupon->expires_at->format('d/m/Y') }}</p>
+                            @endif
                         </div>
-                        @if ($coupon->description)
-                            <p class="text-zinc-300 text-sm">{{ $coupon->description }}</p>
-                        @endif
-                        @if ($coupon->expires_at)
-                            <p class="text-zinc-500 text-xs">Válido hasta: {{ $coupon->expires_at->format('d/m/Y') }}</p>
-                        @endif
                     </div>
                 @endforeach
             </div>

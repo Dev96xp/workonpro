@@ -1,8 +1,10 @@
 <?php
 
+use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new class extends Component {
+// El namespace 'layouts::' del default de livewire.php no está registrado; usamos el layout real en components/layouts.
+new #[Layout('components.layouts.app')] class extends Component {
     //
 }; ?>
 

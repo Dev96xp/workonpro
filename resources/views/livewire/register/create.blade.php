@@ -22,9 +22,9 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public string $password_confirmation = '';
 
     public array $plans = [
-        'basic'      => ['label' => 'Básico',     'price' => '$29/mes'],
-        'pro'        => ['label' => 'Pro',         'price' => '$59/mes'],
-        'enterprise' => ['label' => 'Enterprise',  'price' => '$99/mes'],
+        'basic'      => ['label' => 'Básico',     'price' => 'Gratis'],
+        'pro'        => ['label' => 'Pro',         'price' => '$29/mes'],
+        'enterprise' => ['label' => 'Enterprise',  'price' => '$59/mes'],
     ];
 
     public function mount(): void
@@ -45,13 +45,21 @@ new #[Layout('components.layouts.auth')] class extends Component {
     {
         $this->validate();
 
+        if ($this->plan === 'basic') {
+            $this->registerFreeTenant();
+
+            return;
+        }
+
         $priceId = config('services.stripe.prices.' . $this->plan);
 
         // Guardamos password en session (no en BD)
         session(['pending_password_' . $this->subdomain => $this->password]);
 
-        // Creamos el tenant en estado "pending" para que Cashier pueda usarlo
-        $tenant = \App\Models\Tenant::updateOrCreate(
+        // Creamos el tenant en estado "pending" para que Cashier pueda usarlo.
+        // Sin disparar eventos: la base de datos del tenant NO debe aprovisionarse
+        // hasta que el pago se confirme en register.success.
+        $tenant = \App\Models\Tenant::withoutEvents(fn () => \App\Models\Tenant::updateOrCreate(
             ['id' => $this->subdomain],
             [
                 'name'   => $this->business_name,
@@ -59,7 +67,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
                 'status' => 'pending',
                 'plan'   => $this->plan,
             ]
-        );
+        ));
 
         $tenant->domains()->firstOrCreate(['domain' => $this->subdomain]);
 
@@ -71,6 +79,37 @@ new #[Layout('components.layouts.auth')] class extends Component {
             ]);
 
         $this->redirect($checkoutUrl->url);
+    }
+
+    protected function registerFreeTenant(): void
+    {
+        // Plan Básico: sin costo, no pasa por Stripe. Se activa de inmediato.
+        $tenant = \App\Models\Tenant::updateOrCreate(
+            ['id' => $this->subdomain],
+            [
+                'name'   => $this->business_name,
+                'email'  => $this->email,
+                'status' => 'active',
+                'plan'   => 'basic',
+            ]
+        );
+
+        $tenant->domains()->firstOrCreate(['domain' => $this->subdomain]);
+
+        tenancy()->initialize($tenant);
+
+        \App\Models\User::firstOrCreate(
+            ['email' => $tenant->email],
+            [
+                'name'     => $tenant->name,
+                'email'    => $tenant->email,
+                'password' => $this->password,
+            ]
+        );
+
+        tenancy()->end();
+
+        $this->redirect(route('register.success', ['tenant' => $this->subdomain]));
     }
 }; ?>
 
@@ -120,12 +159,16 @@ new #[Layout('components.layouts.auth')] class extends Component {
         </flux:field>
 
         <flux:button type="submit" variant="primary" class="w-full" wire:loading.attr="disabled">
-            <span wire:loading.remove>Continuar al pago →</span>
+            <span wire:loading.remove>{{ $plan === 'basic' ? 'Crear mi negocio →' : 'Continuar al pago →' }}</span>
             <span wire:loading>Procesando...</span>
         </flux:button>
     </form>
 
     <p class="mt-4 text-center text-xs text-zinc-400">
-        Al continuar, serás redirigido a Stripe para completar el pago de forma segura.
+        @if ($plan === 'basic')
+            El plan Básico es gratis, no se te pedirá ningún método de pago.
+        @else
+            Al continuar, serás redirigido a Stripe para completar el pago de forma segura.
+        @endif
     </p>
 </div>

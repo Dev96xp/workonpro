@@ -1,7 +1,9 @@
 <flux:header class="border-b border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
+    <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
+
     <flux:navbar>
-        <flux:navbar.item href="{{ url('/dashboard') }}" wire:navigate>
-            <flux:heading class="font-bold">{{ tenant('name') }}</flux:heading>
+        <flux:navbar.item href="{{ url('/') }}" wire:navigate>
+            <flux:heading class="truncate font-bold">{{ tenant('name') }}</flux:heading>
         </flux:navbar.item>
     </flux:navbar>
 

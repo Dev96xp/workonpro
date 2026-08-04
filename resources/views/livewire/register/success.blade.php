@@ -11,18 +11,9 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
     public function mount(): void
     {
-        $sessionId = request('session_id');
         $tenantId = request('tenant');
 
-        if (! $sessionId || ! $tenantId) {
-            $this->redirect(route('register.plans'));
-
-            return;
-        }
-
-        $stripeSession = Cashier::stripe()->checkout->sessions->retrieve($sessionId);
-
-        if ($stripeSession->payment_status !== 'paid') {
+        if (! $tenantId) {
             $this->redirect(route('register.plans'));
 
             return;
@@ -36,25 +27,51 @@ new #[Layout('components.layouts.guest')] class extends Component {
             return;
         }
 
-        // Activar tenant
-        $tenant->update(['status' => 'active']);
+        // Plan Básico: el tenant ya se activó y aprovisionó en register.create, sin Stripe de por medio.
+        if ($tenant->status !== 'active') {
+            $sessionId = request('session_id');
 
-        // Crear usuario admin dentro del tenant
-        $password = session('pending_password_' . $tenantId);
-        session()->forget('pending_password_' . $tenantId);
+            if (! $sessionId) {
+                $this->redirect(route('register.plans'));
 
-        tenancy()->initialize($tenant);
+                return;
+            }
 
-        \App\Models\User::firstOrCreate(
-            ['email' => $tenant->email],
-            [
-                'name'     => $tenant->name,
-                'email'    => $tenant->email,
-                'password' => $password ?? 'changeme123',
-            ]
-        );
+            $stripeSession = Cashier::stripe()->checkout->sessions->retrieve($sessionId);
 
-        tenancy()->end();
+            if ($stripeSession->payment_status !== 'paid') {
+                $this->redirect(route('register.plans'));
+
+                return;
+            }
+
+            // Activar tenant
+            $wasPending = $tenant->status === 'pending';
+            $tenant->update(['status' => 'active']);
+
+            // El pago ya se confirmó: ahora sí aprovisionamos la base de datos del tenant
+            // (dispara CreateDatabase + MigrateDatabase, registrados en TenancyServiceProvider).
+            if ($wasPending) {
+                event(new \Stancl\Tenancy\Events\TenantCreated($tenant));
+            }
+
+            // Crear usuario admin dentro del tenant
+            $password = session('pending_password_' . $tenantId);
+            session()->forget('pending_password_' . $tenantId);
+
+            tenancy()->initialize($tenant);
+
+            \App\Models\User::firstOrCreate(
+                ['email' => $tenant->email],
+                [
+                    'name'     => $tenant->name,
+                    'email'    => $tenant->email,
+                    'password' => $password ?? 'changeme123',
+                ]
+            );
+
+            tenancy()->end();
+        }
 
         $centralDomain = parse_url(config('app.url'), PHP_URL_HOST);
         $this->businessName = $tenant->name;

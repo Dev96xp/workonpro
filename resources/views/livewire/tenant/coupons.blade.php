@@ -258,12 +258,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
         <flux:main>
             <div class="p-6">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <flux:heading size="xl">Cupones</flux:heading>
                         <flux:text class="text-zinc-500">Crea y gestiona cupones de descuento</flux:text>
                     </div>
-                    <flux:button wire:click="openCreate" variant="primary" icon="plus">
+                    <flux:button wire:click="openCreate" variant="primary" icon="plus" class="sm:w-auto">
                         Nuevo cupón
                     </flux:button>
                 </div>
@@ -272,7 +272,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     <flux:input wire:model.live.debounce.300ms="search" placeholder="Buscar por código o descripción..." icon="magnifying-glass" />
                 </div>
 
-                <div class="mt-4 overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
+                <div class="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
                     <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                         <thead class="bg-zinc-50 dark:bg-zinc-900">
                             <tr>

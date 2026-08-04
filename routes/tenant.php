@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Tenant\ImageController;
 use Illuminate\Support\Facades\Route;
-use Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
-
+use Livewire\Volt\Volt;
 /*
 |--------------------------------------------------------------------------
 | Tenant Routes
@@ -16,8 +15,8 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 |
 */
 
-use App\Http\Controllers\Tenant\ImageController;
-use Livewire\Volt\Volt;
+use Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 Route::middleware([
     PreventAccessFromCentralDomains::class,
@@ -33,7 +32,8 @@ Route::middleware([
         auth()->logout();
         session()->invalidate();
         session()->regenerateToken();
-        return redirect()->route('tenant.welcome');
+
+        return redirect('/');
     })->name('tenant.logout');
 
     // Panel protegido

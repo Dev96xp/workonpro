@@ -42,7 +42,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             <div class="space-y-8 p-6">
 
                 {{-- Hero header --}}
-                <div class="relative overflow-hidden rounded-2xl bg-zinc-900 p-8 shadow-xl dark:bg-zinc-800">
+                <div class="relative overflow-hidden rounded-2xl bg-zinc-900 p-6 shadow-xl sm:p-8 dark:bg-zinc-800">
                     {{-- Decorative yellow accent --}}
                     <div class="absolute -right-10 -top-10 size-48 rounded-full bg-yellow-400/20 blur-3xl"></div>
                     <div class="absolute -bottom-6 left-1/3 size-32 rounded-full bg-yellow-400/10 blur-2xl"></div>
@@ -52,7 +52,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                             <span class="h-1 w-8 rounded-full bg-yellow-400"></span>
                             <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400">Panel de administración</p>
                         </div>
-                        <h1 class="mt-3 text-4xl font-bold text-white">{{ $businessName }}</h1>
+                        <h1 class="mt-3 text-3xl font-bold text-white sm:text-4xl">{{ $businessName }}</h1>
                         <p class="mt-2 text-zinc-400">Bienvenido, {{ auth()->user()->name }}</p>
                         <div class="mt-5 inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-4 py-1.5 text-sm font-semibold capitalize text-yellow-400">
                             <span class="size-2 rounded-full bg-yellow-400"></span>
@@ -103,7 +103,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 {{-- Image gallery --}}
                 @if ($images->isNotEmpty())
                     <div class="rounded-xl border border-stone-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
                             <div>
                                 <flux:heading size="lg">Galería de imágenes</flux:heading>
                                 <flux:text class="mt-1 text-sm text-zinc-500">Las últimas fotos de tu negocio</flux:text>

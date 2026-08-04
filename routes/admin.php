@@ -29,6 +29,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         request()->session()->invalidate();
         request()->session()->regenerateToken();
 
-        return redirect()->route('admin.login');
+        return redirect()->route('home');
     })->name('logout');
 });

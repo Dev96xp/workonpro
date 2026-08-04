@@ -7,7 +7,8 @@
         <flux:sidebar sticky stashable class="border-r border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-            <a href="{{ route('admin.dashboard') }}" class="mr-5 flex items-center space-x-2" wire:navigate>
+            {{-- Apiunta a pagina principal de la aplicación --}}
+            <a href="{{ route('home') }}" class="mr-5 flex items-center space-x-2" wire:navigate>
                 <x-app-logo class="size-8" href="#"></x-app-logo>
                 <span class="text-sm font-semibold text-zinc-900 dark:text-white">Super Admin</span>
             </a>

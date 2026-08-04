@@ -4,9 +4,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new class extends Component {
+// El namespace 'layouts::' del default de livewire.php no está registrado; usamos el layout real en components/layouts.
+new #[Layout('components.layouts.app')] class extends Component {
     public string $current_password = '';
     public string $password = '';
     public string $password_confirmation = '';

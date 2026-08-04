@@ -10,6 +10,7 @@ class BusinessProfile extends Model
 
     protected $fillable = [
         'business_name',
+        'business_title',
         'slogan',
         'description',
         'policy',

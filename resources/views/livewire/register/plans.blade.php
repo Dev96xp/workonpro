@@ -27,8 +27,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
             <div class="flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
                 <flux:heading size="lg">Básico</flux:heading>
                 <div class="mt-4 flex items-end gap-1">
-                    <span class="text-4xl font-bold text-zinc-900 dark:text-white">$29</span>
-                    <span class="mb-1 text-zinc-500">/mes</span>
+                    <span class="text-4xl font-bold text-zinc-900 dark:text-white">Gratis</span>
                 </div>
                 <flux:separator class="my-6" />
                 <ul class="flex-1 space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
@@ -46,7 +45,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                 </div>
                 <flux:heading size="lg">Pro</flux:heading>
                 <div class="mt-4 flex items-end gap-1">
-                    <span class="text-4xl font-bold text-zinc-900 dark:text-white">$59</span>
+                    <span class="text-4xl font-bold text-zinc-900 dark:text-white">$29</span>
                     <span class="mb-1 text-zinc-500">/mes</span>
                 </div>
                 <flux:separator class="my-6" />
@@ -63,7 +62,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
             <div class="flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
                 <flux:heading size="lg">Enterprise</flux:heading>
                 <div class="mt-4 flex items-end gap-1">
-                    <span class="text-4xl font-bold text-zinc-900 dark:text-white">$99</span>
+                    <span class="text-4xl font-bold text-zinc-900 dark:text-white">$59</span>
                     <span class="mb-1 text-zinc-500">/mes</span>
                 </div>
                 <flux:separator class="my-6" />

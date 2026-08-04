@@ -25,7 +25,36 @@
             <nav class="flex items-center gap-3 sm:gap-8">
                 <a href="#features" class="hidden text-sm font-medium text-zinc-400 transition hover:text-yellow-400 md:block">Características</a>
                 <a href="#pricing"  class="hidden text-sm font-medium text-zinc-400 transition hover:text-yellow-400 md:block">Precios</a>
-                <a href="{{ url('/admin/login') }}" class="hidden text-sm font-medium text-zinc-400 transition hover:text-yellow-400 sm:block">Iniciar sesión</a>
+
+                @auth('super_admin')
+                    <details class="group relative hidden sm:block">
+                        <summary class="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-zinc-400 transition hover:text-yellow-400">
+                            <span class="flex size-7 items-center justify-center rounded-full bg-yellow-400 text-xs font-black text-zinc-900">
+                                {{ Str::of(auth('super_admin')->user()->name)->explode(' ')->map(fn ($n) => Str::substr($n, 0, 1))->implode('') }}
+                            </span>
+                            {{ auth('super_admin')->user()->name }}
+                            <svg class="size-3 transition group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </summary>
+
+                        <div class="absolute right-0 z-10 mt-3 w-56 border border-zinc-800 bg-zinc-900 py-2 shadow-xl">
+                            <div class="px-4 py-2">
+                                <p class="truncate text-sm font-semibold text-white">{{ auth('super_admin')->user()->name }}</p>
+                                <p class="truncate text-xs text-zinc-500">Administrador</p>
+                            </div>
+                            <div class="my-1 h-px bg-zinc-800"></div>
+                            <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-yellow-400">Panel</a>
+                            <form method="POST" action="{{ route('admin.logout') }}">
+                                @csrf
+                                <button type="submit" class="block w-full px-4 py-2 text-left text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-yellow-400">Cerrar sesión</button>
+                            </form>
+                        </div>
+                    </details>
+                @else
+                    <a href="{{ url('/admin/login') }}" class="hidden text-sm font-medium text-zinc-400 transition hover:text-yellow-400 sm:block">Iniciar sesión</a>
+                @endauth
+
                 <a href="{{ route('register.plans') }}" class="border-b-2 border-yellow-400 bg-yellow-400 px-4 py-2 text-sm font-black text-zinc-900 transition hover:bg-transparent hover:text-yellow-400 sm:px-6">
                     Empezar →
                 </a>
@@ -154,8 +183,7 @@
                 <div class="group flex flex-col bg-zinc-900 p-6 transition hover:bg-zinc-800 sm:p-10">
                     <p class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-500">Básico</p>
                     <div class="mt-4 flex items-end gap-1">
-                        <span class="text-5xl font-black text-white sm:text-6xl">$29</span>
-                        <span class="mb-2 text-zinc-500">/mes</span>
+                        <span class="text-5xl font-black text-white sm:text-6xl">Gratis</span>
                     </div>
                     <div class="mt-6 h-px bg-zinc-700 transition group-hover:bg-yellow-400/50 sm:mt-8"></div>
                     <ul class="mt-6 grow space-y-3 text-sm text-zinc-400 sm:mt-8 sm:space-y-4">
@@ -175,7 +203,7 @@
                     </div>
                     <p class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-700">Pro</p>
                     <div class="mt-4 flex items-end gap-1">
-                        <span class="text-5xl font-black text-zinc-900 sm:text-6xl">$79</span>
+                        <span class="text-5xl font-black text-zinc-900 sm:text-6xl">$29</span>
                         <span class="mb-2 text-zinc-700">/mes</span>
                     </div>
                     <div class="mt-6 h-px bg-zinc-900/20 sm:mt-8"></div>
@@ -194,7 +222,7 @@
                 <div class="group flex flex-col bg-zinc-900 p-6 transition hover:bg-zinc-800 sm:p-10">
                     <p class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-500">Enterprise</p>
                     <div class="mt-4 flex items-end gap-1">
-                        <span class="text-5xl font-black text-white sm:text-6xl">$149</span>
+                        <span class="text-5xl font-black text-white sm:text-6xl">$59</span>
                         <span class="mb-2 text-zinc-500">/mes</span>
                     </div>
                     <div class="mt-6 h-px bg-zinc-700 transition group-hover:bg-yellow-400/50 sm:mt-8"></div>
@@ -241,7 +269,9 @@
         <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:gap-6 sm:px-6 md:flex-row">
             <span class="text-xl font-black tracking-tighter text-yellow-400 sm:text-2xl">Workon</span>
             <p class="text-sm text-zinc-600">© {{ date('Y') }} Workon. Todos los derechos reservados.</p>
-            <a href="{{ url('/admin/login') }}" class="text-sm text-zinc-500 transition hover:text-yellow-400">Iniciar sesión</a>
+            <a href="{{ auth('super_admin')->check() ? route('admin.dashboard') : url('/admin/login') }}" class="text-sm text-zinc-500 transition hover:text-yellow-400">
+                {{ auth('super_admin')->check() ? 'Ir al panel' : 'Iniciar sesión' }}
+            </a>
         </div>
     </footer>
 

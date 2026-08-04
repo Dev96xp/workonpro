@@ -3,7 +3,11 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Stancl\Tenancy\Exceptions\NotASubdomainException;
+use Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,20 +25,22 @@ return Application::configure(basePath: dirname(__DIR__))
                 return route('admin.login');
             }
 
-            return $request->getSchemeAndHttpHost() . '/login';
+            return $request->getSchemeAndHttpHost().'/login';
         });
 
+        // La sesión debe iniciar dentro del contexto del tenant (conexión de BD ya cambiada),
+        // si no, la sesión autenticada se guarda en la BD central y el tenant nunca la ve.
         $middleware->prependToPriorityList(
-            \Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain::class,
-            \Illuminate\Session\Middleware\StartSession::class,
+            StartSession::class,
+            InitializeTenancyBySubdomain::class,
         );
         $middleware->prependToPriorityList(
-            \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
-            \Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain::class,
+            InitializeTenancyBySubdomain::class,
+            PreventAccessFromCentralDomains::class,
         );
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->render(function (\Stancl\Tenancy\Exceptions\NotASubdomainException $e, $request) {
-            return redirect($request->getSchemeAndHttpHost() . '/admin/login');
+        $exceptions->render(function (NotASubdomainException $e, $request) {
+            return redirect($request->getSchemeAndHttpHost().'/admin/login');
         });
     })->create();

@@ -13,6 +13,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public string $business_name = '';
 
     #[Validate('nullable|string|max:150')]
+    public string $business_title = '';
+
+    #[Validate('nullable|string|max:150')]
     public string $slogan = '';
 
     #[Validate('nullable|email|max:100')]
@@ -76,6 +79,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
         if ($profile) {
             $this->business_name  = $profile->business_name;
+            $this->business_title = $profile->business_title ?? '';
             $this->slogan         = $profile->slogan ?? '';
             $this->business_email = $profile->email ?? '';
             $this->phone          = $profile->phone ?? '';
@@ -98,12 +102,13 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     public function saveProfile(): void
     {
-        $this->validateOnly('business_name,slogan,business_email,phone,phone_2,whatsapp,address,city,country,website,instagram,facebook,business_hours,description,policy,objectives');
+        $this->validateOnly('business_name,business_title,slogan,business_email,phone,phone_2,whatsapp,address,city,country,website,instagram,facebook,business_hours,description,policy,objectives');
 
         BusinessProfile::updateOrCreate(
             ['id' => 1],
             [
                 'business_name'  => $this->business_name,
+                'business_title' => $this->business_title ?: null,
                 'slogan'         => $this->slogan ?: null,
                 'email'          => $this->business_email ?: null,
                 'phone'          => $this->phone ?: null,
@@ -182,6 +187,13 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                         <flux:label>Nombre del negocio <span class="text-red-500">*</span></flux:label>
                                         <flux:input wire:model="business_name" />
                                         <flux:error name="business_name" />
+                                    </flux:field>
+
+                                    <flux:field class="sm:col-span-2">
+                                        <flux:label>Título principal</flux:label>
+                                        <flux:input wire:model="business_title" placeholder="Se muestra como título en tu página principal" />
+                                        <flux:description>Si lo dejas vacío, se usa el nombre del negocio.</flux:description>
+                                        <flux:error name="business_title" />
                                     </flux:field>
 
                                     <flux:field class="sm:col-span-2">

@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('business_profile', function (Blueprint $table) {
             $table->id();
             $table->string('business_name');
+            $table->string('business_title')->nullable();
             $table->string('slogan')->nullable();
             $table->text('description')->nullable();
             $table->text('policy')->nullable();

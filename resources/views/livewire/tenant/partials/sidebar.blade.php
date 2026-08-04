@@ -1,4 +1,6 @@
-<flux:sidebar class="border-r border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
+<flux:sidebar sticky stashable class="border-r border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
+    <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
+
     <flux:navlist>
         <flux:navlist.item href="{{ url('/dashboard') }}" icon="home" wire:navigate
             :current="request()->routeIs('tenant.dashboard')">
