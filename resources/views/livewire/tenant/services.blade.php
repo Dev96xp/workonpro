@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ServiceCategory;
 use App\Models\BusinessImage;
 use App\Models\Service;
 use Illuminate\Support\Str;
@@ -26,6 +27,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     #[Validate('nullable|string|max:500')]
     public string $description = '';
+
+    #[Validate('required|string')]
+    public string $category = '';
 
     #[Validate('nullable|numeric|min:0')]
     public string $price = '';
@@ -70,6 +74,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $this->editingId        = $id;
         $this->name              = $service->name;
         $this->description       = $service->description ?? '';
+        $this->category          = $service->category?->value ?? '';
         $this->price              = $service->price !== null ? (string) $service->price : '';
         $this->is_active         = $service->is_active;
         $this->existingImage1Id  = $service->images->get(0)?->id;
@@ -86,6 +91,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $data = [
             'name'        => $this->name,
             'description' => $this->description ?: null,
+            'category'    => $this->category,
             'price'       => $this->price !== '' ? $this->price : null,
             'is_active'   => $this->is_active,
         ];
@@ -209,6 +215,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     {
         $this->name              = '';
         $this->description       = '';
+        $this->category          = '';
         $this->price              = '';
         $this->is_active         = true;
         $this->image1             = null;
@@ -248,6 +255,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                         <thead class="bg-zinc-50 dark:bg-zinc-900">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Servicio</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Categoría</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Precio</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Estado</th>
                                 <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">Acciones</th>
@@ -271,6 +279,13 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 text-zinc-500">
+                                        @if ($service->category)
+                                            <flux:badge size="sm">{{ $service->category->label() }}</flux:badge>
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 text-zinc-500">
                                         {{ $service->price !== null ? '$' . number_format($service->price, 2) : '—' }}
                                     </td>
                                     <td class="px-6 py-4">
@@ -289,7 +304,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-6 py-12 text-center text-zinc-500">
+                                    <td colspan="5" class="px-6 py-12 text-center text-zinc-500">
                                         No hay servicios creados aún.
                                     </td>
                                 </tr>
@@ -323,6 +338,17 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     <flux:label>Descripción</flux:label>
                     <flux:textarea wire:model="description" rows="3" placeholder="Describe en qué consiste el servicio..." />
                     <flux:error name="description" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>Categoría <span class="text-red-500">*</span></flux:label>
+                    <flux:select wire:model="category">
+                        <flux:select.option value="">Selecciona una categoría</flux:select.option>
+                        @foreach (ServiceCategory::cases() as $option)
+                            <flux:select.option value="{{ $option->value }}">{{ $option->label() }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="category" />
                 </flux:field>
 
                 <flux:field>

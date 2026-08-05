@@ -25,6 +25,7 @@
             <nav class="flex items-center gap-3 sm:gap-8">
                 <a href="#features" class="hidden text-sm font-medium text-zinc-400 transition hover:text-yellow-400 md:block">Características</a>
                 <a href="#pricing"  class="hidden text-sm font-medium text-zinc-400 transition hover:text-yellow-400 md:block">Precios</a>
+                <a href="{{ route('search') }}" class="hidden text-sm font-medium text-zinc-400 transition hover:text-yellow-400 md:block">Buscar servicios</a>
 
                 @auth('super_admin')
                     <details class="group relative hidden sm:block">

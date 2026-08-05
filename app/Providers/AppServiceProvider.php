@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Service;
+use App\Observers\ServiceObserver;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -29,5 +31,6 @@ class AppServiceProvider extends ServiceProvider
             return Route::post($path, $handle)->middleware($middleware);
         });
 
+        Service::observe(ServiceObserver::class);
     }
 }

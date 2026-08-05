@@ -4,15 +4,21 @@ namespace App\Models;
 
 use App\Enums\ServiceCategory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
-class Service extends Model
+class ServiceListing extends Model
 {
+    use CentralConnection;
+
     protected $fillable = [
+        'tenant_id',
+        'service_id',
         'name',
         'description',
-        'category',
         'price',
+        'category',
+        'city',
         'is_active',
     ];
 
@@ -25,8 +31,8 @@ class Service extends Model
         ];
     }
 
-    public function images(): MorphMany
+    public function tenant(): BelongsTo
     {
-        return $this->morphMany(BusinessImage::class, 'imageable');
+        return $this->belongsTo(Tenant::class);
     }
 }

@@ -14,6 +14,8 @@ Route::domain($centralDomain)->group(function () {
         ->middleware(['auth', 'verified'])
         ->name('dashboard');
 
+    Volt::route('/buscar', 'search.index')->name('search');
+
     Route::middleware(['auth'])->group(function () {
         Route::redirect('settings', 'settings/profile');
 
