@@ -10,6 +10,10 @@
             :current="request()->routeIs('tenant.clients')">
             Clientes
         </flux:navlist.item>
+        <flux:navlist.item href="{{ url('/services') }}" icon="wrench-screwdriver" wire:navigate
+            :current="request()->routeIs('tenant.services')">
+            Servicios
+        </flux:navlist.item>
         <flux:navlist.item href="{{ url('/coupons') }}" icon="tag" wire:navigate
             :current="request()->routeIs('tenant.coupons')">
             Cupones

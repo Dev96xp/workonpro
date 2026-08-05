@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ tenant('name') ?? config('app.name') }}</title>
+    @php $businessLogo = \App\Models\BusinessImage::gallery()->where('is_logo', true)->first(); @endphp
+    @if ($businessLogo)
+        <link rel="icon" href="{{ $businessLogo->url() }}">
+    @else
+        <link rel="icon" href="{{ asset('favicon.ico') }}">
+    @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @fluxAppearance
     @livewireStyles

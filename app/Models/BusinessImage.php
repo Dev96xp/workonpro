@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class BusinessImage extends Model
 {
@@ -14,6 +16,7 @@ class BusinessImage extends Model
         'size',
         'compressed_size',
         'is_featured',
+        'is_logo',
         'imageable_type',
         'imageable_id',
     ];
@@ -22,16 +25,17 @@ class BusinessImage extends Model
     {
         return [
             'is_featured' => 'boolean',
+            'is_logo' => 'boolean',
         ];
     }
 
-    public function imageable(): \Illuminate\Database\Eloquent\Relations\MorphTo
+    public function imageable(): MorphTo
     {
         return $this->morphTo();
     }
 
     /** Scope for gallery images (not attached to any model) */
-    public function scopeGallery(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
+    public function scopeGallery(Builder $query): Builder
     {
         return $query->whereNull('imageable_type');
     }
@@ -42,8 +46,14 @@ class BusinessImage extends Model
         self::query()->where('id', $id)->update(['is_featured' => true]);
     }
 
+    public static function setLogo(int $id): void
+    {
+        self::query()->update(['is_logo' => false]);
+        self::query()->where('id', $id)->update(['is_logo' => true]);
+    }
+
     public function url(): string
     {
-        return global_asset('storage/' . $this->path);
+        return global_asset('storage/'.$this->path);
     }
 }

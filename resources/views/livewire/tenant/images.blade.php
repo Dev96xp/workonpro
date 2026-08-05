@@ -37,6 +37,11 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         BusinessImage::setFeatured($id);
     }
 
+    public function setLogo(int $id): void
+    {
+        BusinessImage::setLogo($id);
+    }
+
     public function confirmDelete(int $id): void
     {
         $this->deletingId      = $id;
@@ -144,6 +149,15 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 >
                                     <svg class="size-4" fill="{{ $image->is_featured ? 'currentColor' : 'none' }}" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                                    </svg>
+                                </button>
+                                <button
+                                    wire:click="setLogo({{ $image->id }})"
+                                    class="absolute left-9 top-2 rounded-full p-1 shadow transition-colors {{ $image->is_logo ? 'flex bg-blue-500 text-white' : 'hidden bg-white/80 text-zinc-400 hover:text-blue-500 group-hover:flex' }}"
+                                    title="{{ $image->is_logo ? 'Logo del negocio' : 'Marcar como logo' }}"
+                                >
+                                    <svg class="size-4" fill="{{ $image->is_logo ? 'currentColor' : 'none' }}" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                                     </svg>
                                 </button>
                                 <button

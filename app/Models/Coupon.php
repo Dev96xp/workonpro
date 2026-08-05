@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Coupon extends Model
 {
     protected $fillable = [
         'code',
         'description',
+        'terms',
         'type',
         'value',
         'min_amount',
@@ -21,14 +23,14 @@ class Coupon extends Model
     protected function casts(): array
     {
         return [
-            'value'      => 'decimal:2',
+            'value' => 'decimal:2',
             'min_amount' => 'decimal:2',
             'expires_at' => 'datetime',
-            'is_active'  => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 
-    public function images(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    public function images(): MorphMany
     {
         return $this->morphMany(BusinessImage::class, 'imageable');
     }

@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\BusinessImage;
-use App\Models\Coupon;
+use App\Models\Service;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
@@ -21,29 +21,14 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public ?int $editingId = null;
     public ?int $deletingId = null;
 
-    #[Validate('required|string|max:50|alpha_dash')]
-    public string $code = '';
-
-    #[Validate('nullable|string|max:255')]
-    public string $description = '';
+    #[Validate('required|string|max:100')]
+    public string $name = '';
 
     #[Validate('nullable|string|max:500')]
-    public string $terms = '';
-
-    #[Validate('required|in:percentage,fixed')]
-    public string $type = 'percentage';
-
-    #[Validate('required|numeric|min:0.01')]
-    public string $value = '';
+    public string $description = '';
 
     #[Validate('nullable|numeric|min:0')]
-    public string $min_amount = '';
-
-    #[Validate('nullable|integer|min:1')]
-    public string $max_uses = '';
-
-    #[Validate('nullable|date|after:today')]
-    public string $expires_at = '';
+    public string $price = '';
 
     public bool $is_active = true;
 
@@ -63,11 +48,11 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public function with(): array
     {
         return [
-            'coupons' => Coupon::query()
+            'services' => Service::query()
                 ->with('images')
-                ->when($this->search, fn ($q) => $q->where('code', 'like', "%{$this->search}%")
+                ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%")
                     ->orWhere('description', 'like', "%{$this->search}%"))
-                ->orderByDesc('created_at')
+                ->orderBy('name')
                 ->paginate(10),
         ];
     }
@@ -81,22 +66,17 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     public function openEdit(int $id): void
     {
-        $coupon = Coupon::with('images')->findOrFail($id);
+        $service = Service::with('images')->findOrFail($id);
         $this->editingId        = $id;
-        $this->code             = $coupon->code;
-        $this->description      = $coupon->description ?? '';
-        $this->terms            = $coupon->terms ?? '';
-        $this->type             = $coupon->type;
-        $this->value            = (string) $coupon->value;
-        $this->min_amount       = $coupon->min_amount ? (string) $coupon->min_amount : '';
-        $this->max_uses         = $coupon->max_uses ? (string) $coupon->max_uses : '';
-        $this->expires_at       = $coupon->expires_at ? $coupon->expires_at->format('Y-m-d') : '';
-        $this->is_active        = $coupon->is_active;
-        $this->existingImage1Id = $coupon->images->get(0)?->id;
-        $this->existingImage2Id = $coupon->images->get(1)?->id;
-        $this->removeImage1     = false;
-        $this->removeImage2     = false;
-        $this->showModal        = true;
+        $this->name              = $service->name;
+        $this->description       = $service->description ?? '';
+        $this->price              = $service->price !== null ? (string) $service->price : '';
+        $this->is_active         = $service->is_active;
+        $this->existingImage1Id  = $service->images->get(0)?->id;
+        $this->existingImage2Id  = $service->images->get(1)?->id;
+        $this->removeImage1      = false;
+        $this->removeImage2      = false;
+        $this->showModal         = true;
     }
 
     public function save(): void
@@ -104,23 +84,18 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $this->validate();
 
         $data = [
-            'code'        => strtoupper($this->code),
+            'name'        => $this->name,
             'description' => $this->description ?: null,
-            'terms'       => $this->terms ?: null,
-            'type'        => $this->type,
-            'value'       => $this->value,
-            'min_amount'  => $this->min_amount ?: null,
-            'max_uses'    => $this->max_uses ?: null,
-            'expires_at'  => $this->expires_at ?: null,
+            'price'       => $this->price !== '' ? $this->price : null,
             'is_active'   => $this->is_active,
         ];
 
-        $coupon = $this->editingId
-            ? tap(Coupon::findOrFail($this->editingId))->update($data)
-            : Coupon::create($data);
+        $service = $this->editingId
+            ? tap(Service::findOrFail($this->editingId))->update($data)
+            : Service::create($data);
 
-        $this->syncImage(1, $coupon, $this->existingImage1Id);
-        $this->syncImage(2, $coupon, $this->existingImage2Id);
+        $this->syncImage(1, $service, $this->existingImage1Id);
+        $this->syncImage(2, $service, $this->existingImage2Id);
 
         $this->showModal = false;
         $this->resetForm();
@@ -135,23 +110,18 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public function delete(): void
     {
         if ($this->deletingId) {
-            $coupon = Coupon::with('images')->findOrFail($this->deletingId);
+            $service = Service::with('images')->findOrFail($this->deletingId);
 
-            foreach ($coupon->images as $image) {
+            foreach ($service->images as $image) {
                 $this->deleteFile($image->path);
                 $image->delete();
             }
 
-            $coupon->delete();
+            $service->delete();
         }
 
         $this->showDeleteModal = false;
         $this->deletingId      = null;
-    }
-
-    public function generateCode(): void
-    {
-        $this->code = strtoupper(Str::random(8));
     }
 
     public function updatedSearch(): void
@@ -167,7 +137,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $this->redirect(url('/'));
     }
 
-    private function syncImage(int $slot, Coupon $coupon, ?int $existingId): void
+    private function syncImage(int $slot, Service $service, ?int $existingId): void
     {
         $upload = $slot === 1 ? $this->image1 : $this->image2;
         $remove = $slot === 1 ? $this->removeImage1 : $this->removeImage2;
@@ -180,7 +150,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     $old->delete();
                 }
             }
-            $this->storeImage($upload, $coupon->id);
+            $this->storeImage($upload, $service->id);
 
             return;
         }
@@ -194,7 +164,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         }
     }
 
-    private function storeImage($file, int $couponId): void
+    private function storeImage($file, int $serviceId): void
     {
         $tenantId  = tenant('id');
         $filename  = Str::random(10) . $file->getClientOriginalExtension();
@@ -220,8 +190,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             'mime_type'       => 'image/webp',
             'size'            => $originalSize,
             'compressed_size' => filesize("{$directory}/{$filename}"),
-            'imageable_type'  => Coupon::class,
-            'imageable_id'    => $couponId,
+            'imageable_type'  => Service::class,
+            'imageable_id'    => $serviceId,
         ]);
     }
 
@@ -237,21 +207,16 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     private function resetForm(): void
     {
-        $this->code             = '';
-        $this->description      = '';
-        $this->terms            = '';
-        $this->type             = 'percentage';
-        $this->value            = '';
-        $this->min_amount       = '';
-        $this->max_uses         = '';
-        $this->expires_at       = '';
-        $this->is_active        = true;
-        $this->image1           = null;
-        $this->image2           = null;
-        $this->existingImage1Id = null;
-        $this->existingImage2Id = null;
-        $this->removeImage1     = false;
-        $this->removeImage2     = false;
+        $this->name              = '';
+        $this->description       = '';
+        $this->price              = '';
+        $this->is_active         = true;
+        $this->image1             = null;
+        $this->image2             = null;
+        $this->existingImage1Id  = null;
+        $this->existingImage2Id  = null;
+        $this->removeImage1      = false;
+        $this->removeImage2      = false;
         $this->resetValidation();
     }
 }; ?>
@@ -266,96 +231,75 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             <div class="p-6">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <flux:heading size="xl">Cupones</flux:heading>
-                        <flux:text class="text-zinc-500">Crea y gestiona cupones de descuento</flux:text>
+                        <flux:heading size="xl">Servicios</flux:heading>
+                        <flux:text class="text-zinc-500">Administra los servicios que ofrece tu negocio</flux:text>
                     </div>
                     <flux:button wire:click="openCreate" variant="primary" icon="plus" class="sm:w-auto">
-                        Nuevo cupón
+                        Nuevo servicio
                     </flux:button>
                 </div>
 
                 <div class="mt-6">
-                    <flux:input wire:model.live.debounce.300ms="search" placeholder="Buscar por código o descripción..." icon="magnifying-glass" />
+                    <flux:input wire:model.live.debounce.300ms="search" placeholder="Buscar por nombre o descripción..." icon="magnifying-glass" />
                 </div>
 
                 <div class="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
                     <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                         <thead class="bg-zinc-50 dark:bg-zinc-900">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Código</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Descuento</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Usos</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Expira</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Servicio</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Precio</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Estado</th>
                                 <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
-                            @forelse ($coupons as $coupon)
+                            @forelse ($services as $service)
                                 <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700/50">
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-3">
-                                            @if ($coupon->images->isNotEmpty())
-                                                <img src="{{ $coupon->images->first()->url() }}"
+                                            @if ($service->images->isNotEmpty())
+                                                <img src="{{ $service->images->first()->url() }}"
                                                     class="size-10 rounded-lg object-cover" />
                                             @endif
                                             <div>
-                                                <span class="font-mono font-bold tracking-wider">{{ $coupon->code }}</span>
-                                                @if ($coupon->description)
-                                                    <p class="text-xs text-zinc-500">{{ $coupon->description }}</p>
+                                                <span class="font-medium">{{ $service->name }}</span>
+                                                @if ($service->description)
+                                                    <p class="text-xs text-zinc-500">{{ Str::limit($service->description, 60) }}</p>
                                                 @endif
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4">
-                                        @if ($coupon->type === 'percentage')
-                                            <flux:badge color="blue" size="sm">{{ $coupon->value }}%</flux:badge>
-                                        @else
-                                            <flux:badge color="green" size="sm">${{ number_format($coupon->value, 2) }}</flux:badge>
-                                        @endif
-                                    </td>
                                     <td class="px-6 py-4 text-zinc-500">
-                                        {{ $coupon->uses_count }}
-                                        @if ($coupon->max_uses)
-                                            / {{ $coupon->max_uses }}
-                                        @else
-                                            / ∞
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 text-zinc-500">
-                                        {{ $coupon->expires_at ? $coupon->expires_at->format('d/m/Y') : '—' }}
+                                        {{ $service->price !== null ? '$' . number_format($service->price, 2) : '—' }}
                                     </td>
                                     <td class="px-6 py-4">
-                                        @if ($coupon->isValid())
+                                        @if ($service->is_active)
                                             <flux:badge color="green" size="sm">Activo</flux:badge>
-                                        @elseif ($coupon->isExpired())
-                                            <flux:badge color="red" size="sm">Expirado</flux:badge>
-                                        @elseif ($coupon->hasReachedMaxUses())
-                                            <flux:badge color="orange" size="sm">Agotado</flux:badge>
                                         @else
                                             <flux:badge color="zinc" size="sm">Inactivo</flux:badge>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         <div class="flex justify-end gap-2">
-                                            <flux:button wire:click="openEdit({{ $coupon->id }})" size="sm" icon="pencil" />
-                                            <flux:button wire:click="confirmDelete({{ $coupon->id }})" size="sm" icon="trash" variant="danger" />
+                                            <flux:button wire:click="openEdit({{ $service->id }})" size="sm" icon="pencil" />
+                                            <flux:button wire:click="confirmDelete({{ $service->id }})" size="sm" icon="trash" variant="danger" />
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-6 py-12 text-center text-zinc-500">
-                                        No hay cupones creados aún.
+                                    <td colspan="4" class="px-6 py-12 text-center text-zinc-500">
+                                        No hay servicios creados aún.
                                     </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
 
-                    @if ($coupons->hasPages())
+                    @if ($services->hasPages())
                         <div class="border-t border-zinc-200 px-6 py-3 dark:border-zinc-700">
-                            {{ $coupons->links() }}
+                            {{ $services->links() }}
                         </div>
                     @endif
                 </div>
@@ -365,75 +309,37 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     {{-- Modal Crear/Editar --}}
     <flux:modal wire:model="showModal" class="w-full max-w-lg">
-        <flux:heading size="lg">{{ $editingId ? 'Editar cupón' : 'Nuevo cupón' }}</flux:heading>
+        <flux:heading size="lg">{{ $editingId ? 'Editar servicio' : 'Nuevo servicio' }}</flux:heading>
 
         <form wire:submit="save" class="mt-4 space-y-4">
             <div class="grid gap-4 sm:grid-cols-2">
                 <flux:field class="sm:col-span-2">
-                    <flux:label>Código <span class="text-red-500">*</span></flux:label>
-                    <div class="flex gap-2">
-                        <flux:input wire:model="code" placeholder="PROMO10" class="uppercase" />
-                        <flux:button type="button" wire:click="generateCode" icon="arrow-path" title="Generar código" />
-                    </div>
-                    <flux:error name="code" />
+                    <flux:label>Nombre del servicio <span class="text-red-500">*</span></flux:label>
+                    <flux:input wire:model="name" placeholder="Ej: Reparación de techo" />
+                    <flux:error name="name" />
                 </flux:field>
 
                 <flux:field class="sm:col-span-2">
                     <flux:label>Descripción</flux:label>
-                    <flux:textarea wire:model="description" rows="3" placeholder="Ej: Descuento de temporada" />
+                    <flux:textarea wire:model="description" rows="3" placeholder="Describe en qué consiste el servicio..." />
                     <flux:error name="description" />
                 </flux:field>
 
-                <flux:field class="sm:col-span-2">
-                    <flux:label>Términos y condiciones</flux:label>
-                    <flux:textarea wire:model="terms" rows="2" placeholder="Ej: No acumulable con otras promociones. Aplica solo en la primera compra." />
-                    <flux:description>Se muestra en letra pequeña junto al cupón para evitar abusos.</flux:description>
-                    <flux:error name="terms" />
-                </flux:field>
-
                 <flux:field>
-                    <flux:label>Tipo <span class="text-red-500">*</span></flux:label>
-                    <flux:select wire:model="type">
-                        <flux:select.option value="percentage">Porcentaje (%)</flux:select.option>
-                        <flux:select.option value="fixed">Monto fijo ($)</flux:select.option>
-                    </flux:select>
-                    <flux:error name="type" />
+                    <flux:label>Precio base ($)</flux:label>
+                    <flux:input wire:model="price" type="number" step="0.01" min="0" placeholder="0.00" />
+                    <flux:error name="price" />
                 </flux:field>
 
-                <flux:field>
-                    <flux:label>Valor <span class="text-red-500">*</span></flux:label>
-                    <flux:input wire:model="value" type="number" step="0.01" min="0.01"
-                        placeholder="{{ $type === 'percentage' ? '10' : '25.00' }}" />
-                    <flux:error name="value" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>Monto mínimo ($)</flux:label>
-                    <flux:input wire:model="min_amount" type="number" step="0.01" min="0" placeholder="0.00" />
-                    <flux:error name="min_amount" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>Máximo de usos</flux:label>
-                    <flux:input wire:model="max_uses" type="number" min="1" placeholder="Ilimitado" />
-                    <flux:error name="max_uses" />
-                </flux:field>
-
-                <flux:field class="sm:col-span-2">
-                    <flux:label>Fecha de expiración</flux:label>
-                    <flux:input wire:model="expires_at" type="date" />
-                    <flux:error name="expires_at" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:checkbox wire:model="is_active" label="Cupón activo" />
+                <flux:field class="flex items-end">
+                    <flux:checkbox wire:model="is_active" label="Servicio activo" />
                 </flux:field>
             </div>
 
-            {{-- Imágenes del cupón --}}
+            {{-- Imágenes del servicio --}}
             <div class="border-t border-zinc-200 pt-4 dark:border-zinc-700">
                 <flux:text class="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Imágenes del cupón (opcional, máx. 2)
+                    Imágenes del servicio (opcional, máx. 2)
                 </flux:text>
                 <div class="grid grid-cols-2 gap-4">
                     {{-- Imagen 1 --}}
@@ -497,7 +403,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             <div class="flex justify-end gap-3 pt-2">
                 <flux:button type="button" wire:click="$set('showModal', false)">Cancelar</flux:button>
                 <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
-                    <span wire:loading.remove>{{ $editingId ? 'Guardar cambios' : 'Crear cupón' }}</span>
+                    <span wire:loading.remove>{{ $editingId ? 'Guardar cambios' : 'Crear servicio' }}</span>
                     <span wire:loading>Guardando...</span>
                 </flux:button>
             </div>
@@ -510,7 +416,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
                 <flux:icon.trash class="size-6 text-red-600 dark:text-red-400" />
             </div>
-            <flux:heading size="lg">¿Eliminar cupón?</flux:heading>
+            <flux:heading size="lg">¿Eliminar servicio?</flux:heading>
             <flux:text class="mt-2 text-zinc-500">Esta acción no se puede deshacer.</flux:text>
         </div>
         <div class="mt-6 flex justify-center gap-3">

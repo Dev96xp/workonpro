@@ -40,6 +40,7 @@ Route::middleware([
     Route::middleware('auth')->group(function () {
         Volt::route('/dashboard', 'tenant.dashboard')->name('tenant.dashboard');
         Volt::route('/clients', 'tenant.clients')->name('tenant.clients');
+        Volt::route('/services', 'tenant.services')->name('tenant.services');
         Volt::route('/coupons', 'tenant.coupons')->name('tenant.coupons');
         Volt::route('/images', 'tenant.images')->name('tenant.images');
         Route::post('/images/upload', [ImageController::class, 'store'])->name('tenant.images.upload');

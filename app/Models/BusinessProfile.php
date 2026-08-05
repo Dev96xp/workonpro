@@ -11,6 +11,7 @@ class BusinessProfile extends Model
     protected $fillable = [
         'business_name',
         'business_title',
+        'show_logo_on_hero',
         'slogan',
         'description',
         'policy',
@@ -25,6 +26,17 @@ class BusinessProfile extends Model
         'website',
         'instagram',
         'facebook',
+        'youtube',
+        'x',
+        'tiktok',
+        'discord',
         'business_hours',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'show_logo_on_hero' => 'boolean',
+        ];
+    }
 }

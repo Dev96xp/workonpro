@@ -15,6 +15,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     #[Validate('nullable|string|max:150')]
     public string $business_title = '';
 
+    public bool $show_logo_on_hero = false;
+
     #[Validate('nullable|string|max:150')]
     public string $slogan = '';
 
@@ -48,6 +50,18 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     #[Validate('nullable|string|max:150')]
     public string $facebook = '';
 
+    #[Validate('nullable|string|max:150')]
+    public string $youtube = '';
+
+    #[Validate('nullable|string|max:150')]
+    public string $x = '';
+
+    #[Validate('nullable|string|max:150')]
+    public string $tiktok = '';
+
+    #[Validate('nullable|string|max:150')]
+    public string $discord = '';
+
     #[Validate('nullable|string|max:100')]
     public string $business_hours = '';
 
@@ -79,8 +93,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
         if ($profile) {
             $this->business_name  = $profile->business_name;
-            $this->business_title = $profile->business_title ?? '';
-            $this->slogan         = $profile->slogan ?? '';
+            $this->business_title    = $profile->business_title ?? '';
+            $this->show_logo_on_hero = $profile->show_logo_on_hero;
+            $this->slogan            = $profile->slogan ?? '';
             $this->business_email = $profile->email ?? '';
             $this->phone          = $profile->phone ?? '';
             $this->phone_2        = $profile->phone_2 ?? '';
@@ -91,6 +106,10 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             $this->website        = $profile->website ?? '';
             $this->instagram      = $profile->instagram ?? '';
             $this->facebook       = $profile->facebook ?? '';
+            $this->youtube        = $profile->youtube ?? '';
+            $this->x              = $profile->x ?? '';
+            $this->tiktok         = $profile->tiktok ?? '';
+            $this->discord        = $profile->discord ?? '';
             $this->business_hours = $profile->business_hours ?? '';
             $this->description    = $profile->description ?? '';
             $this->policy         = $profile->policy ?? '';
@@ -102,14 +121,15 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     public function saveProfile(): void
     {
-        $this->validateOnly('business_name,business_title,slogan,business_email,phone,phone_2,whatsapp,address,city,country,website,instagram,facebook,business_hours,description,policy,objectives');
+        $this->validateOnly('business_name,business_title,slogan,business_email,phone,phone_2,whatsapp,address,city,country,website,instagram,facebook,youtube,x,tiktok,discord,business_hours,description,policy,objectives');
 
         BusinessProfile::updateOrCreate(
             ['id' => 1],
             [
-                'business_name'  => $this->business_name,
-                'business_title' => $this->business_title ?: null,
-                'slogan'         => $this->slogan ?: null,
+                'business_name'      => $this->business_name,
+                'business_title'     => $this->business_title ?: null,
+                'show_logo_on_hero'  => $this->show_logo_on_hero,
+                'slogan'             => $this->slogan ?: null,
                 'email'          => $this->business_email ?: null,
                 'phone'          => $this->phone ?: null,
                 'phone_2'        => $this->phone_2 ?: null,
@@ -120,6 +140,10 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 'website'        => $this->website ?: null,
                 'instagram'      => $this->instagram ?: null,
                 'facebook'       => $this->facebook ?: null,
+                'youtube'        => $this->youtube ?: null,
+                'x'              => $this->x ?: null,
+                'tiktok'         => $this->tiktok ?: null,
+                'discord'        => $this->discord ?: null,
                 'business_hours' => $this->business_hours ?: null,
                 'description'    => $this->description ?: null,
                 'policy'         => $this->policy ?: null,
@@ -194,6 +218,11 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                         <flux:input wire:model="business_title" placeholder="Se muestra como título en tu página principal" />
                                         <flux:description>Si lo dejas vacío, se usa el nombre del negocio.</flux:description>
                                         <flux:error name="business_title" />
+                                    </flux:field>
+
+                                    <flux:field class="sm:col-span-2">
+                                        <flux:switch wire:model="show_logo_on_hero" label="Mostrar mi logo sobre el título principal" />
+                                        <flux:description>Requiere que hayas marcado una imagen como logo en el módulo de Imágenes.</flux:description>
                                     </flux:field>
 
                                     <flux:field class="sm:col-span-2">
@@ -284,6 +313,30 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                         <flux:label>Facebook</flux:label>
                                         <flux:input wire:model="facebook" placeholder="facebook.com/minegocio" />
                                         <flux:error name="facebook" />
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label>YouTube</flux:label>
+                                        <flux:input wire:model="youtube" placeholder="youtube.com/@minegocio" />
+                                        <flux:error name="youtube" />
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label>X (Twitter)</flux:label>
+                                        <flux:input wire:model="x" placeholder="@minegocio" />
+                                        <flux:error name="x" />
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label>TikTok</flux:label>
+                                        <flux:input wire:model="tiktok" placeholder="@minegocio" />
+                                        <flux:error name="tiktok" />
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label>Discord</flux:label>
+                                        <flux:input wire:model="discord" placeholder="discord.gg/minegocio" />
+                                        <flux:error name="discord" />
                                     </flux:field>
                                 </div>
                             </div>
