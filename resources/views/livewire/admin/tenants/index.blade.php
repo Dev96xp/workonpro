@@ -25,6 +25,7 @@ new #[Layout('components.layouts.admin')] class extends Component {
                     ->orWhere('id', 'like', "%{$this->search}%"))
                 ->latest()
                 ->paginate(10),
+            'centralDomain' => parse_url(config('app.url'), PHP_URL_HOST),
         ];
     }
 }; ?>
@@ -53,7 +54,13 @@ new #[Layout('components.layouts.admin')] class extends Component {
             @forelse ($tenants as $tenant)
                 <flux:table.row>
                     <flux:table.cell>
-                        <div class="font-medium">{{ $tenant->name }}</div>
+                        @if ($tenant->domains->first())
+                            <a href="{{ request()->getScheme() }}://{{ $tenant->domains->first()->domain }}.{{ $centralDomain }}" target="_blank" class="font-medium hover:text-yellow-500 hover:underline">
+                                {{ $tenant->name }}
+                            </a>
+                        @else
+                            <div class="font-medium">{{ $tenant->name }}</div>
+                        @endif
                         <div class="text-xs text-zinc-400">{{ $tenant->id }}</div>
                     </flux:table.cell>
                     <flux:table.cell>{{ $tenant->domains->first()?->domain ?? '—' }}</flux:table.cell>
@@ -61,6 +68,16 @@ new #[Layout('components.layouts.admin')] class extends Component {
                     <flux:table.cell>{{ $tenant->created_at->format('d/m/Y') }}</flux:table.cell>
                     <flux:table.cell>
                         <div class="flex items-center gap-2">
+                            @if ($tenant->domains->first())
+                                <flux:button
+                                    href="{{ request()->getScheme() }}://{{ $tenant->domains->first()->domain }}.{{ $centralDomain }}"
+                                    target="_blank"
+                                    size="sm"
+                                    variant="ghost"
+                                    icon="arrow-top-right-on-square"
+                                    title="Abrir sitio del negocio"
+                                />
+                            @endif
                             <flux:button href="{{ route('admin.tenants.show', $tenant) }}" size="sm" variant="ghost" icon="eye" wire:navigate />
                             <flux:button href="{{ route('admin.tenants.edit', $tenant) }}" size="sm" variant="ghost" icon="pencil" wire:navigate />
                             <flux:button wire:click="deleteTenant('{{ $tenant->id }}')" wire:confirm="¿Eliminar este negocio y su base de datos?" size="sm" variant="ghost" icon="trash" class="text-red-500" />
