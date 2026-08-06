@@ -31,12 +31,18 @@ class BusinessProfile extends Model
         'tiktok',
         'discord',
         'business_hours',
+        'has_license',
+        'license_number',
+        'has_insurance',
+        'insurance_number',
     ];
 
     protected function casts(): array
     {
         return [
             'show_logo_on_hero' => 'boolean',
+            'has_license' => 'boolean',
+            'has_insurance' => 'boolean',
         ];
     }
 }

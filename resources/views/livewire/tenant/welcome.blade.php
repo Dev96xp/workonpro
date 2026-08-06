@@ -49,6 +49,10 @@ new #[Layout('components.layouts.guest')] class extends Component {
             'businessX'           => $profile?->x,
             'businessTiktok'      => $profile?->tiktok,
             'businessDiscord'     => $profile?->discord,
+            'businessHasLicense'     => (bool) ($profile?->has_license ?? false),
+            'businessLicenseNumber'  => $profile?->license_number,
+            'businessHasInsurance'   => (bool) ($profile?->has_insurance ?? false),
+            'businessInsuranceNumber' => $profile?->insurance_number,
             'businessDescription' => $profile?->description,
             'businessPolicy'      => $profile?->policy,
             'businessObjectives'  => $profile?->objectives,
@@ -283,6 +287,27 @@ new #[Layout('components.layouts.guest')] class extends Component {
                     </span>
                 @endif
             </div>
+
+            @if ($businessHasLicense || $businessHasInsurance)
+                <div class="flex flex-wrap items-center justify-center gap-2 mt-1">
+                    @if ($businessHasLicense)
+                        <span class="inline-flex items-center gap-1.5 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1 text-xs font-semibold text-yellow-300">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Con licencia
+                        </span>
+                    @endif
+                    @if ($businessHasInsurance)
+                        <span class="inline-flex items-center gap-1.5 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1 text-xs font-semibold text-yellow-300">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75M12 3l7 3.5v4.5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6.5L12 3z"/>
+                            </svg>
+                            Con seguro
+                        </span>
+                    @endif
+                </div>
+            @endif
 
             @if ($coupons->isNotEmpty())
                 <button

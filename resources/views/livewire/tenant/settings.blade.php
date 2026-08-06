@@ -65,6 +65,17 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     #[Validate('nullable|string|max:100')]
     public string $business_hours = '';
 
+    // Licencia y seguro
+    public bool $has_license = false;
+
+    #[Validate('nullable|string|max:100')]
+    public string $license_number = '';
+
+    public bool $has_insurance = false;
+
+    #[Validate('nullable|string|max:100')]
+    public string $insurance_number = '';
+
     // Extended info
     #[Validate('nullable|string|max:2000')]
     public string $description = '';
@@ -111,6 +122,10 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             $this->tiktok         = $profile->tiktok ?? '';
             $this->discord        = $profile->discord ?? '';
             $this->business_hours = $profile->business_hours ?? '';
+            $this->has_license      = $profile->has_license;
+            $this->license_number   = $profile->license_number ?? '';
+            $this->has_insurance    = $profile->has_insurance;
+            $this->insurance_number = $profile->insurance_number ?? '';
             $this->description    = $profile->description ?? '';
             $this->policy         = $profile->policy ?? '';
             $this->objectives     = $profile->objectives ?? '';
@@ -121,7 +136,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     public function saveProfile(): void
     {
-        $this->validateOnly('business_name,business_title,slogan,business_email,phone,phone_2,whatsapp,address,city,country,website,instagram,facebook,youtube,x,tiktok,discord,business_hours,description,policy,objectives');
+        $this->validateOnly('business_name,business_title,slogan,business_email,phone,phone_2,whatsapp,address,city,country,website,instagram,facebook,youtube,x,tiktok,discord,business_hours,license_number,insurance_number,description,policy,objectives');
 
         BusinessProfile::updateOrCreate(
             ['id' => 1],
@@ -145,6 +160,10 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 'tiktok'         => $this->tiktok ?: null,
                 'discord'        => $this->discord ?: null,
                 'business_hours' => $this->business_hours ?: null,
+                'has_license'      => $this->has_license,
+                'license_number'   => $this->license_number ?: null,
+                'has_insurance'    => $this->has_insurance,
+                'insurance_number' => $this->insurance_number ?: null,
                 'description'    => $this->description ?: null,
                 'policy'         => $this->policy ?: null,
                 'objectives'     => $this->objectives ?: null,
@@ -260,6 +279,36 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                         <flux:input wire:model="whatsapp" placeholder="+1 234 567 8900" />
                                         <flux:error name="whatsapp" />
                                     </flux:field>
+                                </div>
+                            </div>
+
+                            {{-- Licencia y seguro --}}
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">Licencia y Seguro</p>
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <flux:field>
+                                        <flux:switch wire:model.live="has_license" label="Tengo licencia de trabajo" />
+                                    </flux:field>
+
+                                    @if ($has_license)
+                                        <flux:field>
+                                            <flux:label>Número de licencia</flux:label>
+                                            <flux:input wire:model="license_number" placeholder="Opcional" />
+                                            <flux:error name="license_number" />
+                                        </flux:field>
+                                    @endif
+
+                                    <flux:field>
+                                        <flux:switch wire:model.live="has_insurance" label="Cuento con seguro de daños" />
+                                    </flux:field>
+
+                                    @if ($has_insurance)
+                                        <flux:field>
+                                            <flux:label>Número de póliza</flux:label>
+                                            <flux:input wire:model="insurance_number" placeholder="Opcional" />
+                                            <flux:error name="insurance_number" />
+                                        </flux:field>
+                                    @endif
                                 </div>
                             </div>
 
