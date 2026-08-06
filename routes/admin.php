@@ -22,6 +22,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Volt::route('/{tenant}', 'admin.tenants.show')->name('show');
             Volt::route('/{tenant}/edit', 'admin.tenants.edit')->name('edit');
         });
+
+        Route::prefix('categories')->name('categories.')->group(function () {
+            Volt::route('/', 'admin.categories.index')->name('index');
+            Volt::route('/create', 'admin.categories.create')->name('create');
+            Volt::route('/{category}/edit', 'admin.categories.edit')->name('edit');
+        });
     });
 
     Route::post('logout', function () {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Jobs\DeleteTenantStorage;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -11,7 +12,6 @@ use Stancl\JobPipeline\JobPipeline;
 use Stancl\Tenancy\Events;
 use Stancl\Tenancy\Jobs;
 use Stancl\Tenancy\Listeners;
-use Stancl\Tenancy\Middleware;
 
 class TenancyServiceProvider extends ServiceProvider
 {
@@ -44,6 +44,7 @@ class TenancyServiceProvider extends ServiceProvider
             Events\TenantDeleted::class => [
                 JobPipeline::make([
                     Jobs\DeleteDatabase::class,
+                    DeleteTenantStorage::class,
                 ])->send(function (Events\TenantDeleted $event) {
                     return $event->tenant;
                 })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
@@ -123,7 +124,7 @@ class TenancyServiceProvider extends ServiceProvider
                 $mainDomain = collect(config('tenancy.central_domains', []))
                     ->first(fn ($d) => ! filter_var($d, FILTER_VALIDATE_IP) && $d !== 'localhost');
 
-                Route::domain('{subdomain}.' . $mainDomain)
+                Route::domain('{subdomain}.'.$mainDomain)
                     ->namespace(static::$controllerNamespace)
                     ->group(base_path('routes/tenant.php'));
             }

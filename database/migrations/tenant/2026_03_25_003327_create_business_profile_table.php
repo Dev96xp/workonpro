@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('business_name');
             $table->string('business_title')->nullable();
+            $table->boolean('show_logo_on_hero')->default(false);
             $table->string('slogan')->nullable();
             $table->text('description')->nullable();
             $table->text('policy')->nullable();
@@ -27,6 +28,10 @@ return new class extends Migration
             $table->string('website')->nullable();
             $table->string('instagram')->nullable();
             $table->string('facebook')->nullable();
+            $table->string('youtube')->nullable();
+            $table->string('x')->nullable();
+            $table->string('tiktok')->nullable();
+            $table->string('discord')->nullable();
             $table->timestamps();
         });
     }

@@ -1,7 +1,7 @@
 <?php
 
-use App\Enums\ServiceCategory;
 use App\Models\BusinessImage;
+use App\Models\Category;
 use App\Models\Service;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -58,6 +58,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     ->orWhere('description', 'like', "%{$this->search}%"))
                 ->orderBy('name')
                 ->paginate(10),
+            'categoryOptions' => Category::query()->where('is_active', true)->orderBy('sort_order')->get(),
+            'categoryLabels' => Category::query()->orderBy('sort_order')->pluck('name', 'slug'),
         ];
     }
 
@@ -74,7 +76,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $this->editingId        = $id;
         $this->name              = $service->name;
         $this->description       = $service->description ?? '';
-        $this->category          = $service->category?->value ?? '';
+        $this->category          = $service->category ?? '';
         $this->price              = $service->price !== null ? (string) $service->price : '';
         $this->is_active         = $service->is_active;
         $this->existingImage1Id  = $service->images->get(0)?->id;
@@ -280,7 +282,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                     </td>
                                     <td class="px-6 py-4 text-zinc-500">
                                         @if ($service->category)
-                                            <flux:badge size="sm">{{ $service->category->label() }}</flux:badge>
+                                            <flux:badge size="sm">{{ $categoryLabels[$service->category] ?? $service->category }}</flux:badge>
                                         @else
                                             —
                                         @endif
@@ -344,8 +346,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     <flux:label>Categoría <span class="text-red-500">*</span></flux:label>
                     <flux:select wire:model="category">
                         <flux:select.option value="">Selecciona una categoría</flux:select.option>
-                        @foreach (ServiceCategory::cases() as $option)
-                            <flux:select.option value="{{ $option->value }}">{{ $option->label() }}</flux:select.option>
+                        @foreach ($categoryOptions as $option)
+                            <flux:select.option value="{{ $option->slug }}">{{ $option->name }}</flux:select.option>
                         @endforeach
                     </flux:select>
                     <flux:error name="category" />

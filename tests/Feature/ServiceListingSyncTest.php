@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\ServiceCategory;
 use App\Models\BusinessProfile;
 use App\Models\Service;
 use App\Models\ServiceListing;
@@ -13,7 +12,7 @@ afterEach(function () {
     }
 });
 
-function createTenantWithService(string $id, string $city, ServiceCategory $category, string $name): Tenant
+function createTenantWithService(string $id, string $city, string $categorySlug, string $name): Tenant
 {
     $tenant = Tenant::create([
         'id' => $id,
@@ -28,7 +27,7 @@ function createTenantWithService(string $id, string $city, ServiceCategory $cate
     BusinessProfile::create(['business_name' => "Business {$id}", 'city' => $city]);
     Service::create([
         'name' => $name,
-        'category' => $category,
+        'category' => $categorySlug,
         'price' => 100,
         'is_active' => true,
     ]);
@@ -38,7 +37,7 @@ function createTenantWithService(string $id, string $city, ServiceCategory $cate
 }
 
 it('syncs a service into the central index on create, update, and delete', function () {
-    $tenant = createTenantWithService('synctenant', 'Miami', ServiceCategory::Techos, 'Reparación de techos');
+    $tenant = createTenantWithService('synctenant', 'Miami', 'roofing', 'Reparación de techos');
 
     tenancy()->initialize($tenant);
     $service = Service::first();
@@ -48,7 +47,7 @@ it('syncs a service into the central index on create, update, and delete', funct
 
     expect($listing)->not->toBeNull()
         ->and($listing->name)->toBe('Reparación de techos')
-        ->and($listing->category)->toBe(ServiceCategory::Techos)
+        ->and($listing->category)->toBe('roofing')
         ->and($listing->city)->toBe('Miami')
         ->and((float) $listing->price)->toBe(100.0);
 
@@ -68,13 +67,13 @@ it('syncs a service into the central index on create, update, and delete', funct
 });
 
 it('filters central search results by category and city', function () {
-    $electric = createTenantWithService('electrictenant', 'Austin', ServiceCategory::Electricidad, 'Instalación eléctrica');
-    $paint = createTenantWithService('painttenant', 'Miami', ServiceCategory::Pintura, 'Pintura de interiores');
+    $electric = createTenantWithService('electrictenant', 'Austin', 'electrical', 'Instalación eléctrica');
+    $paint = createTenantWithService('painttenant', 'Miami', 'painting', 'Pintura de interiores');
 
     Volt::test('search.index')
         ->assertSee('Instalación eléctrica')
         ->assertSee('Pintura de interiores')
-        ->set('category', ServiceCategory::Electricidad->value)
+        ->set('category', 'electrical')
         ->assertSee('Instalación eléctrica')
         ->assertDontSee('Pintura de interiores')
         ->set('category', '')

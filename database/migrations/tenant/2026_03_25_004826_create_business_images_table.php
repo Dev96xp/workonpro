@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('size');
             $table->unsignedBigInteger('compressed_size');
             $table->boolean('is_featured')->default(false);
+            $table->boolean('is_logo')->default(false);
             $table->nullableMorphs('imageable');
             $table->timestamps();
         });

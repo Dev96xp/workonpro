@@ -1,6 +1,6 @@
 <?php
 
-use App\Enums\ServiceCategory;
+use App\Models\Category;
 use App\Models\ServiceListing;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
@@ -34,6 +34,8 @@ new #[Layout('components.layouts.guest')] class extends Component {
                 ->distinct()
                 ->orderBy('city')
                 ->pluck('city'),
+            'categoryOptions' => Category::query()->where('is_active', true)->orderBy('sort_order')->get(),
+            'categoryLabels' => Category::query()->pluck('name', 'slug'),
         ];
     }
 
@@ -54,7 +56,17 @@ new #[Layout('components.layouts.guest')] class extends Component {
 }; ?>
 
 <div class="min-h-screen bg-zinc-900">
-    <div class="mx-auto max-w-5xl px-6 py-24 sm:px-8">
+    {{-- Navbar --}}
+    <header class="border-b border-white/10">
+        <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-5 sm:px-8">
+            <a href="{{ route('home') }}" class="text-2xl font-black tracking-tighter text-yellow-400 sm:text-3xl">Workon</a>
+            <a href="{{ route('home') }}" class="text-sm font-medium text-zinc-400 transition hover:text-yellow-400">
+                ← Volver al inicio
+            </a>
+        </div>
+    </header>
+
+    <div class="mx-auto max-w-5xl px-6 py-16 sm:px-8">
         {{-- Header --}}
         <div class="mb-14 text-center">
             <flux:heading size="xl" class="font-black tracking-tight text-white">Buscar servicios</flux:heading>
@@ -73,8 +85,8 @@ new #[Layout('components.layouts.guest')] class extends Component {
             <div class="flex gap-3">
                 <flux:select wire:model.live="category" class="sm:w-48">
                     <flux:select.option value="">Categoría</flux:select.option>
-                    @foreach (ServiceCategory::cases() as $option)
-                        <flux:select.option value="{{ $option->value }}">{{ $option->label() }}</flux:select.option>
+                    @foreach ($categoryOptions as $option)
+                        <flux:select.option value="{{ $option->slug }}">{{ $option->name }}</flux:select.option>
                     @endforeach
                 </flux:select>
 
@@ -98,7 +110,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             @if ($listing->category)
-                                <span class="text-xs font-medium tracking-wide text-yellow-400/90 uppercase">{{ $listing->category->label() }}</span>
+                                <span class="text-xs font-medium tracking-wide text-yellow-400/90 uppercase">{{ $categoryLabels[$listing->category] ?? $listing->category }}</span>
                             @endif
                             <flux:heading size="lg" class="mt-1 text-white">{{ $listing->name }}</flux:heading>
                         </div>

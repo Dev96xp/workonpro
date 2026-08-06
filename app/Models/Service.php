@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ServiceCategory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
@@ -19,7 +18,6 @@ class Service extends Model
     protected function casts(): array
     {
         return [
-            'category' => ServiceCategory::class,
             'price' => 'decimal:2',
             'is_active' => 'boolean',
         ];
