@@ -56,6 +56,31 @@
                     <a href="{{ url('/admin/login') }}" class="hidden text-sm font-medium text-zinc-400 transition hover:text-yellow-400 sm:block">Iniciar sesión</a>
                 @endauth
 
+                {{-- Mobile menu --}}
+                <details class="group relative md:hidden">
+                    <summary class="flex cursor-pointer list-none items-center justify-center p-1 text-zinc-300 transition hover:text-yellow-400">
+                        <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+                        </svg>
+                    </summary>
+
+                    <div class="absolute right-0 z-10 mt-3 w-56 border border-zinc-800 bg-zinc-900 py-2 shadow-xl">
+                        <a href="#features" class="block px-4 py-2 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-yellow-400">Características</a>
+                        <a href="#pricing" class="block px-4 py-2 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-yellow-400">Precios</a>
+                        <a href="{{ route('search') }}" class="block px-4 py-2 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-yellow-400">Buscar servicios</a>
+                        <div class="my-1 h-px bg-zinc-800"></div>
+                        @auth('super_admin')
+                            <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-yellow-400">Panel</a>
+                            <form method="POST" action="{{ route('admin.logout') }}">
+                                @csrf
+                                <button type="submit" class="block w-full px-4 py-2 text-left text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-yellow-400">Cerrar sesión</button>
+                            </form>
+                        @else
+                            <a href="{{ url('/admin/login') }}" class="block px-4 py-2 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-yellow-400">Iniciar sesión</a>
+                        @endauth
+                    </div>
+                </details>
+
                 <a href="{{ route('register.plans') }}" class="border-b-2 border-yellow-400 bg-yellow-400 px-4 py-2 text-sm font-black text-zinc-900 transition hover:bg-transparent hover:text-yellow-400 sm:px-6">
                     Empezar →
                 </a>
