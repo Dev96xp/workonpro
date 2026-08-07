@@ -144,7 +144,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 </div>
                                 <button
                                     wire:click="setFeatured({{ $image->id }})"
-                                    class="absolute left-2 top-2 rounded-full p-1 shadow transition-colors {{ $image->is_featured ? 'flex bg-yellow-400 text-white' : 'hidden bg-white/80 text-zinc-400 hover:text-yellow-400 group-hover:flex' }}"
+                                    class="absolute left-2 top-2 flex rounded-full p-1 shadow transition-colors {{ $image->is_featured ? 'bg-yellow-400 text-white' : 'bg-white/80 text-zinc-400 hover:text-yellow-400 sm:hidden sm:group-hover:flex' }}"
                                     title="{{ $image->is_featured ? 'Imagen destacada' : 'Marcar como destacada' }}"
                                 >
                                     <svg class="size-4" fill="{{ $image->is_featured ? 'currentColor' : 'none' }}" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -153,7 +153,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 </button>
                                 <button
                                     wire:click="setLogo({{ $image->id }})"
-                                    class="absolute left-9 top-2 rounded-full p-1 shadow transition-colors {{ $image->is_logo ? 'flex bg-blue-500 text-white' : 'hidden bg-white/80 text-zinc-400 hover:text-blue-500 group-hover:flex' }}"
+                                    class="absolute left-9 top-2 flex rounded-full p-1 shadow transition-colors {{ $image->is_logo ? 'bg-blue-500 text-white' : 'bg-white/80 text-zinc-400 hover:text-blue-500 sm:hidden sm:group-hover:flex' }}"
                                     title="{{ $image->is_logo ? 'Logo del negocio' : 'Marcar como logo' }}"
                                 >
                                     <svg class="size-4" fill="{{ $image->is_logo ? 'currentColor' : 'none' }}" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -162,7 +162,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 </button>
                                 <button
                                     wire:click="confirmDelete({{ $image->id }})"
-                                    class="absolute right-2 top-2 hidden rounded-full bg-red-600 p-1 text-white shadow hover:bg-red-700 group-hover:flex"
+                                    class="absolute right-2 top-2 flex rounded-full bg-red-600 p-1 text-white shadow hover:bg-red-700 sm:hidden sm:group-hover:flex"
                                     title="Eliminar"
                                 >
                                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
