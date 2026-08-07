@@ -37,10 +37,18 @@ return [
 
     'stripe' => [
         'prices' => [
-            'basic'      => env('STRIPE_PRICE_BASIC'),
-            'pro'        => env('STRIPE_PRICE_PRO'),
+            'basic' => env('STRIPE_PRICE_BASIC'),
+            'pro' => env('STRIPE_PRICE_PRO'),
             'enterprise' => env('STRIPE_PRICE_ENTERPRISE'),
         ],
+    ],
+
+    'ipinfo' => [
+        'token' => env('IPINFO_TOKEN'),
+    ],
+
+    'mysqldump' => [
+        'path' => env('MYSQLDUMP_PATH', 'mysqldump'),
     ],
 
 ];

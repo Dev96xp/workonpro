@@ -55,6 +55,16 @@ new #[Layout('components.layouts.admin')] class extends Component {
     </div>
 
     <div class="mt-8">
+        <a href="{{ route('admin.settings.notifications') }}" wire:navigate class="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-6 transition hover:border-yellow-400 dark:border-zinc-700 dark:bg-zinc-800">
+            <flux:icon name="envelope" class="size-8 text-zinc-400" />
+            <div>
+                <flux:heading size="lg">Notificaciones a negocios</flux:heading>
+                <flux:subheading>Enviar un mensaje por email a uno, varios, o todos los negocios</flux:subheading>
+            </div>
+        </a>
+    </div>
+
+    <div class="mt-8">
         <div class="mb-4 flex items-center justify-between">
             <flux:heading size="lg">Negocios recientes</flux:heading>
             <flux:button href="{{ route('admin.tenants.index') }}" variant="ghost" size="sm" wire:navigate>

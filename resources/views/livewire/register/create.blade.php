@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\IpGeolocationService;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Volt\Component;
@@ -45,8 +46,10 @@ new #[Layout('components.layouts.auth')] class extends Component {
     {
         $this->validate();
 
+        $signupCity = app(IpGeolocationService::class)->city(request()->ip());
+
         if ($this->plan === 'basic') {
-            $this->registerFreeTenant();
+            $this->registerFreeTenant($signupCity);
 
             return;
         }
@@ -62,10 +65,11 @@ new #[Layout('components.layouts.auth')] class extends Component {
         $tenant = \App\Models\Tenant::withoutEvents(fn () => \App\Models\Tenant::updateOrCreate(
             ['id' => $this->subdomain],
             [
-                'name'   => $this->business_name,
-                'email'  => $this->email,
-                'status' => 'pending',
-                'plan'   => $this->plan,
+                'name'        => $this->business_name,
+                'email'       => $this->email,
+                'status'      => 'pending',
+                'plan'        => $this->plan,
+                'signup_city' => $signupCity,
             ]
         ));
 
@@ -81,16 +85,17 @@ new #[Layout('components.layouts.auth')] class extends Component {
         $this->redirect($checkoutUrl->url);
     }
 
-    protected function registerFreeTenant(): void
+    protected function registerFreeTenant(?string $signupCity): void
     {
         // Plan Básico: sin costo, no pasa por Stripe. Se activa de inmediato.
         $tenant = \App\Models\Tenant::updateOrCreate(
             ['id' => $this->subdomain],
             [
-                'name'   => $this->business_name,
-                'email'  => $this->email,
-                'status' => 'active',
-                'plan'   => 'basic',
+                'name'        => $this->business_name,
+                'email'       => $this->email,
+                'status'      => 'active',
+                'plan'        => 'basic',
+                'signup_city' => $signupCity,
             ]
         );
 

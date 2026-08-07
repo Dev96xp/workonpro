@@ -18,6 +18,7 @@
                     <flux:navlist.item icon="home" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>Dashboard</flux:navlist.item>
                     <flux:navlist.item icon="building-office-2" :href="route('admin.tenants.index')" :current="request()->routeIs('admin.tenants.*')" wire:navigate>Negocios</flux:navlist.item>
                     <flux:navlist.item icon="tag" :href="route('admin.categories.index')" :current="request()->routeIs('admin.categories.*')" wire:navigate>Categorías</flux:navlist.item>
+                    <flux:navlist.item icon="cog-6-tooth" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" wire:navigate>Configuraciones</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 

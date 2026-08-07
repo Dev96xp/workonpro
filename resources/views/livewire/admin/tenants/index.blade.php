@@ -4,17 +4,57 @@ use App\Models\Tenant;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
 
 new #[Layout('components.layouts.admin')] class extends Component {
     use WithPagination;
 
     public string $search = '';
 
+    public ?string $backupError = null;
+
     public function deleteTenant(string $tenantId): void
     {
         $tenant = Tenant::findOrFail($tenantId);
         $tenant->delete();
         $this->dispatch('tenant-deleted');
+    }
+
+    public function downloadBackup(string $tenantId): mixed
+    {
+        $this->backupError = null;
+
+        $tenant = Tenant::findOrFail($tenantId);
+        $mysqldump = config('services.mysqldump.path');
+
+        try {
+            (new Process([$mysqldump, '--version']))->mustRun();
+        } catch (ProcessFailedException) {
+            $this->backupError = 'No se encontró la herramienta mysqldump en el servidor.';
+
+            return null;
+        }
+
+        $connection = config('database.connections.mysql');
+        $database = $tenant->database()->getName();
+        $filename = $database.'_'.now()->format('Y-m-d_His').'.sql';
+
+        return response()->streamDownload(function () use ($mysqldump, $connection, $database) {
+            $process = new Process([
+                $mysqldump,
+                '--host='.$connection['host'],
+                '--port='.$connection['port'],
+                '--user='.$connection['username'],
+                '--single-transaction',
+                '--no-tablespaces',
+                $database,
+            ]);
+            $process->setTimeout(300);
+            $process->run(function ($type, $buffer) {
+                echo $buffer;
+            }, ['MYSQL_PWD' => $connection['password']]);
+        }, $filename, ['Content-Type' => 'application/sql']);
     }
 
     public function with(): array
@@ -38,6 +78,12 @@ new #[Layout('components.layouts.admin')] class extends Component {
         </flux:button>
     </div>
 
+    @if ($backupError)
+        <div class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-400">
+            {{ $backupError }}
+        </div>
+    @endif
+
     <div class="mb-4">
         <flux:input wire:model.live.debounce.300ms="search" placeholder="Buscar por nombre o ID..." icon="magnifying-glass" />
     </div>
@@ -47,6 +93,7 @@ new #[Layout('components.layouts.admin')] class extends Component {
             <flux:table.column>Negocio</flux:table.column>
             <flux:table.column>Subdominio</flux:table.column>
             <flux:table.column>Base de datos</flux:table.column>
+            <flux:table.column>Ciudad de registro</flux:table.column>
             <flux:table.column>Registrado</flux:table.column>
             <flux:table.column></flux:table.column>
         </flux:table.columns>
@@ -65,6 +112,7 @@ new #[Layout('components.layouts.admin')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell>{{ $tenant->domains->first()?->domain ?? '—' }}</flux:table.cell>
                     <flux:table.cell class="font-mono text-xs">tenant{{ $tenant->id }}</flux:table.cell>
+                    <flux:table.cell>{{ $tenant->signup_city ?? '—' }}</flux:table.cell>
                     <flux:table.cell>{{ $tenant->created_at->format('d/m/Y') }}</flux:table.cell>
                     <flux:table.cell>
                         <div class="flex items-center gap-2">
@@ -81,6 +129,14 @@ new #[Layout('components.layouts.admin')] class extends Component {
                             <flux:button href="{{ route('admin.tenants.show', $tenant) }}" size="sm" variant="ghost" icon="eye" wire:navigate />
                             <flux:button href="{{ route('admin.tenants.edit', $tenant) }}" size="sm" variant="ghost" icon="pencil" wire:navigate />
                             <flux:button wire:click="deleteTenant('{{ $tenant->id }}')" wire:confirm="¿Eliminar este negocio y su base de datos?" size="sm" variant="ghost" icon="trash" class="text-red-500" />
+                            <flux:button
+                                wire:click="downloadBackup('{{ $tenant->id }}')"
+                                wire:confirm="¿Generar y descargar un backup completo de la base de datos de este negocio?"
+                                size="sm"
+                                variant="ghost"
+                                icon="archive-box-arrow-down"
+                                title="Descargar backup de la base de datos"
+                            />
                         </div>
                     </flux:table.cell>
                 </flux:table.row>

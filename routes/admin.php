@@ -28,6 +28,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Volt::route('/create', 'admin.categories.create')->name('create');
             Volt::route('/{category}/edit', 'admin.categories.edit')->name('edit');
         });
+
+        Route::prefix('settings')->name('settings.')->group(function () {
+            Volt::route('/', 'admin.settings.index')->name('index');
+            Volt::route('/notifications', 'admin.settings.notifications')->name('notifications');
+        });
     });
 
     Route::post('logout', function () {

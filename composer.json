@@ -16,6 +16,7 @@
         "laravel/tinker": "^2.10.1",
         "livewire/flux": "^2.0",
         "livewire/volt": "^1.6.7",
+        "resend/resend-php": "^1.7",
         "stancl/tenancy": "^3.10"
     },
     "require-dev": {

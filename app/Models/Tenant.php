@@ -26,6 +26,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'pm_type',
             'pm_last_four',
             'trial_ends_at',
+            'signup_city',
         ];
     }
 }
