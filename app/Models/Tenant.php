@@ -32,19 +32,16 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     }
 
     /**
-     * Límite configurado para un recurso según el plan. Null significa ilimitado.
-     * Un admin puede sobrescribir el default de config/plans.php desde el panel
-     * de Admin ("Planes"); esas ediciones se guardan en Setting.
+     * Límite configurado para un recurso según el plan (tablas `plans`/`plan_items`,
+     * administradas desde Admin → Planes). Null significa ilimitado. Si el plan
+     * o el elemento no existen, también se trata como ilimitado.
      */
     public static function planLimit(?string $plan, string $resource): ?int
     {
-        $override = Setting::get("plan_limit_{$plan}_{$resource}");
-
-        if ($override !== null) {
-            return $override === '' ? null : (int) $override;
-        }
-
-        return config("plans.limits.{$plan}.{$resource}");
+        return PlanItem::query()
+            ->whereHas('plan', fn ($q) => $q->where('slug', $plan))
+            ->where('name', $resource)
+            ->value('quantity');
     }
 
     /**

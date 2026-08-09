@@ -1,90 +1,115 @@
 <?php
 
-use App\Models\Setting;
+use App\Models\Plan;
 use App\Models\Tenant;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.admin')] class extends Component {
-    public array $limits = [];
+    public ?string $limitError = null;
 
-    public array $planLabels = [
-        'basic'      => 'Básico',
-        'pro'        => 'Pro',
-        'enterprise' => 'Enterprise',
-    ];
-
-    public array $resourceLabels = [
-        'images'   => 'Imágenes',
-        'services' => 'Servicios',
-        'coupons'  => 'Cupones',
-    ];
-
-    public ?string $savedPlan = null;
-
-    public function mount(): void
+    public function toggleActive(int $planId): void
     {
-        foreach (array_keys($this->planLabels) as $plan) {
-            foreach (array_keys($this->resourceLabels) as $resource) {
-                $value = Tenant::planLimit($plan, $resource);
-                $this->limits[$plan][$resource] = $value === null ? '' : (string) $value;
-            }
+        $this->limitError = null;
+        $plan = Plan::findOrFail($planId);
+
+        if (! $plan->is_active && Plan::where('is_active', true)->count() >= Plan::MAX_ACTIVE) {
+            $this->limitError = 'Ya tenés ' . Plan::MAX_ACTIVE . ' planes activos. Desactivá uno antes de activar otro.';
+
+            return;
         }
+
+        $plan->update(['is_active' => ! $plan->is_active]);
     }
 
-    public function save(string $plan): void
+    public function deletePlan(int $planId): void
     {
-        $this->savedPlan = null;
+        $plan = Plan::findOrFail($planId);
 
-        foreach (array_keys($this->resourceLabels) as $resource) {
-            $value = trim($this->limits[$plan][$resource] ?? '');
-
-            if ($value !== '' && (! ctype_digit($value) || (int) $value < 1)) {
-                $this->addError("limits.{$plan}.{$resource}", 'Debe ser un número entero mayor a 0, o vacío para ilimitado.');
-
-                return;
-            }
+        if (Tenant::where('plan', $plan->slug)->exists()) {
+            return;
         }
 
-        foreach (array_keys($this->resourceLabels) as $resource) {
-            Setting::set("plan_limit_{$plan}_{$resource}", trim($this->limits[$plan][$resource] ?? ''));
-        }
+        $plan->delete();
+    }
 
-        $this->savedPlan = $plan;
+    public function with(): array
+    {
+        return [
+            'plans' => Plan::with('items')->orderBy('sort_order')->get(),
+            'usedSlugs' => Tenant::query()->distinct()->pluck('plan'),
+            'activeCount' => Plan::where('is_active', true)->count(),
+        ];
     }
 }; ?>
 
 <div>
-    <flux:heading size="xl" class="mb-1">Planes</flux:heading>
-    <flux:text class="mb-6 text-zinc-500">
-        Límites de recursos por plan. Un campo vacío significa ilimitado. Los cambios aplican de inmediato a todos los tenants de ese plan, sin necesidad de deploy.
-    </flux:text>
-
-    <div class="grid gap-6 md:grid-cols-3">
-        @foreach ($planLabels as $plan => $label)
-            <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
-                <flux:heading size="lg">{{ $label }}</flux:heading>
-
-                @if ($savedPlan === $plan)
-                    <div class="mt-3 rounded-lg bg-green-50 px-4 py-2 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                        ¡Límites guardados!
-                    </div>
-                @endif
-
-                <div class="mt-4 space-y-4">
-                    @foreach ($resourceLabels as $resource => $resourceLabel)
-                        <flux:field>
-                            <flux:label>{{ $resourceLabel }}</flux:label>
-                            <flux:input wire:model="limits.{{ $plan }}.{{ $resource }}" placeholder="Ilimitado" />
-                            <flux:error name="limits.{{ $plan }}.{{ $resource }}" />
-                        </flux:field>
-                    @endforeach
-                </div>
-
-                <flux:button wire:click="save('{{ $plan }}')" variant="primary" class="mt-5 w-full">
-                    Guardar
-                </flux:button>
-            </div>
-        @endforeach
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <flux:heading size="xl">Planes</flux:heading>
+            <flux:text class="text-zinc-500">{{ $activeCount }} / {{ \App\Models\Plan::MAX_ACTIVE }} planes activos</flux:text>
+        </div>
+        <flux:button href="{{ route('admin.plans.create') }}" variant="primary" icon="plus" wire:navigate>
+            Nuevo plan
+        </flux:button>
     </div>
+
+    @if ($limitError)
+        <div class="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+            {{ $limitError }}
+        </div>
+    @endif
+
+    <flux:table>
+        <flux:table.columns>
+            <flux:table.column>Nombre</flux:table.column>
+            <flux:table.column>Slug</flux:table.column>
+            <flux:table.column>Elementos</flux:table.column>
+            <flux:table.column>Estado</flux:table.column>
+            <flux:table.column></flux:table.column>
+        </flux:table.columns>
+        <flux:table.rows>
+            @forelse ($plans as $plan)
+                <flux:table.row>
+                    <flux:table.cell class="font-medium">{{ $plan->name }}</flux:table.cell>
+                    <flux:table.cell class="font-mono text-xs text-zinc-400">{{ $plan->slug }}</flux:table.cell>
+                    <flux:table.cell class="text-zinc-500">
+                        @forelse ($plan->items as $item)
+                            {{ $item->label() }}: {{ $item->quantity ?? '∞' }}@if (! $loop->last), @endif
+                        @empty
+                            —
+                        @endforelse
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <flux:button wire:click="toggleActive({{ $plan->id }})" size="sm" variant="ghost">
+                            @if ($plan->is_active)
+                                <flux:badge color="green" size="sm">Activo</flux:badge>
+                            @else
+                                <flux:badge color="zinc" size="sm">Inactivo</flux:badge>
+                            @endif
+                        </flux:button>
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <div class="flex items-center justify-end gap-2">
+                            <flux:button href="{{ route('admin.plans.edit', $plan) }}" size="sm" variant="ghost" icon="pencil" wire:navigate />
+                            <flux:button
+                                wire:click="deletePlan({{ $plan->id }})"
+                                wire:confirm="¿Eliminar este plan?"
+                                size="sm"
+                                variant="ghost"
+                                icon="trash"
+                                class="text-red-500"
+                                :disabled="$usedSlugs->contains($plan->slug)"
+                                title="{{ $usedSlugs->contains($plan->slug) ? 'No se puede eliminar: hay negocios en este plan' : 'Eliminar' }}"
+                            />
+                        </div>
+                    </flux:table.cell>
+                </flux:table.row>
+            @empty
+                <flux:table.row>
+                    <flux:table.cell class="text-center text-zinc-400">No hay planes registrados.</flux:table.cell>
+                </flux:table.row>
+            @endforelse
+        </flux:table.rows>
+    </flux:table>
 </div>

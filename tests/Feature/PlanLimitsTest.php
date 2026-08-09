@@ -5,7 +5,12 @@ use App\Models\Coupon;
 use App\Models\Service;
 use App\Models\Tenant;
 use App\Models\User;
+use Database\Seeders\PlanSeeder;
 use Livewire\Volt\Volt;
+
+beforeEach(function () {
+    (new PlanSeeder)->run();
+});
 
 afterEach(function () {
     if (tenancy()->initialized) {
@@ -27,13 +32,18 @@ function createPlanTenant(string $id, string $plan): Tenant
     return $tenant;
 }
 
-it('resolves plan limits from config, with null meaning unlimited', function () {
+it('resolves plan limits from the plans/plan_items tables, with null meaning unlimited', function () {
     expect(Tenant::planLimit('basic', 'services'))->toBe(3)
         ->and(Tenant::planLimit('basic', 'coupons'))->toBe(2)
         ->and(Tenant::planLimit('basic', 'images'))->toBe(20)
         ->and(Tenant::planLimit('pro', 'services'))->toBeNull()
         ->and(Tenant::planLimit('pro', 'images'))->toBe(100)
         ->and(Tenant::planLimit('enterprise', 'images'))->toBeNull();
+});
+
+it('treats a missing plan or a missing item as unlimited', function () {
+    expect(Tenant::planLimit('nonexistent', 'images'))->toBeNull()
+        ->and(Tenant::planLimit('basic', 'nonexistent'))->toBeNull();
 });
 
 it('reports whether a tenant is within its plan limit, treating null as unlimited', function () {

@@ -29,7 +29,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Volt::route('/{category}/edit', 'admin.categories.edit')->name('edit');
         });
 
-        Volt::route('plans', 'admin.plans.index')->name('plans.index');
+        Route::prefix('plans')->name('plans.')->group(function () {
+            Volt::route('/', 'admin.plans.index')->name('index');
+            Volt::route('/create', 'admin.plans.create')->name('create');
+            Volt::route('/{plan}/edit', 'admin.plans.edit')->name('edit');
+        });
 
         Route::prefix('settings')->name('settings.')->group(function () {
             Volt::route('/', 'admin.settings.index')->name('index');
