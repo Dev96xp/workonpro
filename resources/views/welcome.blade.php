@@ -56,6 +56,13 @@
                     <a href="{{ url('/admin/login') }}" class="hidden text-sm font-medium text-zinc-400 transition hover:text-yellow-400 sm:block">Iniciar sesión</a>
                 @endauth
 
+                {{-- Mobile search --}}
+                <a href="{{ route('search') }}" class="flex items-center justify-center p-1 text-zinc-300 transition hover:text-yellow-400 md:hidden">
+                    <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                </a>
+
                 {{-- Mobile menu --}}
                 <details class="group relative md:hidden">
                     <summary class="flex cursor-pointer list-none items-center justify-center p-1 text-zinc-300 transition hover:text-yellow-400">
@@ -206,14 +213,19 @@
             </h2>
 
             <div class="mt-10 grid grid-cols-1 gap-px bg-zinc-700 sm:mt-16 md:grid-cols-3">
-                <div class="group flex flex-col bg-zinc-900 p-6 transition hover:bg-zinc-800 sm:p-10">
+                <div class="group relative flex flex-col bg-zinc-900 p-6 transition hover:bg-zinc-800 sm:p-10">
+                    <div class="absolute right-4 top-4 rotate-12 bg-yellow-400 px-3 py-1 text-xs font-black uppercase tracking-wider text-zinc-900 sm:right-6 sm:top-6">
+                        Solo este mes
+                    </div>
                     <p class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-500">Básico</p>
-                    <div class="mt-4 flex items-end gap-1">
+                    <div class="mt-4 flex items-end gap-2">
                         <span class="text-5xl font-black text-white sm:text-6xl">Gratis</span>
+                        <span class="mb-2 text-sm text-zinc-500 line-through">$29.00/mes</span>
                     </div>
                     <div class="mt-6 h-px bg-zinc-700 transition group-hover:bg-yellow-400/50 sm:mt-8"></div>
                     <ul class="mt-6 grow space-y-3 text-sm text-zinc-400 sm:mt-8 sm:space-y-4">
-                        <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> 40 imágenes</li>
+                        <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> 20 imágenes</li>
+                        <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> 3 servicios</li>
                         <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> Clientes ilimitados</li>
                         <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> Cupones de descuento</li>
                         <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> Subdominio propio</li>
@@ -228,9 +240,10 @@
                         Popular
                     </div>
                     <p class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-700">Pro</p>
-                    <div class="mt-4 flex items-end gap-1">
-                        <span class="text-5xl font-black text-zinc-900 sm:text-6xl">$29</span>
+                    <div class="mt-4 flex items-end gap-2">
+                        <span class="text-5xl font-black text-zinc-900 sm:text-6xl">$39</span>
                         <span class="mb-2 text-zinc-700">/mes</span>
+                        <span class="mb-2 text-sm text-zinc-700/70 line-through">$79.00</span>
                     </div>
                     <div class="mt-6 h-px bg-zinc-900/20 sm:mt-8"></div>
                     <ul class="mt-6 grow space-y-3 text-sm text-zinc-800 sm:mt-8 sm:space-y-4">
@@ -238,6 +251,7 @@
                         <li class="flex items-center gap-3"><span class="font-black text-zinc-900">—</span> Clientes ilimitados</li>
                         <li class="flex items-center gap-3"><span class="font-black text-zinc-900">—</span> Cupones de descuento</li>
                         <li class="flex items-center gap-3"><span class="font-black text-zinc-900">—</span> Subdominio propio</li>
+                        <li class="flex items-center gap-3"><span class="font-black text-zinc-900">—</span> <span class="font-bold">Sistema de Facturación</span></li>
                         <li class="flex items-center gap-3"><span class="font-black text-zinc-900">—</span> Soporte prioritario</li>
                     </ul>
                     <a href="{{ route('register.plans') }}" class="mt-8 block bg-zinc-900 py-4 text-center text-sm font-black text-yellow-400 transition hover:bg-zinc-800">
@@ -247,9 +261,10 @@
 
                 <div class="group flex flex-col bg-zinc-900 p-6 transition hover:bg-zinc-800 sm:p-10">
                     <p class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-500">Enterprise</p>
-                    <div class="mt-4 flex items-end gap-1">
-                        <span class="text-5xl font-black text-white sm:text-6xl">$59</span>
+                    <div class="mt-4 flex items-end gap-2">
+                        <span class="text-5xl font-black text-white sm:text-6xl">$79</span>
                         <span class="mb-2 text-zinc-500">/mes</span>
+                        <span class="mb-2 text-sm text-zinc-500/70 line-through">$129.00</span>
                     </div>
                     <div class="mt-6 h-px bg-zinc-700 transition group-hover:bg-yellow-400/50 sm:mt-8"></div>
                     <ul class="mt-6 grow space-y-3 text-sm text-zinc-400 sm:mt-8 sm:space-y-4">
@@ -257,6 +272,7 @@
                         <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> Clientes ilimitados</li>
                         <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> Cupones de descuento</li>
                         <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> Subdominio propio</li>
+                        <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> <span class="font-bold">Sistema de Facturación</span></li>
                         <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> Soporte 24/7</li>
                         <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> Integraciones avanzadas</li>
                     </ul>

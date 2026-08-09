@@ -2,6 +2,7 @@
 
 use App\Models\BusinessImage;
 use App\Models\Coupon;
+use App\Models\Tenant;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
@@ -60,8 +61,16 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public bool $removeImage1 = false;
     public bool $removeImage2 = false;
 
+    private function couponLimit(): ?int
+    {
+        return Tenant::planLimit(tenant('plan'), 'coupons');
+    }
+
     public function with(): array
     {
+        $limit = $this->couponLimit();
+        $count = Coupon::count();
+
         return [
             'coupons' => Coupon::query()
                 ->with('images')
@@ -69,11 +78,20 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     ->orWhere('description', 'like', "%{$this->search}%"))
                 ->orderByDesc('created_at')
                 ->paginate(10),
+            'couponLimit' => $limit,
+            'couponCount' => $count,
+            'canCreateCoupon' => $limit === null || $count < $limit,
         ];
     }
 
     public function openCreate(): void
     {
+        if (! Tenant::withinPlanLimit(tenant('plan'), 'coupons', Coupon::count())) {
+            $this->addError('code', 'Alcanzaste el límite de cupones de tu plan.');
+
+            return;
+        }
+
         $this->resetForm();
         $this->editingId = null;
         $this->showModal = true;
@@ -102,6 +120,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public function save(): void
     {
         $this->validate();
+
+        if (! $this->editingId && ! Tenant::withinPlanLimit(tenant('plan'), 'coupons', Coupon::count())) {
+            $this->addError('code', 'Alcanzaste el límite de cupones de tu plan.');
+
+            return;
+        }
 
         $data = [
             'code'        => strtoupper($this->code),
@@ -267,12 +291,24 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <flux:heading size="xl">Cupones</flux:heading>
-                        <flux:text class="text-zinc-500">Crea y gestiona cupones de descuento</flux:text>
+                        <flux:text class="text-zinc-500">
+                            Crea y gestiona cupones de descuento
+                            · {{ $couponCount }} / {{ $couponLimit ?? '∞' }} usados
+                        </flux:text>
                     </div>
-                    <flux:button wire:click="openCreate" variant="primary" icon="plus" class="sm:w-auto">
+                    <flux:button wire:click="openCreate" variant="primary" icon="plus" class="sm:w-auto" :disabled="! $canCreateCoupon">
                         Nuevo cupón
                     </flux:button>
                 </div>
+
+                @unless ($canCreateCoupon)
+                    <div class="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                        Has alcanzado el límite de {{ $couponLimit }} cupones de tu plan.
+                        @if (tenant('plan') === 'basic')
+                            <a href="#" class="font-semibold underline">Actualiza tu plan</a> para agregar más.
+                        @endif
+                    </div>
+                @endunless
 
                 <div class="mt-6">
                     <flux:input wire:model.live.debounce.300ms="search" placeholder="Buscar por código o descripción..." icon="magnifying-glass" />

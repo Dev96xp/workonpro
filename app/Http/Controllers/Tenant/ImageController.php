@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Models\BusinessImage;
+use App\Models\Tenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -18,12 +19,9 @@ class ImageController
         ]);
 
         $tenantId = tenant('id');
-        $limit = match (tenant('plan')) {
-            'pro', 'enterprise' => 100,
-            default => 40,
-        };
+        $limit = Tenant::planLimit(tenant('plan'), 'images');
 
-        if (BusinessImage::count() >= $limit) {
+        if ($limit !== null && BusinessImage::count() >= $limit) {
             return response()->json(['error' => "Has alcanzado el límite de {$limit} imágenes para tu plan."], 422);
         }
 

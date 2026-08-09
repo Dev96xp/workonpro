@@ -29,6 +29,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Volt::route('/{category}/edit', 'admin.categories.edit')->name('edit');
         });
 
+        Volt::route('plans', 'admin.plans.index')->name('plans.index');
+
         Route::prefix('settings')->name('settings.')->group(function () {
             Volt::route('/', 'admin.settings.index')->name('index');
             Volt::route('/notifications', 'admin.settings.notifications')->name('notifications');

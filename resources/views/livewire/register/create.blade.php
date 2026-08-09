@@ -24,8 +24,8 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     public array $plans = [
         'basic'      => ['label' => 'Básico',     'price' => 'Gratis'],
-        'pro'        => ['label' => 'Pro',         'price' => '$29/mes'],
-        'enterprise' => ['label' => 'Enterprise',  'price' => '$59/mes'],
+        'pro'        => ['label' => 'Pro',         'price' => '$39/mes'],
+        'enterprise' => ['label' => 'Enterprise',  'price' => '$79/mes'],
     ];
 
     public function mount(): void

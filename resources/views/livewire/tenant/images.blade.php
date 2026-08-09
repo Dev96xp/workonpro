@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\BusinessImage;
+use App\Models\Tenant;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
@@ -9,20 +10,21 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public bool $showDeleteModal = false;
     public ?int $deletingId = null;
 
-    private function imageLimit(): int
+    private function imageLimit(): ?int
     {
-        return match (tenant('plan')) {
-            'pro', 'enterprise' => 100,
-            default             => 40,
-        };
+        return Tenant::planLimit(tenant('plan'), 'images');
     }
 
     public function with(): array
     {
+        $limit = $this->imageLimit();
+        $count = BusinessImage::gallery()->count();
+
         return [
             'images'     => BusinessImage::gallery()->orderByDesc('created_at')->get(),
-            'limit'      => $this->imageLimit(),
-            'imageCount' => BusinessImage::gallery()->count(),
+            'limit'      => $limit,
+            'imageCount' => $count,
+            'canUpload'  => $limit === null || $count < $limit,
         ];
     }
 
@@ -35,6 +37,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public function setFeatured(int $id): void
     {
         BusinessImage::setFeatured($id);
+
+        tenant()->update(['featured_image_url' => BusinessImage::findOrFail($id)->url()]);
     }
 
     public function setLogo(int $id): void
@@ -58,7 +62,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 unlink($fullPath);
             }
 
+            $wasFeatured = $image->is_featured;
             $image->delete();
+
+            if ($wasFeatured) {
+                tenant()->update(['featured_image_url' => null]);
+            }
         }
 
         $this->showDeleteModal = false;
@@ -86,13 +95,13 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     <div>
                         <flux:heading size="xl">Imágenes</flux:heading>
                         <flux:text class="text-zinc-500">
-                            {{ $imageCount }} / {{ $limit }} imágenes usadas
+                            {{ $imageCount }} / {{ $limit ?? '∞' }} imágenes usadas
                         </flux:text>
                     </div>
                 </div>
 
                 {{-- Dropzone upload area --}}
-                @if ($imageCount < $limit)
+                @if ($canUpload)
                     <div class="mt-6 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
                         <flux:heading size="lg">Subir imágenes</flux:heading>
                         <flux:text class="mt-1 text-sm text-zinc-500">
