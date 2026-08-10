@@ -66,6 +66,30 @@ it('syncs a service into the central index on create, update, and delete', funct
     $tenant->delete();
 });
 
+it('syncs the business phone into the central listing and shows it on the search page', function () {
+    $tenant = Tenant::create([
+        'id' => 'phonetenant',
+        'name' => 'Business phonetenant',
+        'email' => 'phonetenant@example.com',
+        'status' => 'active',
+        'plan' => 'pro',
+    ]);
+    $tenant->domains()->create(['domain' => 'phonetenant']);
+
+    tenancy()->initialize($tenant);
+    BusinessProfile::create(['business_name' => 'Business phonetenant', 'city' => 'Denver', 'phone' => '555-0100']);
+    Service::create(['name' => 'Plomería de emergencia', 'category' => 'plumbing', 'price' => 80, 'is_active' => true]);
+    tenancy()->end();
+
+    $listing = ServiceListing::where('tenant_id', 'phonetenant')->firstOrFail();
+
+    expect($listing->phone)->toBe('555-0100');
+
+    Volt::test('search.index')->assertSee('555-0100');
+
+    $tenant->delete();
+});
+
 it('filters central search results by category and city', function () {
     $electric = createTenantWithService('electrictenant', 'Austin', 'electrical', 'Instalación eléctrica');
     $paint = createTenantWithService('painttenant', 'Miami', 'painting', 'Pintura de interiores');

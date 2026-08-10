@@ -60,9 +60,16 @@ new #[Layout('components.layouts.guest')] class extends Component {
     <header class="border-b border-white/10">
         <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-5 sm:px-8">
             <a href="{{ route('home') }}" class="text-2xl font-black tracking-tighter text-yellow-400 sm:text-3xl">Workon</a>
-            <a href="{{ route('home') }}" class="text-sm font-medium text-zinc-400 transition hover:text-yellow-400">
-                ← Volver al inicio
-            </a>
+            <div class="flex items-center gap-5">
+                <div class="flex items-center gap-1 text-xs font-bold uppercase">
+                    <a href="{{ route('lang.switch', 'es') }}" class="{{ app()->getLocale() === 'es' ? 'text-yellow-400' : 'text-zinc-500 hover:text-yellow-400' }}">ES</a>
+                    <span class="text-zinc-600">/</span>
+                    <a href="{{ route('lang.switch', 'en') }}" class="{{ app()->getLocale() === 'en' ? 'text-yellow-400' : 'text-zinc-500 hover:text-yellow-400' }}">EN</a>
+                </div>
+                <a href="{{ route('home') }}" class="text-sm font-medium text-zinc-400 transition hover:text-yellow-400">
+                    {{ __('search.back') }}
+                </a>
+            </div>
         </div>
     </header>
 
@@ -78,11 +85,11 @@ new #[Layout('components.layouts.guest')] class extends Component {
             <div class="mb-10 text-center sm:mb-14">
                 <div class="mb-4 inline-flex items-center gap-3">
                     <div class="h-px w-8 bg-yellow-400"></div>
-                    <span class="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400">Directorio</span>
+                    <span class="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400">{{ __('search.badge') }}</span>
                     <div class="h-px w-8 bg-yellow-400"></div>
                 </div>
-                <flux:heading size="xl" class="font-black tracking-tight text-white sm:text-4xl lg:text-5xl">Buscar servicios</flux:heading>
-                <flux:text class="mx-auto mt-3 max-w-md text-zinc-500 sm:text-lg">Encuentra el negocio que necesitas entre todos los que ya confían en Workon</flux:text>
+                <flux:heading size="xl" class="font-black tracking-tight text-white sm:text-4xl lg:text-5xl">{{ __('search.title') }}</flux:heading>
+                <flux:text class="mx-auto mt-3 max-w-md text-zinc-500 sm:text-lg">{{ __('search.subtitle') }}</flux:text>
             </div>
         </div>
     </div>
@@ -93,21 +100,21 @@ new #[Layout('components.layouts.guest')] class extends Component {
         <div class="mb-16 flex flex-col gap-3 sm:flex-row sm:items-center">
             <flux:input
                 wire:model.live.debounce.300ms="search"
-                placeholder="¿Qué servicio buscas?"
+                placeholder="{{ __('search.search_placeholder') }}"
                 icon="magnifying-glass"
                 class="sm:flex-1"
             />
 
             <div class="flex gap-3">
                 <flux:select wire:model.live="category" class="sm:w-48">
-                    <flux:select.option value="">Categoría</flux:select.option>
+                    <flux:select.option value="">{{ __('search.category_placeholder') }}</flux:select.option>
                     @foreach ($categoryOptions as $option)
                         <flux:select.option value="{{ $option->slug }}">{{ $option->name }}</flux:select.option>
                     @endforeach
                 </flux:select>
 
                 <flux:select wire:model.live="city" class="sm:w-44">
-                    <flux:select.option value="">Ciudad</flux:select.option>
+                    <flux:select.option value="">{{ __('search.city_placeholder') }}</flux:select.option>
                     @foreach ($cities as $option)
                         <flux:select.option value="{{ $option }}">{{ $option }}</flux:select.option>
                     @endforeach
@@ -124,28 +131,18 @@ new #[Layout('components.layouts.guest')] class extends Component {
                     $featuredImage = $listing->tenant?->featured_image_url;
                 @endphp
                 <article class="group overflow-hidden rounded-2xl bg-white/[0.03] transition hover:bg-white/[0.05]">
-                    @if ($featuredImage)
-                        <div class="relative h-36 w-full overflow-hidden">
-                            <div
-                                class="h-full w-full bg-cover bg-center transition duration-500 group-hover:scale-110"
-                                style="background-image: url('{{ $featuredImage }}');"
-                            ></div>
-                            <div class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent"></div>
-                            @if ($listing->category)
-                                <span class="absolute left-3 top-3 rounded-full bg-yellow-400 px-2.5 py-1 text-xs font-bold tracking-wide text-zinc-900 uppercase">
-                                    {{ $categoryLabels[$listing->category] ?? $listing->category }}
-                                </span>
-                            @endif
-                        </div>
-                    @endif
-
-                    <div class="p-6">
+                    <div class="p-4">
                         <div class="flex items-start justify-between gap-4">
-                            <div>
-                                @if ($listing->category && ! $featuredImage)
-                                    <span class="text-xs font-medium tracking-wide text-yellow-400/90 uppercase">{{ $categoryLabels[$listing->category] ?? $listing->category }}</span>
+                            <div class="flex items-start gap-3">
+                                @if ($featuredImage)
+                                    <img src="{{ $featuredImage }}" alt="" class="size-8 shrink-0 rounded-sm object-cover" />
                                 @endif
-                                <flux:heading size="lg" class="{{ $featuredImage ? '' : 'mt-1' }} text-white">{{ $listing->name }}</flux:heading>
+                                <div>
+                                    @if ($listing->category)
+                                        <span class="text-xs font-medium tracking-wide text-yellow-400/90 uppercase">{{ $categoryLabels[$listing->category] ?? $listing->category }}</span>
+                                    @endif
+                                    <flux:heading size="lg" class="mt-1 text-white">{{ $listing->name }}</flux:heading>
+                                </div>
                             </div>
                             @if ($listing->price !== null)
                                 <span class="whitespace-nowrap text-sm font-semibold text-white">${{ number_format($listing->price, 2) }}</span>
@@ -153,19 +150,27 @@ new #[Layout('components.layouts.guest')] class extends Component {
                         </div>
 
                         @if ($listing->description)
-                            <flux:text class="mt-2 leading-relaxed text-zinc-500">{{ Str::limit($listing->description, 110) }}</flux:text>
+                            <flux:text class="mt-1.5 leading-relaxed text-zinc-500">{{ Str::limit($listing->description, 110) }}</flux:text>
                         @endif
 
-                        <div class="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
+                        <div class="mt-3 flex items-center justify-between border-t border-white/10 pt-3">
                             <div class="text-sm text-zinc-500">
                                 <span class="text-zinc-300">{{ $listing->tenant?->name }}</span>
                                 @if ($listing->city)
                                     <span> · {{ $listing->city }}</span>
                                 @endif
+                                @if ($listing->phone)
+                                    <a href="tel:{{ $listing->phone }}" class="mt-1 flex items-center gap-1.5 text-zinc-400 transition hover:text-yellow-400">
+                                        <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a2.25 2.25 0 00-2.309.652l-.658.658c-.4.4-1.023.494-1.505.201a11.264 11.264 0 01-4.923-4.923c-.293-.482-.199-1.105.201-1.505l.658-.658a2.25 2.25 0 00.652-2.309l-1.106-4.423A1.125 1.125 0 0010.618 3.75H9.375A2.25 2.25 0 007.125 6l.375.75z" />
+                                        </svg>
+                                        {{ $listing->phone }}
+                                    </a>
+                                @endif
                             </div>
                             @if ($url)
                                 <a href="{{ $url }}" target="_blank" class="text-sm font-medium text-yellow-400 transition group-hover:translate-x-0.5 hover:text-yellow-300">
-                                    Ver negocio →
+                                    {{ __('search.view_business') }}
                                 </a>
                             @endif
                         </div>
@@ -173,7 +178,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                 </article>
             @empty
                 <div class="col-span-full py-20 text-center text-zinc-600">
-                    No se encontraron servicios con esos filtros.
+                    {{ __('search.no_results') }}
                 </div>
             @endforelse
         </div>

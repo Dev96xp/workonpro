@@ -56,6 +56,7 @@ class ServiceObserver
                 'price' => $service->price,
                 'category' => $service->category,
                 'city' => BusinessProfile::query()->value('city'),
+                'phone' => BusinessProfile::query()->value('phone'),
                 'is_active' => $service->is_active,
             ]
         );

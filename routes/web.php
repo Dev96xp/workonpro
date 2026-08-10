@@ -1,14 +1,23 @@
 <?php
 
+use App\Http\Middleware\SetLocale;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
 $centralDomain = parse_url(config('app.url'), PHP_URL_HOST);
 
-Route::domain($centralDomain)->group(function () {
+Route::domain($centralDomain)->middleware(SetLocale::class)->group(function () {
     Route::get('/', function () {
         return view('welcome');
     })->name('home');
+
+    Route::get('/lang/{locale}', function (string $locale) {
+        if (in_array($locale, ['es', 'en'], true)) {
+            session(['locale' => $locale]);
+        }
+
+        return redirect()->back();
+    })->name('lang.switch');
 
     Route::view('dashboard', 'dashboard')
         ->middleware(['auth', 'verified'])
