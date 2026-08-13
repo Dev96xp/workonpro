@@ -87,7 +87,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public function openCreate(): void
     {
         if (! Tenant::withinPlanLimit(tenant('plan'), 'coupons', Coupon::count())) {
-            $this->addError('code', 'Alcanzaste el límite de cupones de tu plan.');
+            $this->addError('code', __('tenant.coupons.limit_error'));
 
             return;
         }
@@ -122,7 +122,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $this->validate();
 
         if (! $this->editingId && ! Tenant::withinPlanLimit(tenant('plan'), 'coupons', Coupon::count())) {
-            $this->addError('code', 'Alcanzaste el límite de cupones de tu plan.');
+            $this->addError('code', __('tenant.coupons.limit_error'));
 
             return;
         }
@@ -290,40 +290,40 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             <div class="p-6">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <flux:heading size="xl">Cupones</flux:heading>
+                        <flux:heading size="xl">{{ __('tenant.coupons.heading') }}</flux:heading>
                         <flux:text class="text-zinc-500">
-                            Crea y gestiona cupones de descuento
-                            · {{ $couponCount }} / {{ $couponLimit ?? '∞' }} usados
+                            {{ __('tenant.coupons.subheading') }}
+                            · {{ $couponCount }} / {{ $couponLimit ?? '∞' }} {{ __('tenant.common.used') }}
                         </flux:text>
                     </div>
                     <flux:button wire:click="openCreate" variant="primary" icon="plus" class="sm:w-auto" :disabled="! $canCreateCoupon">
-                        Nuevo cupón
+                        {{ __('tenant.coupons.new') }}
                     </flux:button>
                 </div>
 
                 @unless ($canCreateCoupon)
                     <div class="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                        Has alcanzado el límite de {{ $couponLimit }} cupones de tu plan.
+                        {{ __('tenant.coupons.limit_banner', ['limit' => $couponLimit]) }}
                         @if (tenant('plan') === 'basic')
-                            <a href="#" class="font-semibold underline">Actualiza tu plan</a> para agregar más.
+                            <a href="#" class="font-semibold underline">{{ __('tenant.common.upgrade_plan') }}</a> {{ __('tenant.common.upgrade_more') }}
                         @endif
                     </div>
                 @endunless
 
                 <div class="mt-6">
-                    <flux:input wire:model.live.debounce.300ms="search" placeholder="Buscar por código o descripción..." icon="magnifying-glass" />
+                    <flux:input wire:model.live.debounce.300ms="search" placeholder="{{ __('tenant.coupons.search_placeholder') }}" icon="magnifying-glass" />
                 </div>
 
                 <div class="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
                     <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                         <thead class="bg-zinc-50 dark:bg-zinc-900">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Código</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Descuento</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Usos</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Expira</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Estado</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">Acciones</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.coupons.code_label') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.coupons.discount_label') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.coupons.uses_label') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.coupons.expires_label') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.status') }}</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
@@ -363,13 +363,13 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                     </td>
                                     <td class="px-6 py-4">
                                         @if ($coupon->isValid())
-                                            <flux:badge color="green" size="sm">Activo</flux:badge>
+                                            <flux:badge color="green" size="sm">{{ __('tenant.common.active') }}</flux:badge>
                                         @elseif ($coupon->isExpired())
-                                            <flux:badge color="red" size="sm">Expirado</flux:badge>
+                                            <flux:badge color="red" size="sm">{{ __('tenant.coupons.expired') }}</flux:badge>
                                         @elseif ($coupon->hasReachedMaxUses())
-                                            <flux:badge color="orange" size="sm">Agotado</flux:badge>
+                                            <flux:badge color="orange" size="sm">{{ __('tenant.coupons.exhausted') }}</flux:badge>
                                         @else
-                                            <flux:badge color="zinc" size="sm">Inactivo</flux:badge>
+                                            <flux:badge color="zinc" size="sm">{{ __('tenant.common.inactive') }}</flux:badge>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 text-right">
@@ -382,7 +382,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                             @empty
                                 <tr>
                                     <td colspan="6" class="px-6 py-12 text-center text-zinc-500">
-                                        No hay cupones creados aún.
+                                        {{ __('tenant.coupons.empty') }}
                                     </td>
                                 </tr>
                             @endforelse
@@ -401,75 +401,75 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     {{-- Modal Crear/Editar --}}
     <flux:modal wire:model="showModal" class="w-full max-w-lg">
-        <flux:heading size="lg">{{ $editingId ? 'Editar cupón' : 'Nuevo cupón' }}</flux:heading>
+        <flux:heading size="lg">{{ $editingId ? __('tenant.coupons.edit') : __('tenant.coupons.new') }}</flux:heading>
 
         <form wire:submit="save" class="mt-4 space-y-4">
             <div class="grid gap-4 sm:grid-cols-2">
                 <flux:field class="sm:col-span-2">
-                    <flux:label>Código <span class="text-red-500">*</span></flux:label>
+                    <flux:label>{{ __('tenant.coupons.code_label') }} <span class="text-red-500">*</span></flux:label>
                     <div class="flex gap-2">
                         <flux:input wire:model="code" placeholder="PROMO10" class="uppercase" />
-                        <flux:button type="button" wire:click="generateCode" icon="arrow-path" title="Generar código" />
+                        <flux:button type="button" wire:click="generateCode" icon="arrow-path" title="{{ __('tenant.coupons.generate_code') }}" />
                     </div>
                     <flux:error name="code" />
                 </flux:field>
 
                 <flux:field class="sm:col-span-2">
-                    <flux:label>Descripción</flux:label>
+                    <flux:label>{{ __('tenant.common.description') }}</flux:label>
                     <flux:textarea wire:model="description" rows="3" placeholder="Ej: Descuento de temporada" />
                     <flux:error name="description" />
                 </flux:field>
 
                 <flux:field class="sm:col-span-2">
-                    <flux:label>Términos y condiciones</flux:label>
+                    <flux:label>{{ __('tenant.coupons.terms_label') }}</flux:label>
                     <flux:textarea wire:model="terms" rows="2" placeholder="Ej: No acumulable con otras promociones. Aplica solo en la primera compra." />
-                    <flux:description>Se muestra en letra pequeña junto al cupón para evitar abusos.</flux:description>
+                    <flux:description>{{ __('tenant.coupons.terms_hint') }}</flux:description>
                     <flux:error name="terms" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>Tipo <span class="text-red-500">*</span></flux:label>
+                    <flux:label>{{ __('tenant.coupons.type_label') }} <span class="text-red-500">*</span></flux:label>
                     <flux:select wire:model="type">
-                        <flux:select.option value="percentage">Porcentaje (%)</flux:select.option>
-                        <flux:select.option value="fixed">Monto fijo ($)</flux:select.option>
+                        <flux:select.option value="percentage">{{ __('tenant.coupons.type_percentage') }}</flux:select.option>
+                        <flux:select.option value="fixed">{{ __('tenant.coupons.type_fixed') }}</flux:select.option>
                     </flux:select>
                     <flux:error name="type" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>Valor <span class="text-red-500">*</span></flux:label>
+                    <flux:label>{{ __('tenant.coupons.value_label') }} <span class="text-red-500">*</span></flux:label>
                     <flux:input wire:model="value" type="number" step="0.01" min="0.01"
                         placeholder="{{ $type === 'percentage' ? '10' : '25.00' }}" />
                     <flux:error name="value" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>Monto mínimo ($)</flux:label>
+                    <flux:label>{{ __('tenant.coupons.min_amount_label') }}</flux:label>
                     <flux:input wire:model="min_amount" type="number" step="0.01" min="0" placeholder="0.00" />
                     <flux:error name="min_amount" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>Máximo de usos</flux:label>
-                    <flux:input wire:model="max_uses" type="number" min="1" placeholder="Ilimitado" />
+                    <flux:label>{{ __('tenant.coupons.max_uses_label') }}</flux:label>
+                    <flux:input wire:model="max_uses" type="number" min="1" placeholder="{{ __('tenant.coupons.unlimited') }}" />
                     <flux:error name="max_uses" />
                 </flux:field>
 
                 <flux:field class="sm:col-span-2">
-                    <flux:label>Fecha de expiración</flux:label>
+                    <flux:label>{{ __('tenant.coupons.expires_at_label') }}</flux:label>
                     <flux:input wire:model="expires_at" type="date" />
                     <flux:error name="expires_at" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:checkbox wire:model="is_active" label="Cupón activo" />
+                    <flux:checkbox wire:model="is_active" label="{{ __('tenant.coupons.active_checkbox') }}" />
                 </flux:field>
             </div>
 
             {{-- Imágenes del cupón --}}
             <div class="border-t border-zinc-200 pt-4 dark:border-zinc-700">
                 <flux:text class="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Imágenes del cupón (opcional, máx. 2)
+                    {{ __('tenant.coupons.images_label') }}
                 </flux:text>
                 <div class="grid grid-cols-2 gap-4">
                     {{-- Imagen 1 --}}
@@ -531,10 +531,10 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             </div>
 
             <div class="flex justify-end gap-3 pt-2">
-                <flux:button type="button" wire:click="$set('showModal', false)">Cancelar</flux:button>
+                <flux:button type="button" wire:click="$set('showModal', false)">{{ __('tenant.common.cancel') }}</flux:button>
                 <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
-                    <span wire:loading.remove>{{ $editingId ? 'Guardar cambios' : 'Crear cupón' }}</span>
-                    <span wire:loading>Guardando...</span>
+                    <span wire:loading.remove>{{ $editingId ? __('tenant.common.save_changes') : __('tenant.coupons.new') }}</span>
+                    <span wire:loading>{{ __('tenant.common.saving') }}</span>
                 </flux:button>
             </div>
         </form>
@@ -546,12 +546,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
                 <flux:icon.trash class="size-6 text-red-600 dark:text-red-400" />
             </div>
-            <flux:heading size="lg">¿Eliminar cupón?</flux:heading>
-            <flux:text class="mt-2 text-zinc-500">Esta acción no se puede deshacer.</flux:text>
+            <flux:heading size="lg">{{ __('tenant.coupons.confirm_delete') }}</flux:heading>
+            <flux:text class="mt-2 text-zinc-500">{{ __('tenant.common.cannot_undo') }}</flux:text>
         </div>
         <div class="mt-6 flex justify-center gap-3">
-            <flux:button wire:click="$set('showDeleteModal', false)">Cancelar</flux:button>
-            <flux:button wire:click="delete" variant="danger">Eliminar</flux:button>
+            <flux:button wire:click="$set('showDeleteModal', false)">{{ __('tenant.common.cancel') }}</flux:button>
+            <flux:button wire:click="delete" variant="danger">{{ __('tenant.common.delete') }}</flux:button>
         </div>
     </flux:modal>
 </div>

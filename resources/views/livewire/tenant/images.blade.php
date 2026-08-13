@@ -93,9 +93,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             <div class="p-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <flux:heading size="xl">Imágenes</flux:heading>
+                        <flux:heading size="xl">{{ __('tenant.nav.images') }}</flux:heading>
                         <flux:text class="text-zinc-500">
-                            {{ $imageCount }} / {{ $limit ?? '∞' }} imágenes usadas
+                            {{ $imageCount }} / {{ $limit ?? '∞' }} {{ __('tenant.images.used_suffix') }}
                         </flux:text>
                     </div>
                 </div>
@@ -103,9 +103,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 {{-- Dropzone upload area --}}
                 @if ($canUpload)
                     <div class="mt-6 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
-                        <flux:heading size="lg">Subir imágenes</flux:heading>
+                        <flux:heading size="lg">{{ __('tenant.images.upload_heading') }}</flux:heading>
                         <flux:text class="mt-1 text-sm text-zinc-500">
-                            Formatos: JPG, PNG, WEBP. Máximo 10 MB por imagen. Se comprimen automáticamente.
+                            {{ __('tenant.images.upload_hint') }}
                         </flux:text>
                         <div class="mt-4 rounded-lg border-2 border-dashed border-zinc-300 p-6 dark:border-zinc-600"
                              id="image-dropzone"
@@ -116,7 +116,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                     headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
                                     acceptedFiles: 'image/*',
                                     paramName: 'file',
-                                    dictDefaultMessage: 'Arrastra imágenes aquí o haz clic para seleccionar',
+                                    dictDefaultMessage: '{{ __('tenant.images.dropzone_message') }}',
                                     complete: function(file) { this.removeFile(file); },
                                     queuecomplete: function() { Livewire.dispatch('images-uploaded'); },
                                 });
@@ -125,9 +125,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     </div>
                 @else
                     <div class="mt-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                        Has alcanzado el límite de {{ $limit }} imágenes.
+                        {{ __('tenant.images.limit_banner', ['limit' => $limit]) }}
                         @if (tenant('plan') === 'basic')
-                            <a href="#" class="font-semibold underline">Actualiza tu plan</a> para subir hasta 100 imágenes.
+                            <a href="#" class="font-semibold underline">{{ __('tenant.common.upgrade_plan') }}</a> {{ __('tenant.images.upgrade_suffix') }}
                         @endif
                     </div>
                 @endif
@@ -154,7 +154,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 <button
                                     wire:click="setFeatured({{ $image->id }})"
                                     class="absolute left-2 top-2 flex rounded-full p-1 shadow transition-colors {{ $image->is_featured ? 'bg-yellow-400 text-white' : 'bg-white/80 text-zinc-400 hover:text-yellow-400 sm:hidden sm:group-hover:flex' }}"
-                                    title="{{ $image->is_featured ? 'Imagen destacada' : 'Marcar como destacada' }}"
+                                    title="{{ $image->is_featured ? __('tenant.images.featured_title') : __('tenant.images.mark_featured') }}"
                                 >
                                     <svg class="size-4" fill="{{ $image->is_featured ? 'currentColor' : 'none' }}" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
@@ -163,7 +163,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 <button
                                     wire:click="setLogo({{ $image->id }})"
                                     class="absolute left-9 top-2 flex rounded-full p-1 shadow transition-colors {{ $image->is_logo ? 'bg-blue-500 text-white' : 'bg-white/80 text-zinc-400 hover:text-blue-500 sm:hidden sm:group-hover:flex' }}"
-                                    title="{{ $image->is_logo ? 'Logo del negocio' : 'Marcar como logo' }}"
+                                    title="{{ $image->is_logo ? __('tenant.images.logo_title') : __('tenant.images.mark_logo') }}"
                                 >
                                     <svg class="size-4" fill="{{ $image->is_logo ? 'currentColor' : 'none' }}" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
@@ -172,7 +172,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 <button
                                     wire:click="confirmDelete({{ $image->id }})"
                                     class="absolute right-2 top-2 flex rounded-full bg-red-600 p-1 text-white shadow hover:bg-red-700 sm:hidden sm:group-hover:flex"
-                                    title="Eliminar"
+                                    title="{{ __('tenant.common.delete') }}"
                                 >
                                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -184,7 +184,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 @else
                     <div class="mt-6 rounded-xl border border-dashed border-zinc-300 bg-white p-12 text-center dark:border-zinc-600 dark:bg-zinc-800">
                         <flux:icon.photo class="mx-auto size-10 text-zinc-400" />
-                        <flux:text class="mt-2 text-zinc-500">No hay imágenes subidas aún.</flux:text>
+                        <flux:text class="mt-2 text-zinc-500">{{ __('tenant.images.empty') }}</flux:text>
                     </div>
                 @endif
             </div>
@@ -197,12 +197,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
                 <flux:icon.trash class="size-6 text-red-600 dark:text-red-400" />
             </div>
-            <flux:heading size="lg">¿Eliminar imagen?</flux:heading>
-            <flux:text class="mt-2 text-zinc-500">Esta acción no se puede deshacer.</flux:text>
+            <flux:heading size="lg">{{ __('tenant.images.confirm_delete') }}</flux:heading>
+            <flux:text class="mt-2 text-zinc-500">{{ __('tenant.common.cannot_undo') }}</flux:text>
         </div>
         <div class="mt-6 flex justify-center gap-3">
-            <flux:button wire:click="$set('showDeleteModal', false)">Cancelar</flux:button>
-            <flux:button wire:click="delete" variant="danger">Eliminar</flux:button>
+            <flux:button wire:click="$set('showDeleteModal', false)">{{ __('tenant.common.cancel') }}</flux:button>
+            <flux:button wire:click="delete" variant="danger">{{ __('tenant.common.delete') }}</flux:button>
         </div>
     </flux:modal>
 

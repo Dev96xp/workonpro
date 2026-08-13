@@ -121,45 +121,54 @@ new #[Layout('components.layouts.guest')] class extends Component {
             {{ $businessName }}
         </span>
 
-        @auth
-            <flux:dropdown position="bottom" align="end">
-                <flux:profile
-                    :name="auth()->user()->name"
-                    icon-trailing="chevron-down"
-                />
+        <div class="flex items-center gap-4">
+            {{-- Idioma --}}
+            <div class="flex items-center gap-1 text-xs font-bold uppercase">
+                <a href="{{ url('/lang/es') }}" class="{{ app()->getLocale() === 'es' ? 'text-yellow-400' : 'text-zinc-500 hover:text-yellow-400' }}">ES</a>
+                <span class="text-zinc-600">/</span>
+                <a href="{{ url('/lang/en') }}" class="{{ app()->getLocale() === 'en' ? 'text-yellow-400' : 'text-zinc-500 hover:text-yellow-400' }}">EN</a>
+            </div>
 
-                <flux:menu>
-                    <div class="px-3 py-2 text-left text-sm">
-                        <span class="block truncate font-semibold">{{ auth()->user()->name }}</span>
-                        <span class="block truncate text-xs text-zinc-400">Administrador</span>
-                    </div>
+            @auth
+                <flux:dropdown position="bottom" align="end">
+                    <flux:profile
+                        :name="auth()->user()->name"
+                        icon-trailing="chevron-down"
+                    />
 
-                    <flux:menu.separator />
+                    <flux:menu>
+                        <div class="px-3 py-2 text-left text-sm">
+                            <span class="block truncate font-semibold">{{ auth()->user()->name }}</span>
+                            <span class="block truncate text-xs text-zinc-400">Administrador</span>
+                        </div>
 
-                    <flux:menu.item icon="squares-2x2" :href="url('/dashboard')" wire:navigate>Panel</flux:menu.item>
-                    <flux:menu.item icon="user-circle" :href="url('/settings')" wire:navigate>Mi perfil</flux:menu.item>
+                        <flux:menu.separator />
 
-                    <flux:menu.separator />
+                        <flux:menu.item icon="squares-2x2" :href="url('/dashboard')" wire:navigate>Panel</flux:menu.item>
+                        <flux:menu.item icon="user-circle" :href="url('/settings')" wire:navigate>Mi perfil</flux:menu.item>
 
-                    <form method="POST" action="{{ url('/logout') }}" class="w-full">
-                        @csrf
-                        <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
-                            Cerrar sesión
-                        </flux:menu.item>
-                    </form>
-                </flux:menu>
-            </flux:dropdown>
-        @else
-            <button
-                wire:click="$set('showLogin', true)"
-                class="inline-flex items-center gap-2 text-sm font-semibold text-zinc-300 hover:text-yellow-400 transition-colors duration-200"
-            >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                </svg>
-                Acceso
-            </button>
-        @endauth
+                        <flux:menu.separator />
+
+                        <form method="POST" action="{{ url('/logout') }}" class="w-full">
+                            @csrf
+                            <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
+                                Cerrar sesión
+                            </flux:menu.item>
+                        </form>
+                    </flux:menu>
+                </flux:dropdown>
+            @else
+                <button
+                    wire:click="$set('showLogin', true)"
+                    class="inline-flex items-center gap-2 text-sm font-semibold text-zinc-300 hover:text-yellow-400 transition-colors duration-200"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                    </svg>
+                    Acceso
+                </button>
+            @endauth
+        </div>
     </nav>
 
     {{-- Login Modal --}}

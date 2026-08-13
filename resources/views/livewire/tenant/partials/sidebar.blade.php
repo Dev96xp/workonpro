@@ -4,27 +4,27 @@
     <flux:navlist>
         <flux:navlist.item href="{{ url('/dashboard') }}" icon="home" wire:navigate
             :current="request()->routeIs('tenant.dashboard')">
-            Dashboard
+            {{ __('tenant.nav.dashboard') }}
         </flux:navlist.item>
         <flux:navlist.item href="{{ url('/clients') }}" icon="users" wire:navigate
             :current="request()->routeIs('tenant.clients')">
-            Clientes
+            {{ __('tenant.nav.clients') }}
         </flux:navlist.item>
         <flux:navlist.item href="{{ url('/services') }}" icon="wrench-screwdriver" wire:navigate
             :current="request()->routeIs('tenant.services')">
-            Servicios
+            {{ __('tenant.nav.services') }}
         </flux:navlist.item>
         <flux:navlist.item href="{{ url('/coupons') }}" icon="tag" wire:navigate
             :current="request()->routeIs('tenant.coupons')">
-            Cupones
+            {{ __('tenant.nav.coupons') }}
         </flux:navlist.item>
         <flux:navlist.item href="{{ url('/images') }}" icon="photo" wire:navigate
             :current="request()->routeIs('tenant.images')">
-            Imágenes
+            {{ __('tenant.nav.images') }}
         </flux:navlist.item>
         <flux:navlist.item href="{{ url('/settings') }}" icon="cog-6-tooth" wire:navigate
             :current="request()->routeIs('tenant.settings')">
-            Configuración
+            {{ __('tenant.nav.settings') }}
         </flux:navlist.item>
     </flux:navlist>
 </flux:sidebar>

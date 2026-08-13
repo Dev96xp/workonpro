@@ -149,17 +149,17 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 {{-- Header --}}
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <flux:heading size="xl">Clientes</flux:heading>
-                        <flux:text class="text-zinc-500">Gestiona los clientes de tu negocio</flux:text>
+                        <flux:heading size="xl">{{ __('tenant.clients.heading') }}</flux:heading>
+                        <flux:text class="text-zinc-500">{{ __('tenant.clients.subheading') }}</flux:text>
                     </div>
                     <flux:button wire:click="openCreate" variant="primary" icon="plus" class="sm:w-auto">
-                        Nuevo cliente
+                        {{ __('tenant.clients.new') }}
                     </flux:button>
                 </div>
 
                 {{-- Búsqueda --}}
                 <div class="mt-6">
-                    <flux:input wire:model.live.debounce.300ms="search" placeholder="Buscar por nombre, email o empresa..." icon="magnifying-glass" />
+                    <flux:input wire:model.live.debounce.300ms="search" placeholder="{{ __('tenant.clients.search_placeholder') }}" icon="magnifying-glass" />
                 </div>
 
                 {{-- Tabla --}}
@@ -167,12 +167,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                         <thead class="bg-zinc-50 dark:bg-zinc-900">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Nombre</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Email</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Teléfono</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Empresa</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Estado</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">Acciones</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.name') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.email') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.phone') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.company') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.status') }}</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
@@ -184,9 +184,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                     <td class="px-6 py-4 text-zinc-500">{{ $client->company ?? '—' }}</td>
                                     <td class="px-6 py-4">
                                         @if ($client->is_active)
-                                            <flux:badge color="green" size="sm">Activo</flux:badge>
+                                            <flux:badge color="green" size="sm">{{ __('tenant.common.active') }}</flux:badge>
                                         @else
-                                            <flux:badge color="zinc" size="sm">Inactivo</flux:badge>
+                                            <flux:badge color="zinc" size="sm">{{ __('tenant.common.inactive') }}</flux:badge>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 text-right">
@@ -199,7 +199,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                             @empty
                                 <tr>
                                     <td colspan="6" class="px-6 py-12 text-center text-zinc-500">
-                                        No hay clientes registrados aún.
+                                        {{ __('tenant.clients.empty') }}
                                     </td>
                                 </tr>
                             @endforelse
@@ -218,56 +218,56 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     {{-- Modal Crear/Editar --}}
     <flux:modal wire:model="showModal" class="w-full max-w-lg">
-        <flux:heading size="lg">{{ $editingId ? 'Editar cliente' : 'Nuevo cliente' }}</flux:heading>
+        <flux:heading size="lg">{{ $editingId ? __('tenant.clients.edit') : __('tenant.clients.new') }}</flux:heading>
 
         <form wire:submit="save" class="mt-4 space-y-4">
             <div class="grid gap-4 sm:grid-cols-2">
                 <flux:field class="sm:col-span-2">
-                    <flux:label>Nombre <span class="text-red-500">*</span></flux:label>
+                    <flux:label>{{ __('tenant.common.name') }} <span class="text-red-500">*</span></flux:label>
                     <flux:input wire:model="name" placeholder="Nombre completo" />
                     <flux:error name="name" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>Email</flux:label>
+                    <flux:label>{{ __('tenant.common.email') }}</flux:label>
                     <flux:input wire:model="email" type="email" placeholder="email@ejemplo.com" />
                     <flux:error name="email" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>Teléfono</flux:label>
+                    <flux:label>{{ __('tenant.common.phone') }}</flux:label>
                     <flux:input wire:model="phone" placeholder="+1 234 567 8900" />
                     <flux:error name="phone" />
                 </flux:field>
 
                 <flux:field class="sm:col-span-2">
-                    <flux:label>Empresa</flux:label>
+                    <flux:label>{{ __('tenant.common.company') }}</flux:label>
                     <flux:input wire:model="company" placeholder="Nombre de la empresa" />
                     <flux:error name="company" />
                 </flux:field>
 
                 <flux:field class="sm:col-span-2">
-                    <flux:label>Dirección</flux:label>
+                    <flux:label>{{ __('tenant.common.address') }}</flux:label>
                     <flux:input wire:model="address" placeholder="Dirección completa" />
                     <flux:error name="address" />
                 </flux:field>
 
                 <flux:field class="sm:col-span-2">
-                    <flux:label>Notas</flux:label>
+                    <flux:label>{{ __('tenant.clients.notes') }}</flux:label>
                     <flux:textarea wire:model="notes" placeholder="Notas adicionales..." rows="3" />
                     <flux:error name="notes" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:checkbox wire:model="is_active" label="Cliente activo" />
+                    <flux:checkbox wire:model="is_active" label="{{ __('tenant.clients.active_checkbox') }}" />
                 </flux:field>
             </div>
 
             <div class="flex justify-end gap-3 pt-2">
-                <flux:button type="button" wire:click="$set('showModal', false)">Cancelar</flux:button>
+                <flux:button type="button" wire:click="$set('showModal', false)">{{ __('tenant.common.cancel') }}</flux:button>
                 <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
-                    <span wire:loading.remove>{{ $editingId ? 'Guardar cambios' : 'Crear cliente' }}</span>
-                    <span wire:loading>Guardando...</span>
+                    <span wire:loading.remove>{{ $editingId ? __('tenant.common.save_changes') : __('tenant.clients.new') }}</span>
+                    <span wire:loading>{{ __('tenant.common.saving') }}</span>
                 </flux:button>
             </div>
         </form>
@@ -279,13 +279,13 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
                 <flux:icon.trash class="size-6 text-red-600 dark:text-red-400" />
             </div>
-            <flux:heading size="lg">¿Eliminar cliente?</flux:heading>
-            <flux:text class="mt-2 text-zinc-500">Esta acción no se puede deshacer.</flux:text>
+            <flux:heading size="lg">{{ __('tenant.clients.confirm_delete') }}</flux:heading>
+            <flux:text class="mt-2 text-zinc-500">{{ __('tenant.common.cannot_undo') }}</flux:text>
         </div>
 
         <div class="mt-6 flex justify-center gap-3">
-            <flux:button wire:click="$set('showDeleteModal', false)">Cancelar</flux:button>
-            <flux:button wire:click="delete" variant="danger">Eliminar</flux:button>
+            <flux:button wire:click="$set('showDeleteModal', false)">{{ __('tenant.common.cancel') }}</flux:button>
+            <flux:button wire:click="delete" variant="danger">{{ __('tenant.common.delete') }}</flux:button>
         </div>
     </flux:modal>
 </div>

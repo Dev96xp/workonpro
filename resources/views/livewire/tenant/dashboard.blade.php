@@ -50,13 +50,13 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     <div class="relative">
                         <div class="flex items-center gap-2">
                             <span class="h-1 w-8 rounded-full bg-yellow-400"></span>
-                            <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400">Panel de administración</p>
+                            <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400">{{ __('tenant.dashboard.panel_label') }}</p>
                         </div>
                         <h1 class="mt-3 text-3xl font-bold text-white sm:text-4xl">{{ $businessName }}</h1>
-                        <p class="mt-2 text-zinc-400">Bienvenido, {{ auth()->user()->name }}</p>
+                        <p class="mt-2 text-zinc-400">{{ __('tenant.dashboard.welcome', ['name' => auth()->user()->name]) }}</p>
                         <div class="mt-5 inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-4 py-1.5 text-sm font-semibold capitalize text-yellow-400">
                             <span class="size-2 rounded-full bg-yellow-400"></span>
-                            Plan {{ $plan }}
+                            {{ __('tenant.dashboard.plan') }} {{ $plan }}
                         </div>
                     </div>
                 </div>
@@ -66,37 +66,37 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     <a href="{{ url('/clients') }}" wire:navigate
                        class="group rounded-xl border border-stone-200 bg-white p-5 shadow-sm transition hover:border-yellow-400 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800">
                         <div class="flex items-center justify-between">
-                            <flux:text class="text-sm font-medium text-zinc-500">Clientes</flux:text>
+                            <flux:text class="text-sm font-medium text-zinc-500">{{ __('tenant.nav.clients') }}</flux:text>
                             <div class="rounded-lg bg-zinc-900 p-2 text-yellow-400 transition group-hover:bg-yellow-400 group-hover:text-zinc-900 dark:bg-zinc-700">
                                 <flux:icon.users class="size-5" />
                             </div>
                         </div>
                         <p class="mt-3 text-3xl font-bold text-zinc-900 dark:text-white">{{ $clientCount }}</p>
-                        <p class="mt-1 text-xs text-zinc-400">Total registrados</p>
+                        <p class="mt-1 text-xs text-zinc-400">{{ __('tenant.dashboard.total_registered') }}</p>
                     </a>
 
                     <a href="{{ url('/coupons') }}" wire:navigate
                        class="group rounded-xl border border-stone-200 bg-white p-5 shadow-sm transition hover:border-yellow-400 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800">
                         <div class="flex items-center justify-between">
-                            <flux:text class="text-sm font-medium text-zinc-500">Cupones activos</flux:text>
+                            <flux:text class="text-sm font-medium text-zinc-500">{{ __('tenant.dashboard.active_coupons') }}</flux:text>
                             <div class="rounded-lg bg-zinc-900 p-2 text-yellow-400 transition group-hover:bg-yellow-400 group-hover:text-zinc-900 dark:bg-zinc-700">
                                 <flux:icon.tag class="size-5" />
                             </div>
                         </div>
                         <p class="mt-3 text-3xl font-bold text-zinc-900 dark:text-white">{{ $activeCoupons }}</p>
-                        <p class="mt-1 text-xs text-zinc-400">En circulación</p>
+                        <p class="mt-1 text-xs text-zinc-400">{{ __('tenant.dashboard.in_circulation') }}</p>
                     </a>
 
                     <a href="{{ url('/images') }}" wire:navigate
                        class="group rounded-xl border border-stone-200 bg-white p-5 shadow-sm transition hover:border-yellow-400 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800">
                         <div class="flex items-center justify-between">
-                            <flux:text class="text-sm font-medium text-zinc-500">Imágenes</flux:text>
+                            <flux:text class="text-sm font-medium text-zinc-500">{{ __('tenant.nav.images') }}</flux:text>
                             <div class="rounded-lg bg-zinc-900 p-2 text-yellow-400 transition group-hover:bg-yellow-400 group-hover:text-zinc-900 dark:bg-zinc-700">
                                 <flux:icon.photo class="size-5" />
                             </div>
                         </div>
                         <p class="mt-3 text-3xl font-bold text-zinc-900 dark:text-white">{{ $imageCount }}</p>
-                        <p class="mt-1 text-xs text-zinc-400">Subidas</p>
+                        <p class="mt-1 text-xs text-zinc-400">{{ __('tenant.dashboard.uploaded') }}</p>
                     </a>
                 </div>
 
@@ -105,12 +105,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     <div class="rounded-xl border border-stone-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
                         <div class="flex flex-wrap items-center justify-between gap-2">
                             <div>
-                                <flux:heading size="lg">Galería de imágenes</flux:heading>
-                                <flux:text class="mt-1 text-sm text-zinc-500">Las últimas fotos de tu negocio</flux:text>
+                                <flux:heading size="lg">{{ __('tenant.dashboard.gallery') }}</flux:heading>
+                                <flux:text class="mt-1 text-sm text-zinc-500">{{ __('tenant.dashboard.gallery_sub') }}</flux:text>
                             </div>
                             <a href="{{ url('/images') }}" wire:navigate
                                class="text-sm font-semibold text-yellow-600 hover:text-yellow-700 dark:text-yellow-400">
-                                Ver todas →
+                                {{ __('tenant.dashboard.view_all') }} →
                             </a>
                         </div>
 
@@ -131,11 +131,11 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 @else
                     <div class="rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center dark:border-zinc-600 dark:bg-zinc-800">
                         <flux:icon.photo class="mx-auto size-12 text-zinc-300" />
-                        <flux:heading size="sm" class="mt-3 text-zinc-500">Aún no hay imágenes</flux:heading>
-                        <flux:text class="mt-1 text-sm text-zinc-400">Sube fotos de tu negocio para mostrarlas aquí.</flux:text>
+                        <flux:heading size="sm" class="mt-3 text-zinc-500">{{ __('tenant.dashboard.no_images_heading') }}</flux:heading>
+                        <flux:text class="mt-1 text-sm text-zinc-400">{{ __('tenant.dashboard.no_images_text') }}</flux:text>
                         <a href="{{ url('/images') }}" wire:navigate
                            class="mt-4 inline-block rounded-lg bg-yellow-400 px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-yellow-500">
-                            Subir imágenes
+                            {{ __('tenant.images.upload_heading') }}
                         </a>
                     </div>
                 @endif

@@ -78,7 +78,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public function openCreate(): void
     {
         if (! (Tenant::withinPlanLimit(tenant('plan'), 'services', Service::count()))) {
-            $this->addError('name', 'Alcanzaste el límite de servicios de tu plan.');
+            $this->addError('name', __('tenant.services.limit_error'));
 
             return;
         }
@@ -109,7 +109,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $this->validate();
 
         if (! $this->editingId && ! Tenant::withinPlanLimit(tenant('plan'), 'services', Service::count())) {
-            $this->addError('name', 'Alcanzaste el límite de servicios de tu plan.');
+            $this->addError('name', __('tenant.services.limit_error'));
 
             return;
         }
@@ -264,39 +264,39 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             <div class="p-6">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <flux:heading size="xl">Servicios</flux:heading>
+                        <flux:heading size="xl">{{ __('tenant.services.heading') }}</flux:heading>
                         <flux:text class="text-zinc-500">
-                            Administra los servicios que ofrece tu negocio
-                            · {{ $serviceCount }} / {{ $serviceLimit ?? '∞' }} usados
+                            {{ __('tenant.services.subheading') }}
+                            · {{ $serviceCount }} / {{ $serviceLimit ?? '∞' }} {{ __('tenant.common.used') }}
                         </flux:text>
                     </div>
                     <flux:button wire:click="openCreate" variant="primary" icon="plus" class="sm:w-auto" :disabled="! $canCreateService">
-                        Nuevo servicio
+                        {{ __('tenant.services.new') }}
                     </flux:button>
                 </div>
 
                 @unless ($canCreateService)
                     <div class="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                        Has alcanzado el límite de {{ $serviceLimit }} servicios de tu plan.
+                        {{ __('tenant.services.limit_banner', ['limit' => $serviceLimit]) }}
                         @if (tenant('plan') === 'basic')
-                            <a href="#" class="font-semibold underline">Actualiza tu plan</a> para agregar más.
+                            <a href="#" class="font-semibold underline">{{ __('tenant.common.upgrade_plan') }}</a> {{ __('tenant.common.upgrade_more') }}
                         @endif
                     </div>
                 @endunless
 
                 <div class="mt-6">
-                    <flux:input wire:model.live.debounce.300ms="search" placeholder="Buscar por nombre o descripción..." icon="magnifying-glass" />
+                    <flux:input wire:model.live.debounce.300ms="search" placeholder="{{ __('tenant.services.search_placeholder') }}" icon="magnifying-glass" />
                 </div>
 
                 <div class="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
                     <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                         <thead class="bg-zinc-50 dark:bg-zinc-900">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Servicio</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Categoría</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Precio</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">Estado</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">Acciones</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.services.service_label') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.category') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.price') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.status') }}</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
@@ -328,9 +328,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                     </td>
                                     <td class="px-6 py-4">
                                         @if ($service->is_active)
-                                            <flux:badge color="green" size="sm">Activo</flux:badge>
+                                            <flux:badge color="green" size="sm">{{ __('tenant.common.active') }}</flux:badge>
                                         @else
-                                            <flux:badge color="zinc" size="sm">Inactivo</flux:badge>
+                                            <flux:badge color="zinc" size="sm">{{ __('tenant.common.inactive') }}</flux:badge>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 text-right">
@@ -343,7 +343,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                             @empty
                                 <tr>
                                     <td colspan="5" class="px-6 py-12 text-center text-zinc-500">
-                                        No hay servicios creados aún.
+                                        {{ __('tenant.services.empty') }}
                                     </td>
                                 </tr>
                             @endforelse
@@ -362,26 +362,26 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     {{-- Modal Crear/Editar --}}
     <flux:modal wire:model="showModal" class="w-full max-w-lg">
-        <flux:heading size="lg">{{ $editingId ? 'Editar servicio' : 'Nuevo servicio' }}</flux:heading>
+        <flux:heading size="lg">{{ $editingId ? __('tenant.services.edit') : __('tenant.services.new') }}</flux:heading>
 
         <form wire:submit="save" class="mt-4 space-y-4">
             <div class="grid gap-4 sm:grid-cols-2">
                 <flux:field class="sm:col-span-2">
-                    <flux:label>Nombre del servicio <span class="text-red-500">*</span></flux:label>
+                    <flux:label>{{ __('tenant.services.name_label') }} <span class="text-red-500">*</span></flux:label>
                     <flux:input wire:model="name" placeholder="Ej: Reparación de techo" />
                     <flux:error name="name" />
                 </flux:field>
 
                 <flux:field class="sm:col-span-2">
-                    <flux:label>Descripción</flux:label>
+                    <flux:label>{{ __('tenant.common.description') }}</flux:label>
                     <flux:textarea wire:model="description" rows="3" placeholder="Describe en qué consiste el servicio..." />
                     <flux:error name="description" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>Categoría <span class="text-red-500">*</span></flux:label>
+                    <flux:label>{{ __('tenant.common.category') }} <span class="text-red-500">*</span></flux:label>
                     <flux:select wire:model="category">
-                        <flux:select.option value="">Selecciona una categoría</flux:select.option>
+                        <flux:select.option value="">{{ __('tenant.services.select_category') }}</flux:select.option>
                         @foreach ($categoryOptions as $option)
                             <flux:select.option value="{{ $option->slug }}">{{ $option->name }}</flux:select.option>
                         @endforeach
@@ -390,20 +390,20 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>Precio base ($)</flux:label>
+                    <flux:label>{{ __('tenant.services.base_price') }}</flux:label>
                     <flux:input wire:model="price" type="number" step="0.01" min="0" placeholder="0.00" />
                     <flux:error name="price" />
                 </flux:field>
 
                 <flux:field class="flex items-end">
-                    <flux:checkbox wire:model="is_active" label="Servicio activo" />
+                    <flux:checkbox wire:model="is_active" label="{{ __('tenant.services.active_checkbox') }}" />
                 </flux:field>
             </div>
 
             {{-- Imágenes del servicio --}}
             <div class="border-t border-zinc-200 pt-4 dark:border-zinc-700">
                 <flux:text class="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Imágenes del servicio (opcional, máx. 2)
+                    {{ __('tenant.services.images_label') }}
                 </flux:text>
                 <div class="grid grid-cols-2 gap-4">
                     {{-- Imagen 1 --}}
@@ -465,10 +465,10 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             </div>
 
             <div class="flex justify-end gap-3 pt-2">
-                <flux:button type="button" wire:click="$set('showModal', false)">Cancelar</flux:button>
+                <flux:button type="button" wire:click="$set('showModal', false)">{{ __('tenant.common.cancel') }}</flux:button>
                 <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
-                    <span wire:loading.remove>{{ $editingId ? 'Guardar cambios' : 'Crear servicio' }}</span>
-                    <span wire:loading>Guardando...</span>
+                    <span wire:loading.remove>{{ $editingId ? __('tenant.common.save_changes') : __('tenant.services.new') }}</span>
+                    <span wire:loading>{{ __('tenant.common.saving') }}</span>
                 </flux:button>
             </div>
         </form>
@@ -480,12 +480,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
                 <flux:icon.trash class="size-6 text-red-600 dark:text-red-400" />
             </div>
-            <flux:heading size="lg">¿Eliminar servicio?</flux:heading>
-            <flux:text class="mt-2 text-zinc-500">Esta acción no se puede deshacer.</flux:text>
+            <flux:heading size="lg">{{ __('tenant.services.confirm_delete') }}</flux:heading>
+            <flux:text class="mt-2 text-zinc-500">{{ __('tenant.common.cannot_undo') }}</flux:text>
         </div>
         <div class="mt-6 flex justify-center gap-3">
-            <flux:button wire:click="$set('showDeleteModal', false)">Cancelar</flux:button>
-            <flux:button wire:click="delete" variant="danger">Eliminar</flux:button>
+            <flux:button wire:click="$set('showDeleteModal', false)">{{ __('tenant.common.cancel') }}</flux:button>
+            <flux:button wire:click="delete" variant="danger">{{ __('tenant.common.delete') }}</flux:button>
         </div>
     </flux:modal>
 </div>

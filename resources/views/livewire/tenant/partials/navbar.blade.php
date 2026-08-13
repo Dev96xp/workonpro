@@ -19,7 +19,7 @@
             <flux:profile name="{{ auth()->user()->name }}" />
             <flux:menu>
                 <flux:menu.item wire:click="logout" icon="arrow-right-start-on-rectangle">
-                    Cerrar sesión
+                    {{ __('tenant.nav.logout') }}
                 </flux:menu.item>
             </flux:menu>
         </flux:dropdown>

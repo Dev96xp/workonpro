@@ -170,7 +170,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             ]
         );
 
-        $this->profileSaved = '¡Perfil guardado exitosamente!';
+        $this->profileSaved = __('tenant.settings.profile_saved');
     }
 
     public function savePassword(): void
@@ -184,7 +184,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $this->current_password            = '';
         $this->new_password                = '';
         $this->new_password_confirmation   = '';
-        $this->passwordSaved               = '¡Contraseña actualizada exitosamente!';
+        $this->passwordSaved               = __('tenant.settings.password_saved');
     }
 
     public function logout(): void
@@ -204,15 +204,15 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
         <flux:main>
             <div class="p-6">
-                <flux:heading size="xl">Configuración</flux:heading>
-                <flux:text class="text-zinc-500">Administra el perfil y configuración de tu negocio</flux:text>
+                <flux:heading size="xl">{{ __('tenant.nav.settings') }}</flux:heading>
+                <flux:text class="text-zinc-500">{{ __('tenant.settings.subheading') }}</flux:text>
 
                 <div class="mt-8 max-w-2xl space-y-8">
 
                     {{-- Información básica --}}
                     <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
-                        <flux:heading size="lg">Perfil del negocio</flux:heading>
-                        <flux:text class="mt-1 text-sm text-zinc-500">Información pública de tu negocio</flux:text>
+                        <flux:heading size="lg">{{ __('tenant.settings.profile_heading') }}</flux:heading>
+                        <flux:text class="mt-1 text-sm text-zinc-500">{{ __('tenant.settings.profile_sub') }}</flux:text>
 
                         @if ($profileSaved)
                             <div class="mt-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-400">
@@ -224,29 +224,29 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
                             {{-- Identidad --}}
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">Identidad</p>
+                                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">{{ __('tenant.settings.section_identity') }}</p>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <flux:field class="sm:col-span-2">
-                                        <flux:label>Nombre del negocio <span class="text-red-500">*</span></flux:label>
+                                        <flux:label>{{ __('tenant.settings.business_name_label') }} <span class="text-red-500">*</span></flux:label>
                                         <flux:input wire:model="business_name" />
                                         <flux:error name="business_name" />
                                     </flux:field>
 
                                     <flux:field class="sm:col-span-2">
-                                        <flux:label>Título principal</flux:label>
-                                        <flux:input wire:model="business_title" placeholder="Se muestra como título en tu página principal" />
-                                        <flux:description>Si lo dejas vacío, se usa el nombre del negocio.</flux:description>
+                                        <flux:label>{{ __('tenant.settings.business_title_label') }}</flux:label>
+                                        <flux:input wire:model="business_title" placeholder="{{ __('tenant.settings.business_title_placeholder') }}" />
+                                        <flux:description>{{ __('tenant.settings.business_title_hint') }}</flux:description>
                                         <flux:error name="business_title" />
                                     </flux:field>
 
                                     <flux:field class="sm:col-span-2">
-                                        <flux:switch wire:model="show_logo_on_hero" label="Mostrar mi logo sobre el título principal" />
-                                        <flux:description>Requiere que hayas marcado una imagen como logo en el módulo de Imágenes.</flux:description>
+                                        <flux:switch wire:model="show_logo_on_hero" label="{{ __('tenant.settings.show_logo_switch') }}" />
+                                        <flux:description>{{ __('tenant.settings.show_logo_hint') }}</flux:description>
                                     </flux:field>
 
                                     <flux:field class="sm:col-span-2">
-                                        <flux:label>Slogan</flux:label>
-                                        <flux:input wire:model="slogan" placeholder="Tu frase de marketing..." />
+                                        <flux:label>{{ __('tenant.settings.slogan_label') }}</flux:label>
+                                        <flux:input wire:model="slogan" placeholder="{{ __('tenant.settings.slogan_placeholder') }}" />
                                         <flux:error name="slogan" />
                                     </flux:field>
                                 </div>
@@ -254,28 +254,28 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
                             {{-- Contacto --}}
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">Contacto</p>
+                                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">{{ __('tenant.settings.section_contact') }}</p>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <flux:field>
-                                        <flux:label>Email de contacto</flux:label>
+                                        <flux:label>{{ __('tenant.settings.email_label') }}</flux:label>
                                         <flux:input wire:model="business_email" type="email" />
                                         <flux:error name="business_email" />
                                     </flux:field>
 
                                     <flux:field>
-                                        <flux:label>Teléfono principal</flux:label>
+                                        <flux:label>{{ __('tenant.settings.phone_label') }}</flux:label>
                                         <flux:input wire:model="phone" placeholder="+1 234 567 8900" />
                                         <flux:error name="phone" />
                                     </flux:field>
 
                                     <flux:field>
-                                        <flux:label>Teléfono secundario</flux:label>
+                                        <flux:label>{{ __('tenant.settings.phone2_label') }}</flux:label>
                                         <flux:input wire:model="phone_2" placeholder="+1 234 567 8901" />
                                         <flux:error name="phone_2" />
                                     </flux:field>
 
                                     <flux:field>
-                                        <flux:label>WhatsApp</flux:label>
+                                        <flux:label>{{ __('tenant.settings.whatsapp_label') }}</flux:label>
                                         <flux:input wire:model="whatsapp" placeholder="+1 234 567 8900" />
                                         <flux:error name="whatsapp" />
                                     </flux:field>
@@ -284,28 +284,28 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
                             {{-- Licencia y seguro --}}
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">Licencia y Seguro</p>
+                                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">{{ __('tenant.settings.section_license') }}</p>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <flux:field>
-                                        <flux:switch wire:model.live="has_license" label="Tengo licencia de trabajo" />
+                                        <flux:switch wire:model.live="has_license" label="{{ __('tenant.settings.has_license_switch') }}" />
                                     </flux:field>
 
                                     @if ($has_license)
                                         <flux:field>
-                                            <flux:label>Número de licencia</flux:label>
-                                            <flux:input wire:model="license_number" placeholder="Opcional" />
+                                            <flux:label>{{ __('tenant.settings.license_number_label') }}</flux:label>
+                                            <flux:input wire:model="license_number" placeholder="{{ __('tenant.common.optional') }}" />
                                             <flux:error name="license_number" />
                                         </flux:field>
                                     @endif
 
                                     <flux:field>
-                                        <flux:switch wire:model.live="has_insurance" label="Cuento con seguro de daños" />
+                                        <flux:switch wire:model.live="has_insurance" label="{{ __('tenant.settings.has_insurance_switch') }}" />
                                     </flux:field>
 
                                     @if ($has_insurance)
                                         <flux:field>
-                                            <flux:label>Número de póliza</flux:label>
-                                            <flux:input wire:model="insurance_number" placeholder="Opcional" />
+                                            <flux:label>{{ __('tenant.settings.insurance_number_label') }}</flux:label>
+                                            <flux:input wire:model="insurance_number" placeholder="{{ __('tenant.common.optional') }}" />
                                             <flux:error name="insurance_number" />
                                         </flux:field>
                                     @endif
@@ -314,29 +314,29 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
                             {{-- Ubicación --}}
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">Ubicación</p>
+                                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">{{ __('tenant.settings.section_location') }}</p>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <flux:field class="sm:col-span-2">
-                                        <flux:label>Dirección</flux:label>
+                                        <flux:label>{{ __('tenant.common.address') }}</flux:label>
                                         <flux:input wire:model="address" />
                                         <flux:error name="address" />
                                     </flux:field>
 
                                     <flux:field>
-                                        <flux:label>Ciudad</flux:label>
+                                        <flux:label>{{ __('tenant.settings.city_label') }}</flux:label>
                                         <flux:input wire:model="city" />
                                         <flux:error name="city" />
                                     </flux:field>
 
                                     <flux:field>
-                                        <flux:label>País</flux:label>
+                                        <flux:label>{{ __('tenant.settings.country_label') }}</flux:label>
                                         <flux:input wire:model="country" />
                                         <flux:error name="country" />
                                     </flux:field>
 
                                     <flux:field class="sm:col-span-2">
-                                        <flux:label>Horario de atención</flux:label>
-                                        <flux:input wire:model="business_hours" placeholder="Lun-Vie 9am-6pm, Sáb 10am-2pm" />
+                                        <flux:label>{{ __('tenant.settings.hours_label') }}</flux:label>
+                                        <flux:input wire:model="business_hours" placeholder="{{ __('tenant.settings.hours_placeholder') }}" />
                                         <flux:error name="business_hours" />
                                     </flux:field>
                                 </div>
@@ -344,46 +344,46 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
                             {{-- Web y redes --}}
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">Web y Redes Sociales</p>
+                                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">{{ __('tenant.settings.section_web') }}</p>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <flux:field class="sm:col-span-2">
-                                        <flux:label>Sitio web</flux:label>
+                                        <flux:label>{{ __('tenant.settings.website_label') }}</flux:label>
                                         <flux:input wire:model="website" placeholder="https://minegocio.com" />
                                         <flux:error name="website" />
                                     </flux:field>
 
                                     <flux:field>
-                                        <flux:label>Instagram</flux:label>
+                                        <flux:label>{{ __('tenant.settings.instagram_label') }}</flux:label>
                                         <flux:input wire:model="instagram" placeholder="@minegocio" />
                                         <flux:error name="instagram" />
                                     </flux:field>
 
                                     <flux:field>
-                                        <flux:label>Facebook</flux:label>
+                                        <flux:label>{{ __('tenant.settings.facebook_label') }}</flux:label>
                                         <flux:input wire:model="facebook" placeholder="facebook.com/minegocio" />
                                         <flux:error name="facebook" />
                                     </flux:field>
 
                                     <flux:field>
-                                        <flux:label>YouTube</flux:label>
+                                        <flux:label>{{ __('tenant.settings.youtube_label') }}</flux:label>
                                         <flux:input wire:model="youtube" placeholder="youtube.com/@minegocio" />
                                         <flux:error name="youtube" />
                                     </flux:field>
 
                                     <flux:field>
-                                        <flux:label>X (Twitter)</flux:label>
+                                        <flux:label>{{ __('tenant.settings.x_label') }}</flux:label>
                                         <flux:input wire:model="x" placeholder="@minegocio" />
                                         <flux:error name="x" />
                                     </flux:field>
 
                                     <flux:field>
-                                        <flux:label>TikTok</flux:label>
+                                        <flux:label>{{ __('tenant.settings.tiktok_label') }}</flux:label>
                                         <flux:input wire:model="tiktok" placeholder="@minegocio" />
                                         <flux:error name="tiktok" />
                                     </flux:field>
 
                                     <flux:field>
-                                        <flux:label>Discord</flux:label>
+                                        <flux:label>{{ __('tenant.settings.discord_label') }}</flux:label>
                                         <flux:input wire:model="discord" placeholder="discord.gg/minegocio" />
                                         <flux:error name="discord" />
                                     </flux:field>
@@ -392,23 +392,23 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
                             {{-- Descripción, políticas y objetivos --}}
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">Información Empresarial</p>
+                                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">{{ __('tenant.settings.section_business_info') }}</p>
                                 <div class="grid gap-4">
                                     <flux:field>
-                                        <flux:label>Descripción del negocio</flux:label>
-                                        <flux:textarea wire:model="description" rows="4" placeholder="¿A qué se dedica tu negocio? Cuéntanos sobre tus servicios y productos..." />
+                                        <flux:label>{{ __('tenant.settings.description_label') }}</flux:label>
+                                        <flux:textarea wire:model="description" rows="4" placeholder="{{ __('tenant.settings.description_placeholder') }}" />
                                         <flux:error name="description" />
                                     </flux:field>
 
                                     <flux:field>
-                                        <flux:label>Política de la empresa</flux:label>
-                                        <flux:textarea wire:model="policy" rows="4" placeholder="Describe las políticas de tu empresa (devoluciones, privacidad, etc.)..." />
+                                        <flux:label>{{ __('tenant.settings.policy_label') }}</flux:label>
+                                        <flux:textarea wire:model="policy" rows="4" placeholder="{{ __('tenant.settings.policy_placeholder') }}" />
                                         <flux:error name="policy" />
                                     </flux:field>
 
                                     <flux:field>
-                                        <flux:label>Objetivos</flux:label>
-                                        <flux:textarea wire:model="objectives" rows="4" placeholder="¿Cuáles son los objetivos de tu empresa?..." />
+                                        <flux:label>{{ __('tenant.settings.objectives_label') }}</flux:label>
+                                        <flux:textarea wire:model="objectives" rows="4" placeholder="{{ __('tenant.settings.objectives_placeholder') }}" />
                                         <flux:error name="objectives" />
                                     </flux:field>
                                 </div>
@@ -416,8 +416,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
                             <div class="flex justify-end pt-2">
                                 <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
-                                    <span wire:loading.remove>Guardar perfil</span>
-                                    <span wire:loading>Guardando...</span>
+                                    <span wire:loading.remove>{{ __('tenant.settings.save_profile') }}</span>
+                                    <span wire:loading>{{ __('tenant.common.saving') }}</span>
                                 </flux:button>
                             </div>
                         </form>
@@ -425,8 +425,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
                     {{-- Cambiar contraseña --}}
                     <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
-                        <flux:heading size="lg">Cambiar contraseña</flux:heading>
-                        <flux:text class="mt-1 text-sm text-zinc-500">Asegúrate de usar una contraseña segura</flux:text>
+                        <flux:heading size="lg">{{ __('tenant.settings.change_password_heading') }}</flux:heading>
+                        <flux:text class="mt-1 text-sm text-zinc-500">{{ __('tenant.settings.change_password_sub') }}</flux:text>
 
                         @if ($passwordSaved)
                             <div class="mt-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-400">
@@ -436,26 +436,26 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
                         <form wire:submit="savePassword" class="mt-5 space-y-4">
                             <flux:field>
-                                <flux:label>Contraseña actual</flux:label>
+                                <flux:label>{{ __('tenant.settings.current_password_label') }}</flux:label>
                                 <flux:input wire:model="current_password" type="password" />
                                 <flux:error name="current_password" />
                             </flux:field>
 
                             <flux:field>
-                                <flux:label>Nueva contraseña</flux:label>
+                                <flux:label>{{ __('tenant.settings.new_password_label') }}</flux:label>
                                 <flux:input wire:model="new_password" type="password" />
                                 <flux:error name="new_password" />
                             </flux:field>
 
                             <flux:field>
-                                <flux:label>Confirmar nueva contraseña</flux:label>
+                                <flux:label>{{ __('tenant.settings.confirm_password_label') }}</flux:label>
                                 <flux:input wire:model="new_password_confirmation" type="password" />
                             </flux:field>
 
                             <div class="flex justify-end pt-2">
                                 <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
-                                    <span wire:loading.remove>Actualizar contraseña</span>
-                                    <span wire:loading>Actualizando...</span>
+                                    <span wire:loading.remove>{{ __('tenant.settings.update_password') }}</span>
+                                    <span wire:loading>{{ __('tenant.settings.updating') }}</span>
                                 </flux:button>
                             </div>
                         </form>

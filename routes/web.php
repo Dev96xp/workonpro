@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\SetLocale;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -13,7 +14,8 @@ Route::domain($centralDomain)->middleware(SetLocale::class)->group(function () {
 
     Route::get('/lang/{locale}', function (string $locale) {
         if (in_array($locale, ['es', 'en'], true)) {
-            session(['locale' => $locale]);
+            $domain = parse_url(config('app.url'), PHP_URL_HOST);
+            Cookie::queue(Cookie::forever('locale', $locale, path: '/', domain: '.'.$domain));
         }
 
         return redirect()->back();
