@@ -22,6 +22,20 @@
             :current="request()->routeIs('tenant.images')">
             {{ __('tenant.nav.images') }}
         </flux:navlist.item>
+        @if (\App\Models\Tenant::hasFeature(tenant('plan'), 'invoices'))
+            <flux:navlist.item href="{{ url('/invoices') }}" icon="banknotes" wire:navigate
+                :current="request()->routeIs('tenant.invoices')">
+                {{ __('tenant.nav.invoices') }}
+            </flux:navlist.item>
+            <flux:navlist.item href="{{ url('/products') }}" icon="cube" wire:navigate
+                :current="request()->routeIs('tenant.products')">
+                {{ __('tenant.nav.products') }}
+            </flux:navlist.item>
+            <flux:navlist.item href="{{ url('/product-categories') }}" icon="tag" wire:navigate
+                :current="request()->routeIs('tenant.product-categories')">
+                {{ __('tenant.nav.product_categories') }}
+            </flux:navlist.item>
+        @endif
         <flux:navlist.item href="{{ url('/settings') }}" icon="cog-6-tooth" wire:navigate
             :current="request()->routeIs('tenant.settings')">
             {{ __('tenant.nav.settings') }}

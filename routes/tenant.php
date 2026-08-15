@@ -59,6 +59,9 @@ Route::middleware([
         Volt::route('/coupons', 'tenant.coupons')->name('tenant.coupons');
         Volt::route('/images', 'tenant.images')->name('tenant.images');
         Route::post('/images/upload', [ImageController::class, 'store'])->name('tenant.images.upload');
+        Volt::route('/product-categories', 'tenant.product-categories')->name('tenant.product-categories');
+        Volt::route('/products', 'tenant.products')->name('tenant.products');
+        Volt::route('/invoices', 'tenant.invoices')->name('tenant.invoices');
         Volt::route('/settings', 'tenant.settings')->name('tenant.settings');
     });
 });

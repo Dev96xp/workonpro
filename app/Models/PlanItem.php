@@ -12,12 +12,14 @@ class PlanItem extends Model
 
     /**
      * Claves de recurso reconocidas por el código de enforcement
-     * (services.blade.php, coupons.blade.php, images.blade.php, ImageController).
+     * (services.blade.php, coupons.blade.php, images.blade.php, ImageController,
+     * Tenant::hasFeature() para invoices/products/product-categories).
      */
     public const RESOURCE_LABELS = [
         'images' => 'Imágenes',
         'services' => 'Servicios',
         'coupons' => 'Cupones',
+        'invoices' => 'Facturación',
     ];
 
     protected $fillable = [

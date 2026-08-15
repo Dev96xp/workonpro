@@ -4,6 +4,8 @@ use App\Models\BusinessImage;
 use App\Models\BusinessProfile;
 use App\Models\Client;
 use App\Models\Coupon;
+use App\Models\Invoice;
+use App\Models\Tenant;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
@@ -12,6 +14,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public function with(): array
     {
         $profile = BusinessProfile::first();
+        $hasInvoicing = Tenant::hasFeature(tenant('plan'), 'invoices');
+        $invoices = $hasInvoicing ? Invoice::with('items', 'payments')->get() : collect();
 
         return [
             'businessName'   => $profile?->business_name ?? tenant('name'),
@@ -20,6 +24,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             'imageCount'     => BusinessImage::count(),
             'plan'           => tenant('plan') ?? 'basic',
             'images'         => BusinessImage::latest()->take(12)->get(),
+            'hasInvoicing'   => $hasInvoicing,
+            'totalInvoiced'  => $invoices->sum(fn (Invoice $invoice) => $invoice->totalAmount()),
+            'totalPending'   => $invoices->sum(fn (Invoice $invoice) => $invoice->totalAmount() - $invoice->paidAmount()),
         ];
     }
 
@@ -99,6 +106,33 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                         <p class="mt-1 text-xs text-zinc-400">{{ __('tenant.dashboard.uploaded') }}</p>
                     </a>
                 </div>
+
+                {{-- Facturación --}}
+                @if ($hasInvoicing)
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <a href="{{ url('/invoices') }}" wire:navigate
+                           class="group rounded-xl border border-stone-200 bg-white p-5 shadow-sm transition hover:border-yellow-400 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800">
+                            <div class="flex items-center justify-between">
+                                <flux:text class="text-sm font-medium text-zinc-500">{{ __('tenant.dashboard.total_invoiced') }}</flux:text>
+                                <div class="rounded-lg bg-zinc-900 p-2 text-yellow-400 transition group-hover:bg-yellow-400 group-hover:text-zinc-900 dark:bg-zinc-700">
+                                    <flux:icon.banknotes class="size-5" />
+                                </div>
+                            </div>
+                            <p class="mt-3 text-3xl font-bold text-zinc-900 dark:text-white">${{ number_format($totalInvoiced, 2) }}</p>
+                        </a>
+
+                        <a href="{{ url('/invoices') }}" wire:navigate
+                           class="group rounded-xl border border-stone-200 bg-white p-5 shadow-sm transition hover:border-yellow-400 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800">
+                            <div class="flex items-center justify-between">
+                                <flux:text class="text-sm font-medium text-zinc-500">{{ __('tenant.dashboard.total_pending') }}</flux:text>
+                                <div class="rounded-lg bg-zinc-900 p-2 text-yellow-400 transition group-hover:bg-yellow-400 group-hover:text-zinc-900 dark:bg-zinc-700">
+                                    <flux:icon.clock class="size-5" />
+                                </div>
+                            </div>
+                            <p class="mt-3 text-3xl font-bold text-zinc-900 dark:text-white">${{ number_format($totalPending, 2) }}</p>
+                        </a>
+                    </div>
+                @endif
 
                 {{-- Image gallery --}}
                 @if ($images->isNotEmpty())

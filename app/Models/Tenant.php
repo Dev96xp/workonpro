@@ -53,4 +53,17 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
         return $limit === null || $currentCount < $limit;
     }
+
+    /**
+     * Si el plan dado tiene habilitada una función (existe una fila en `plan_items`
+     * con ese nombre). A diferencia de `planLimit()`, "sin fila" acá significa
+     * "función no disponible", no "ilimitado".
+     */
+    public static function hasFeature(?string $plan, string $resource): bool
+    {
+        return PlanItem::query()
+            ->whereHas('plan', fn ($q) => $q->where('slug', $plan))
+            ->where('name', $resource)
+            ->exists();
+    }
 }
