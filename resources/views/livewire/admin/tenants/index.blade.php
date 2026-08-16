@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Plan;
 use App\Models\Tenant;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
@@ -66,6 +67,7 @@ new #[Layout('components.layouts.admin')] class extends Component {
                 ->latest()
                 ->paginate(10),
             'centralDomain' => parse_url(config('app.url'), PHP_URL_HOST),
+            'planLabels' => Plan::pluck('name', 'slug'),
         ];
     }
 }; ?>
@@ -93,6 +95,7 @@ new #[Layout('components.layouts.admin')] class extends Component {
             <flux:table.column>Negocio</flux:table.column>
             <flux:table.column>Subdominio</flux:table.column>
             <flux:table.column>Base de datos</flux:table.column>
+            <flux:table.column>Plan</flux:table.column>
             <flux:table.column>Ciudad de registro</flux:table.column>
             <flux:table.column>Registrado</flux:table.column>
             <flux:table.column></flux:table.column>
@@ -112,6 +115,13 @@ new #[Layout('components.layouts.admin')] class extends Component {
                     </flux:table.cell>
                     <flux:table.cell>{{ $tenant->domains->first()?->domain ?? '—' }}</flux:table.cell>
                     <flux:table.cell class="font-mono text-xs">tenant{{ $tenant->id }}</flux:table.cell>
+                    <flux:table.cell>
+                        @if ($tenant->plan)
+                            <flux:badge size="sm" color="yellow">{{ $planLabels[$tenant->plan] ?? ucfirst($tenant->plan) }}</flux:badge>
+                        @else
+                            —
+                        @endif
+                    </flux:table.cell>
                     <flux:table.cell>{{ $tenant->signup_city ?? '—' }}</flux:table.cell>
                     <flux:table.cell>{{ $tenant->created_at->format('d/m/Y') }}</flux:table.cell>
                     <flux:table.cell>
