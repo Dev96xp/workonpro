@@ -350,7 +350,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     {{-- Modal Crear/Editar Factura --}}
     <flux:modal wire:model="showModal" class="w-full max-w-2xl">
-        <flux:heading size="lg">{{ $editingId ? __('tenant.invoices.edit') : __('tenant.invoices.new') }}</flux:heading>
+        <div class="flex items-start justify-between pr-12">
+            <flux:heading size="lg">{{ $editingId ? __('tenant.invoices.edit') : __('tenant.invoices.new') }}</flux:heading>
+            @if ($editingId)
+                <flux:text class="text-zinc-400">{{ __('tenant.invoices.invoice_number', ['id' => $editingId]) }}</flux:text>
+            @endif
+        </div>
 
         <form wire:submit="save" class="mt-4 space-y-4">
             <div class="grid gap-4 sm:grid-cols-2">

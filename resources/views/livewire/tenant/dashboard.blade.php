@@ -65,6 +65,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                             <span class="size-2 rounded-full bg-yellow-400"></span>
                             {{ __('tenant.dashboard.plan') }} {{ $plan }}
                         </div>
+                        <div class="mt-4 flex w-fit rounded-full border border-zinc-700 bg-zinc-800/60 px-5 py-2 font-mono text-xl text-zinc-300 sm:absolute sm:top-0 sm:right-0 sm:mt-0">
+                            {{ request()->getHost() }}
+                        </div>
                     </div>
                 </div>
 

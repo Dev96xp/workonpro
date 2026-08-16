@@ -165,6 +165,7 @@ return [
         'subheading' => 'Create invoices for your clients and record their payments',
         'new' => 'New invoice',
         'edit' => 'Edit invoice',
+        'invoice_number' => 'Invoice #:id',
         'search_placeholder' => 'Search by client...',
         'client_label' => 'Client',
         'select_client' => 'Select a client',

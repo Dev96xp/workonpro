@@ -165,6 +165,7 @@ return [
         'subheading' => 'Crea facturas para tus clientes y registra sus pagos',
         'new' => 'Nueva factura',
         'edit' => 'Editar factura',
+        'invoice_number' => 'Factura #:id',
         'search_placeholder' => 'Buscar por cliente...',
         'client_label' => 'Cliente',
         'select_client' => 'Selecciona un cliente',
