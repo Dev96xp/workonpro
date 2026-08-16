@@ -11,6 +11,7 @@ return [
         'coupons' => 'Cupones',
         'images' => 'Imágenes',
         'invoices' => 'Facturación',
+        'invoices_list' => 'Facturas',
         'products' => 'Productos',
         'product_categories' => 'Categorías',
         'settings' => 'Configuración',
