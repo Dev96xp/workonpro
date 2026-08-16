@@ -10,6 +10,7 @@ class Invoice extends Model
 {
     protected $fillable = [
         'client_id',
+        'description',
         'notes',
     ];
 
@@ -28,9 +29,32 @@ class Invoice extends Model
         return $this->hasMany(Payment::class);
     }
 
-    public function totalAmount(): float
+    public function taxes(): HasMany
+    {
+        return $this->hasMany(InvoiceTax::class);
+    }
+
+    /**
+     * Suma de las líneas de producto, antes de impuestos.
+     */
+    public function subtotal(): float
     {
         return (float) $this->items->sum(fn (InvoiceItem $item) => $item->quantity * $item->unit_price);
+    }
+
+    public function taxAmount(): float
+    {
+        $subtotal = $this->subtotal();
+
+        return (float) $this->taxes->sum(fn (InvoiceTax $tax) => $tax->amount($subtotal));
+    }
+
+    /**
+     * Total con impuestos incluidos — lo que el cliente realmente debe.
+     */
+    public function totalAmount(): float
+    {
+        return $this->subtotal() + $this->taxAmount();
     }
 
     public function paidAmount(): float

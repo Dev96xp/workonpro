@@ -5,6 +5,7 @@ use App\Models\Invoice;
 use App\Models\Plan;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\Tax;
 use App\Models\Tenant;
 use App\Models\User;
 use Database\Seeders\PlanSeeder;
@@ -123,6 +124,31 @@ it('creates an invoice with multiple line items through the Volt component', fun
     $tenant->delete();
 });
 
+it('stacks multiple taxes additively on the subtotal', function () {
+    $tenant = makeInvoiceTestTenant('invoicetaxes', 'pro');
+    tenancy()->initialize($tenant);
+    $this->actingAs(User::factory()->create());
+
+    $client = Client::create(['name' => 'Cliente Cinco']);
+    $invoice = Invoice::create(['client_id' => $client->id]);
+    $invoice->items()->create(['product_name' => 'Servicio', 'unit_price' => 100, 'quantity' => 1]);
+
+    $cityTax = Tax::create(['name' => 'Ciudad', 'rate' => 1.2]);
+    $federalTax = Tax::create(['name' => 'Federal', 'rate' => 7]);
+
+    $invoice->taxes()->create(['tax_id' => $cityTax->id, 'name' => $cityTax->name, 'rate' => $cityTax->rate]);
+    $invoice->taxes()->create(['tax_id' => $federalTax->id, 'name' => $federalTax->name, 'rate' => $federalTax->rate]);
+
+    expect($invoice->subtotal())->toBe(100.0)
+        ->and($invoice->taxAmount())->toBe(8.2)
+        ->and($invoice->totalAmount())->toBe(108.2);
+
+    $invoice->payments()->create(['amount' => 108.2, 'payment_method' => 'efectivo', 'paid_at' => now()]);
+    expect($invoice->status())->toBe('pagada');
+
+    $tenant->delete();
+});
+
 it('does not allow a payment larger than the remaining balance', function () {
     $tenant = makeInvoiceTestTenant('invoicepayment', 'pro');
     tenancy()->initialize($tenant);
@@ -151,6 +177,7 @@ it('blocks a basic tenant from accessing invoicing pages', function () {
     Volt::test('tenant.invoices')->assertStatus(403);
     Volt::test('tenant.products')->assertStatus(403);
     Volt::test('tenant.product-categories')->assertStatus(403);
+    Volt::test('tenant.taxes')->assertStatus(403);
 
     $tenant->delete();
 });
@@ -163,6 +190,7 @@ it('lets a pro tenant access invoicing pages', function () {
     Volt::test('tenant.invoices')->assertOk();
     Volt::test('tenant.products')->assertOk();
     Volt::test('tenant.product-categories')->assertOk();
+    Volt::test('tenant.taxes')->assertOk();
 
     $tenant->delete();
 });

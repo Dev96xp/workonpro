@@ -3,8 +3,10 @@
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\InvoiceTax;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Models\Tax;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -25,10 +27,16 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public string $client_id = '';
 
     #[Validate('nullable|string')]
+    public string $description = '';
+
+    #[Validate('nullable|string')]
     public string $notes = '';
 
     /** @var array<int, array{product_id: ?int, product_name: string, unit_price: string, quantity: string}> */
     public array $lineItems = [];
+
+    /** @var array<int, array{tax_id: ?int, name: string, rate: string}> */
+    public array $taxItems = [];
 
     // Modal: confirmar borrado de factura
     public bool $showDeleteModal = false;
@@ -63,6 +71,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 ->paginate(10),
             'clientOptions' => Client::orderBy('name')->get(),
             'productOptions' => Product::where('is_active', true)->with('category')->orderBy('name')->get(),
+            'taxOptions' => Tax::where('is_active', true)->orderBy('name')->get(),
             'editingPayments' => $this->editingId
                 ? Payment::where('invoice_id', $this->editingId)->latest('paid_at')->get()
                 : collect(),
@@ -111,6 +120,53 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         );
     }
 
+    public function addTaxItem(): void
+    {
+        $this->taxItems[] = ['tax_id' => null, 'name' => '', 'rate' => '0'];
+    }
+
+    public function removeTaxItem(int $index): void
+    {
+        unset($this->taxItems[$index]);
+        $this->taxItems = array_values($this->taxItems);
+    }
+
+    public function updatedTaxItems($value, $key): void
+    {
+        [$index, $field] = explode('.', $key);
+
+        if ($field === 'tax_id' && $value) {
+            $tax = Tax::find($value);
+            if ($tax) {
+                $this->taxItems[$index]['name'] = $tax->name;
+                $this->taxItems[$index]['rate'] = (string) $tax->rate;
+            }
+        }
+    }
+
+    public function taxItemAmount(int $index): float
+    {
+        $item = $this->taxItems[$index] ?? null;
+
+        if (! $item) {
+            return 0.0;
+        }
+
+        return round($this->invoiceTotal() * ((float) ($item['rate'] ?: 0) / 100), 2);
+    }
+
+    public function taxTotal(): float
+    {
+        return collect($this->taxItems)->sum(
+            fn (array $item) => round($this->invoiceTotal() * ((float) ($item['rate'] ?: 0) / 100), 2)
+        );
+    }
+
+    public function grandTotal(): float
+    {
+        return $this->invoiceTotal() + $this->taxTotal();
+    }
+
     public function openCreate(): void
     {
         $this->resetForm();
@@ -121,15 +177,21 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     public function openEdit(int $id): void
     {
-        $invoice = Invoice::with('items')->findOrFail($id);
+        $invoice = Invoice::with('items', 'taxes')->findOrFail($id);
         $this->editingId = $id;
         $this->client_id = (string) $invoice->client_id;
+        $this->description = $invoice->description ?? '';
         $this->notes = $invoice->notes ?? '';
         $this->lineItems = $invoice->items->map(fn (InvoiceItem $item) => [
             'product_id' => $item->product_id,
             'product_name' => $item->product_name,
             'unit_price' => (string) $item->unit_price,
             'quantity' => (string) $item->quantity,
+        ])->all();
+        $this->taxItems = $invoice->taxes->map(fn (InvoiceTax $tax) => [
+            'tax_id' => $tax->tax_id,
+            'name' => $tax->name,
+            'rate' => (string) $tax->rate,
         ])->all();
 
         if (empty($this->lineItems)) {
@@ -143,6 +205,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     {
         $this->validate([
             'client_id' => 'required|exists:clients,id',
+            'description' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
 
@@ -166,10 +229,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             $invoice = $this->editingId
                 ? tap(Invoice::findOrFail($this->editingId))->update([
                     'client_id' => $this->client_id,
+                    'description' => $this->description ?: null,
                     'notes' => $this->notes ?: null,
                 ])
                 : Invoice::create([
                     'client_id' => $this->client_id,
+                    'description' => $this->description ?: null,
                     'notes' => $this->notes ?: null,
                 ]);
 
@@ -181,6 +246,20 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     'product_name' => $item['product_name'],
                     'unit_price' => $item['unit_price'],
                     'quantity' => $item['quantity'],
+                ]);
+            }
+
+            $invoice->taxes()->delete();
+
+            foreach ($this->taxItems as $tax) {
+                if (empty($tax['tax_id'])) {
+                    continue;
+                }
+
+                $invoice->taxes()->create([
+                    'tax_id' => $tax['tax_id'],
+                    'name' => $tax['name'],
+                    'rate' => $tax['rate'],
                 ]);
             }
         });
@@ -266,8 +345,10 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     private function resetForm(): void
     {
         $this->client_id = '';
+        $this->description = '';
         $this->notes = '';
         $this->lineItems = [];
+        $this->taxItems = [];
         $this->resetValidation();
     }
 }; ?>
@@ -372,8 +453,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
                 <flux:field class="sm:col-span-2">
                     <flux:label>{{ __('tenant.common.description') }}</flux:label>
-                    <flux:textarea wire:model="notes" rows="2" placeholder="Notas generales de la factura..." />
-                    <flux:error name="notes" />
+                    <flux:textarea wire:model="description" rows="2" placeholder="¿Qué se está facturando?..." />
+                    <flux:error name="description" />
                 </flux:field>
             </div>
 
@@ -423,12 +504,67 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 <flux:button type="button" wire:click="addLineItem" size="sm" icon="plus" class="mt-3">
                     {{ __('tenant.invoices.add_item') }}
                 </flux:button>
+            </div>
 
-                <div class="mt-4 flex justify-end border-t border-zinc-200 pt-3 dark:border-zinc-700">
-                    <flux:text class="text-lg font-bold">
-                        {{ __('tenant.invoices.total_label') }}: ${{ number_format($this->invoiceTotal(), 2) }}
-                    </flux:text>
+            {{-- Impuestos --}}
+            <div class="border-t border-zinc-200 pt-4 dark:border-zinc-700">
+                <flux:text class="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    {{ __('tenant.invoices.taxes_label') }}
+                </flux:text>
+
+                <div class="space-y-3">
+                    @foreach ($taxItems as $i => $item)
+                        <div class="grid grid-cols-12 items-end gap-2 rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
+                            <div class="col-span-12 sm:col-span-6">
+                                <flux:label class="text-xs">{{ __('tenant.taxes.heading') }}</flux:label>
+                                <flux:select wire:model.live="taxItems.{{ $i }}.tax_id" size="sm">
+                                    <flux:select.option value="">{{ __('tenant.invoices.select_tax') }}</flux:select.option>
+                                    @foreach ($taxOptions as $tax)
+                                        <flux:select.option value="{{ $tax->id }}">{{ $tax->name }}</flux:select.option>
+                                    @endforeach
+                                </flux:select>
+                            </div>
+
+                            <div class="col-span-4 sm:col-span-2">
+                                <flux:label class="text-xs">{{ __('tenant.taxes.rate_label') }}</flux:label>
+                                <flux:input wire:model.live="taxItems.{{ $i }}.rate" type="number" step="0.01" min="0" max="100" size="sm" />
+                            </div>
+
+                            <div class="col-span-4 sm:col-span-3">
+                                <flux:label class="text-xs">{{ __('tenant.invoices.subtotal_label') }}</flux:label>
+                                <flux:text class="py-1.5 text-sm font-semibold">${{ number_format($this->taxItemAmount($i), 2) }}</flux:text>
+                            </div>
+
+                            <div class="col-span-4 sm:col-span-1 flex justify-end">
+                                <flux:button type="button" wire:click="removeTaxItem({{ $i }})" size="sm" icon="trash" variant="danger" />
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
+
+                <flux:button type="button" wire:click="addTaxItem" size="sm" icon="plus" class="mt-3">
+                    {{ __('tenant.invoices.add_tax') }}
+                </flux:button>
+            </div>
+
+            {{-- Totales --}}
+            <div class="flex flex-col items-end gap-1 border-t border-zinc-200 pt-3 dark:border-zinc-700">
+                <flux:text class="text-sm text-zinc-500">
+                    {{ __('tenant.invoices.subtotal_label') }}: ${{ number_format($this->invoiceTotal(), 2) }}
+                </flux:text>
+                @if ($this->taxTotal() > 0)
+                    <flux:text class="text-sm text-zinc-500">
+                        {{ __('tenant.invoices.tax_total_label') }}: ${{ number_format($this->taxTotal(), 2) }}
+                    </flux:text>
+                @endif
+                <flux:text class="text-lg font-bold">
+                    {{ __('tenant.invoices.total_label') }}: ${{ number_format($this->grandTotal(), 2) }}
+                </flux:text>
+                @if ($editingId)
+                    <flux:text class="text-sm text-zinc-500">
+                        {{ __('tenant.invoices.balance_label') }}: ${{ number_format($this->grandTotal() - $editingPayments->sum('amount'), 2) }}
+                    </flux:text>
+                @endif
             </div>
 
             {{-- Pagos registrados --}}
@@ -457,7 +593,19 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 </div>
             @endif
 
+            {{-- Cláusulas de pago / notas al pie de la factura --}}
+            <flux:field class="border-t border-zinc-200 pt-4 dark:border-zinc-700">
+                <flux:label>{{ __('tenant.invoices.terms_label') }}</flux:label>
+                <flux:textarea wire:model="notes" rows="3" placeholder="{{ __('tenant.invoices.terms_placeholder') }}" />
+                <flux:error name="notes" />
+            </flux:field>
+
             <div class="flex justify-end gap-3 pt-2">
+                @if ($editingId)
+                    <flux:button href="{{ url('/invoices/'.$editingId.'/print') }}" target="_blank" icon="printer" class="me-auto">
+                        {{ __('tenant.invoices.print') }}
+                    </flux:button>
+                @endif
                 <flux:button type="button" wire:click="$set('showModal', false)">{{ __('tenant.common.cancel') }}</flux:button>
                 <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
                     <span wire:loading.remove>{{ $editingId ? __('tenant.common.save_changes') : __('tenant.invoices.new') }}</span>

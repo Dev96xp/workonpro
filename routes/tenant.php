@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Tenant\ImageController;
 use App\Http\Middleware\SetLocale;
+use App\Models\Invoice;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Route;
@@ -57,11 +59,20 @@ Route::middleware([
         Volt::route('/clients', 'tenant.clients')->name('tenant.clients');
         Volt::route('/services', 'tenant.services')->name('tenant.services');
         Volt::route('/coupons', 'tenant.coupons')->name('tenant.coupons');
+        Volt::route('/appointments', 'tenant.appointments')->name('tenant.appointments');
         Volt::route('/images', 'tenant.images')->name('tenant.images');
         Route::post('/images/upload', [ImageController::class, 'store'])->name('tenant.images.upload');
         Volt::route('/product-categories', 'tenant.product-categories')->name('tenant.product-categories');
         Volt::route('/products', 'tenant.products')->name('tenant.products');
+        Volt::route('/taxes', 'tenant.taxes')->name('tenant.taxes');
         Volt::route('/invoices', 'tenant.invoices')->name('tenant.invoices');
+        Route::get('/invoices/{invoice}/print', function (Request $request) {
+            abort_unless(Tenant::hasFeature(tenant('plan'), 'invoices'), 403);
+
+            $invoice = Invoice::findOrFail($request->route('invoice'));
+
+            return view('tenant.invoice-print', ['invoice' => $invoice->load('items', 'payments', 'client', 'taxes')]);
+        })->name('tenant.invoices.print');
         Volt::route('/settings', 'tenant.settings')->name('tenant.settings');
     });
 });

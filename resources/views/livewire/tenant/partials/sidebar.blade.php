@@ -18,6 +18,12 @@
             :current="request()->routeIs('tenant.coupons')">
             {{ __('tenant.nav.coupons') }}
         </flux:navlist.item>
+        @if (\App\Models\Tenant::hasFeature(tenant('plan'), 'appointments'))
+            <flux:navlist.item href="{{ url('/appointments') }}" icon="calendar-days" wire:navigate
+                :current="request()->routeIs('tenant.appointments')">
+                {{ __('tenant.nav.appointments') }}
+            </flux:navlist.item>
+        @endif
         <flux:navlist.item href="{{ url('/images') }}" icon="photo" wire:navigate
             :current="request()->routeIs('tenant.images')">
             {{ __('tenant.nav.images') }}
@@ -26,7 +32,7 @@
             <flux:navlist.group
                 heading="{{ __('tenant.nav.invoices') }}"
                 expandable
-                :expanded="request()->routeIs('tenant.invoices', 'tenant.products', 'tenant.product-categories')"
+                :expanded="request()->routeIs('tenant.invoices', 'tenant.products', 'tenant.product-categories', 'tenant.taxes')"
             >
                 <flux:navlist.item href="{{ url('/invoices') }}" icon="banknotes" wire:navigate
                     :current="request()->routeIs('tenant.invoices')">
@@ -39,6 +45,10 @@
                 <flux:navlist.item href="{{ url('/product-categories') }}" icon="tag" wire:navigate
                     :current="request()->routeIs('tenant.product-categories')">
                     {{ __('tenant.nav.product_categories') }}
+                </flux:navlist.item>
+                <flux:navlist.item href="{{ url('/taxes') }}" icon="receipt-percent" wire:navigate
+                    :current="request()->routeIs('tenant.taxes')">
+                    {{ __('tenant.nav.taxes') }}
                 </flux:navlist.item>
             </flux:navlist.group>
         @endif
