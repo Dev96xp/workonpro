@@ -26,7 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             if ($request->is('clock-in*')) {
-                return route('tenant.clock-in.login');
+                return $request->getSchemeAndHttpHost().'/clock-in/login';
             }
 
             return $request->getSchemeAndHttpHost().'/login';
