@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\Employee;
+use App\Models\SuperAdmin;
+use App\Models\User;
+
 return [
 
     /*
@@ -44,6 +48,10 @@ return [
             'driver' => 'session',
             'provider' => 'super_admins',
         ],
+        'employee' => [
+            'driver' => 'session',
+            'provider' => 'employees',
+        ],
     ],
 
     /*
@@ -66,11 +74,15 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', App\Models\User::class),
+            'model' => env('AUTH_MODEL', User::class),
         ],
         'super_admins' => [
             'driver' => 'eloquent',
-            'model' => App\Models\SuperAdmin::class,
+            'model' => SuperAdmin::class,
+        ],
+        'employees' => [
+            'driver' => 'eloquent',
+            'model' => Employee::class,
         ],
 
         // 'users' => [

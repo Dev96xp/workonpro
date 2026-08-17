@@ -16,6 +16,8 @@ return [
         'product_categories' => 'Categorías',
         'taxes' => 'Impuestos',
         'appointments' => 'Citas',
+        'employees' => 'Empleados',
+        'attendance' => 'Asistencia',
         'settings' => 'Configuración',
         'logout' => 'Cerrar sesión',
     ],
@@ -303,6 +305,43 @@ return [
         'update_password' => 'Actualizar contraseña',
         'updating' => 'Actualizando...',
         'password_saved' => '¡Contraseña actualizada exitosamente!',
+    ],
+
+    'employees' => [
+        'heading' => 'Empleados',
+        'subheading' => 'Gestiona las cuentas de tus empleados',
+        'new' => 'Nuevo empleado',
+        'edit' => 'Editar empleado',
+        'search_placeholder' => 'Buscar por nombre o email...',
+        'password_label' => 'Contraseña',
+        'password_placeholder_edit' => 'Dejar en blanco para no cambiarla',
+        'active_checkbox' => 'Empleado activo',
+        'empty' => 'No hay empleados registrados aún.',
+        'confirm_delete' => '¿Eliminar este empleado?',
+    ],
+
+    'clock_in' => [
+        'login_subheading' => 'Marca tu entrada o salida',
+        'password_label' => 'Contraseña',
+        'login_button' => 'Iniciar sesión',
+        'welcome' => 'Hola, :name',
+        'checked_in_at' => 'Entraste a las :time',
+        'check_in_button' => 'Marcar entrada',
+        'check_out_button' => 'Marcar salida',
+        'logout' => 'Cerrar sesión',
+    ],
+
+    'attendance' => [
+        'heading' => 'Asistencia',
+        'subheading' => 'Historial de entradas y salidas de tus empleados',
+        'all_employees' => 'Todos los empleados',
+        'employee_label' => 'Empleado',
+        'date_label' => 'Fecha',
+        'check_in_label' => 'Entrada',
+        'check_out_label' => 'Salida',
+        'hours_worked_label' => 'Horas trabajadas',
+        'in_progress' => 'En turno',
+        'empty' => 'No hay registros de asistencia aún.',
     ],
 
 ];

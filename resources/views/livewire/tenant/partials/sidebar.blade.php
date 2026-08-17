@@ -52,6 +52,22 @@
                 </flux:navlist.item>
             </flux:navlist.group>
         @endif
+        @if (\App\Models\Tenant::hasFeature(tenant('plan'), 'employees'))
+            <flux:navlist.group
+                heading="{{ __('tenant.nav.employees') }}"
+                expandable
+                :expanded="request()->routeIs('tenant.employees', 'tenant.attendance')"
+            >
+                <flux:navlist.item href="{{ url('/employees') }}" icon="identification" wire:navigate
+                    :current="request()->routeIs('tenant.employees')">
+                    {{ __('tenant.nav.employees') }}
+                </flux:navlist.item>
+                <flux:navlist.item href="{{ url('/attendance') }}" icon="clock" wire:navigate
+                    :current="request()->routeIs('tenant.attendance')">
+                    {{ __('tenant.nav.attendance') }}
+                </flux:navlist.item>
+            </flux:navlist.group>
+        @endif
         <flux:navlist.item href="{{ url('/settings') }}" icon="cog-6-tooth" wire:navigate
             :current="request()->routeIs('tenant.settings')">
             {{ __('tenant.nav.settings') }}

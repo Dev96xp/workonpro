@@ -25,6 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 return route('admin.login');
             }
 
+            if ($request->is('clock-in*')) {
+                return route('tenant.clock-in.login');
+            }
+
             return $request->getSchemeAndHttpHost().'/login';
         });
 

@@ -53,6 +53,15 @@ Route::middleware([
         return redirect('/');
     })->name('tenant.logout');
 
+    // Marcado de entrada/salida de empleados (guard 'employee', independiente del admin)
+    Route::middleware('guest:employee')->group(function () {
+        Volt::route('/clock-in/login', 'tenant.clock-in-login')->name('tenant.clock-in.login');
+    });
+
+    Route::middleware('auth:employee')->group(function () {
+        Volt::route('/clock-in', 'tenant.clock-in')->name('tenant.clock-in');
+    });
+
     // Panel protegido
     Route::middleware('auth')->group(function () {
         Volt::route('/dashboard', 'tenant.dashboard')->name('tenant.dashboard');
@@ -65,6 +74,8 @@ Route::middleware([
         Volt::route('/product-categories', 'tenant.product-categories')->name('tenant.product-categories');
         Volt::route('/products', 'tenant.products')->name('tenant.products');
         Volt::route('/taxes', 'tenant.taxes')->name('tenant.taxes');
+        Volt::route('/employees', 'tenant.employees')->name('tenant.employees');
+        Volt::route('/attendance', 'tenant.attendance')->name('tenant.attendance');
         Volt::route('/invoices', 'tenant.invoices')->name('tenant.invoices');
         Route::get('/invoices/{invoice}/print', function (Request $request) {
             abort_unless(Tenant::hasFeature(tenant('plan'), 'invoices'), 403);

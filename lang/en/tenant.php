@@ -16,6 +16,8 @@ return [
         'product_categories' => 'Categories',
         'taxes' => 'Taxes',
         'appointments' => 'Appointments',
+        'employees' => 'Employees',
+        'attendance' => 'Attendance',
         'settings' => 'Settings',
         'logout' => 'Log out',
     ],
@@ -303,6 +305,43 @@ return [
         'update_password' => 'Update password',
         'updating' => 'Updating...',
         'password_saved' => 'Password updated successfully!',
+    ],
+
+    'employees' => [
+        'heading' => 'Employees',
+        'subheading' => 'Manage your employee accounts',
+        'new' => 'New employee',
+        'edit' => 'Edit employee',
+        'search_placeholder' => 'Search by name or email...',
+        'password_label' => 'Password',
+        'password_placeholder_edit' => 'Leave blank to keep it unchanged',
+        'active_checkbox' => 'Active employee',
+        'empty' => 'No employees registered yet.',
+        'confirm_delete' => 'Delete this employee?',
+    ],
+
+    'clock_in' => [
+        'login_subheading' => 'Clock in or out',
+        'password_label' => 'Password',
+        'login_button' => 'Log in',
+        'welcome' => 'Hi, :name',
+        'checked_in_at' => 'Clocked in at :time',
+        'check_in_button' => 'Clock in',
+        'check_out_button' => 'Clock out',
+        'logout' => 'Log out',
+    ],
+
+    'attendance' => [
+        'heading' => 'Attendance',
+        'subheading' => 'History of your employees\' clock-ins and clock-outs',
+        'all_employees' => 'All employees',
+        'employee_label' => 'Employee',
+        'date_label' => 'Date',
+        'check_in_label' => 'Check in',
+        'check_out_label' => 'Check out',
+        'hours_worked_label' => 'Hours worked',
+        'in_progress' => 'In progress',
+        'empty' => 'No attendance records yet.',
     ],
 
 ];
