@@ -156,6 +156,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                         <thead class="bg-zinc-50 dark:bg-zinc-900">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.name') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.employees.code_label') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.email') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.status') }}</th>
                                 <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.actions') }}</th>
@@ -165,6 +166,27 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                             @forelse ($employees as $employee)
                                 <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700/50">
                                     <td class="px-6 py-4 font-medium">{{ $employee->name }}</td>
+                                    <td class="px-6 py-4">
+                                        <div
+                                            class="flex items-center gap-1"
+                                            x-data="{
+                                                copied: false,
+                                                copy() {
+                                                    navigator.clipboard.writeText(@js($employee->employee_code));
+                                                    this.copied = true;
+                                                    setTimeout(() => this.copied = false, 1500);
+                                                },
+                                            }"
+                                        >
+                                            <span class="font-mono text-xs text-zinc-500">{{ $employee->employee_code ?? '—' }}</span>
+                                            @if ($employee->employee_code)
+                                                <flux:button x-on:click="copy()" variant="subtle" size="xs" square aria-label="{{ __('tenant.employees.copy_code') }}">
+                                                    <flux:icon.clipboard-document-check variant="mini" x-show="copied" x-cloak />
+                                                    <flux:icon.clipboard-document variant="mini" x-show="!copied" />
+                                                </flux:button>
+                                            @endif
+                                        </div>
+                                    </td>
                                     <td class="px-6 py-4 text-zinc-500">{{ $employee->email }}</td>
                                     <td class="px-6 py-4">
                                         @if ($employee->is_active)
@@ -182,7 +204,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-6 py-12 text-center text-zinc-500">
+                                    <td colspan="5" class="px-6 py-12 text-center text-zinc-500">
                                         {{ __('tenant.employees.empty') }}
                                     </td>
                                 </tr>

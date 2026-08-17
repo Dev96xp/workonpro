@@ -5,6 +5,7 @@ use App\Models\BusinessImage;
 use App\Models\BusinessProfile;
 use App\Models\Client;
 use App\Models\Coupon;
+use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Auth;
@@ -21,6 +22,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $upcomingAppointments = $hasAppointments
             ? Appointment::with('client')->visible()->where('starts_at', '>=', now())->orderBy('starts_at')->take(5)->get()
             : collect();
+        $hasEmployees = Tenant::hasFeature(tenant('plan'), 'employees');
+        $employeeCount = $hasEmployees ? Employee::where('is_active', true)->count() : 0;
 
         return [
             'businessName'   => $profile?->business_name ?? tenant('name'),
@@ -34,6 +37,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             'totalPending'   => $invoices->sum(fn (Invoice $invoice) => $invoice->totalAmount() - $invoice->paidAmount()),
             'hasAppointments'      => $hasAppointments,
             'upcomingAppointments' => $upcomingAppointments,
+            'hasEmployees'         => $hasEmployees,
+            'employeeCount'        => $employeeCount,
         ];
     }
 
@@ -129,6 +134,20 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                         <p class="mt-3 text-3xl font-bold text-zinc-900 dark:text-white">{{ $imageCount }}</p>
                         <p class="mt-1 text-xs text-zinc-400">{{ __('tenant.dashboard.uploaded') }}</p>
                     </a>
+
+                    @if ($hasEmployees)
+                        <a href="{{ url('/employees') }}" wire:navigate
+                           class="group rounded-xl border border-stone-200 bg-white p-5 shadow-sm transition hover:border-yellow-400 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800">
+                            <div class="flex items-center justify-between">
+                                <flux:text class="text-sm font-medium text-zinc-500">{{ __('tenant.nav.employees') }}</flux:text>
+                                <div class="rounded-lg bg-zinc-900 p-2 text-yellow-400 transition group-hover:bg-yellow-400 group-hover:text-zinc-900 dark:bg-zinc-700">
+                                    <flux:icon.identification class="size-5" />
+                                </div>
+                            </div>
+                            <p class="mt-3 text-3xl font-bold text-zinc-900 dark:text-white">{{ $employeeCount }}</p>
+                            <p class="mt-1 text-xs text-zinc-400">{{ __('tenant.dashboard.active_employees') }}</p>
+                        </a>
+                    @endif
                 </div>
 
                 {{-- Facturación --}}

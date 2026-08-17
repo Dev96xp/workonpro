@@ -64,6 +64,7 @@ return [
         'copy_link' => 'Copy business link',
         'upcoming_appointments' => 'Upcoming appointments',
         'no_upcoming_appointments' => 'No upcoming appointments.',
+        'active_employees' => 'Active employees',
     ],
 
     'clients' => [
@@ -313,6 +314,8 @@ return [
         'new' => 'New employee',
         'edit' => 'Edit employee',
         'search_placeholder' => 'Search by name or email...',
+        'code_label' => 'Code',
+        'copy_code' => 'Copy code',
         'password_label' => 'Password',
         'password_placeholder_edit' => 'Leave blank to keep it unchanged',
         'active_checkbox' => 'Active employee',

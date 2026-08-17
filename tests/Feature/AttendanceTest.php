@@ -34,6 +34,19 @@ function makeAttendanceTestTenant(string $id, string $plan): Tenant
     return $tenant;
 }
 
+it('auto-generates a unique employee code on creation', function () {
+    $tenant = makeAttendanceTestTenant('attendcode', 'enterprise');
+    tenancy()->initialize($tenant);
+
+    $employee = Employee::factory()->create(['name' => 'Ana María']);
+
+    expect($employee->employee_code)->not->toBeNull()
+        ->and($employee->employee_code)->toStartWith('ANAM-')
+        ->and($employee->employee_code)->toMatch('/^ANAM-\d{6}-\d{4}-\d{4}$/');
+
+    $tenant->delete();
+});
+
 it('logs an employee in through the clock-in login and redirects to the clock-in screen', function () {
     $tenant = makeAttendanceTestTenant('attendlogin', 'enterprise');
     tenancy()->initialize($tenant);
