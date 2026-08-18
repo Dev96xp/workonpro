@@ -363,6 +363,7 @@ return [
         'in_progress' => 'In progress',
         'empty' => 'No attendance records yet.',
         'print' => 'Print report',
+        'edit' => 'Edit record',
     ],
 
     'attendance_payroll' => [

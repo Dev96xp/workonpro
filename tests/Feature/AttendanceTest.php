@@ -133,6 +133,42 @@ it('defaults the attendance report to the last week and excludes older records',
     $tenant->delete();
 });
 
+it('lets an admin manually correct a forgotten check-out time', function () {
+    $tenant = makeAttendanceTestTenant('attendedit', 'enterprise');
+    tenancy()->initialize($tenant);
+    $this->actingAs(User::factory()->create());
+
+    $employee = Employee::factory()->create();
+    $attendance = Attendance::create(['employee_id' => $employee->id, 'check_in' => now()->subDay()->setTime(11, 0)]);
+
+    Volt::test('tenant.attendance')
+        ->call('openEdit', $attendance->id)
+        ->set('editCheckOut', now()->subDay()->setTime(19, 0)->format('Y-m-d\TH:i'))
+        ->call('saveEdit')
+        ->assertHasNoErrors();
+
+    expect($attendance->fresh()->check_out)->not->toBeNull()
+        ->and($attendance->fresh()->check_out->format('H:i'))->toBe('19:00');
+
+    $tenant->delete();
+});
+
+it('closes stale attendance shifts left open from a previous day but leaves today untouched', function () {
+    $tenant = makeAttendanceTestTenant('attendstale', 'enterprise');
+    tenancy()->initialize($tenant);
+
+    $employee = Employee::factory()->create();
+    $stale = Attendance::create(['employee_id' => $employee->id, 'check_in' => now()->subDay()->setTime(11, 0)]);
+    $today = Attendance::create(['employee_id' => $employee->id, 'check_in' => now()->setTime(11, 0)]);
+
+    $this->artisan('attendance:close-stale')->assertSuccessful();
+
+    expect($stale->fresh()->check_out)->not->toBeNull()
+        ->and($today->fresh()->check_out)->toBeNull();
+
+    $tenant->delete();
+});
+
 it('blocks a pro tenant from accessing the employee module (enterprise-only)', function () {
     $tenant = makeAttendanceTestTenant('attendpro', 'pro');
     tenancy()->initialize($tenant);

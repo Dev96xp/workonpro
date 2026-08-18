@@ -363,6 +363,7 @@ return [
         'in_progress' => 'En turno',
         'empty' => 'No hay registros de asistencia aún.',
         'print' => 'Imprimir reporte',
+        'edit' => 'Editar registro',
     ],
 
     'attendance_payroll' => [
