@@ -12,11 +12,48 @@ class Employee extends Authenticatable
     /** @use HasFactory<EmployeeFactory> */
     use HasFactory;
 
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_INACTIVE = 'inactive';
+
+    public const STATUS_VACATION = 'vacation';
+
+    public const STATUS_SUSPENDED = 'suspended';
+
+    public const STATUSES = [
+        self::STATUS_ACTIVE,
+        self::STATUS_INACTIVE,
+        self::STATUS_VACATION,
+        self::STATUS_SUSPENDED,
+    ];
+
+    public const PERIOD_HOURLY = 'hourly';
+
+    public const PERIOD_WEEKLY = 'weekly';
+
+    public const PERIOD_BIWEEKLY = 'biweekly';
+
+    public const PERIOD_MONTHLY = 'monthly';
+
+    public const SALARY_PERIODS = [
+        self::PERIOD_HOURLY,
+        self::PERIOD_WEEKLY,
+        self::PERIOD_BIWEEKLY,
+        self::PERIOD_MONTHLY,
+    ];
+
     protected $fillable = [
         'name',
         'email',
         'password',
-        'is_active',
+        'role',
+        'salary',
+        'salary_period',
+        'status',
+    ];
+
+    protected $attributes = [
+        'status' => self::STATUS_ACTIVE,
     ];
 
     protected $hidden = [
@@ -28,7 +65,7 @@ class Employee extends Authenticatable
     {
         return [
             'password' => 'hashed',
-            'is_active' => 'boolean',
+            'salary' => 'decimal:2',
         ];
     }
 
@@ -42,6 +79,11 @@ class Employee extends Authenticatable
     public function attendances(): HasMany
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
     }
 
     /**

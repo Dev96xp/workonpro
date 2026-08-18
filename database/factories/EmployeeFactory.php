@@ -22,7 +22,10 @@ class EmployeeFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'password' => Hash::make('password'),
-            'is_active' => true,
+            'role' => fake()->jobTitle(),
+            'salary' => fake()->randomFloat(2, 200, 3000),
+            'salary_period' => fake()->randomElement(Employee::SALARY_PERIODS),
+            'status' => Employee::STATUS_ACTIVE,
         ];
     }
 }

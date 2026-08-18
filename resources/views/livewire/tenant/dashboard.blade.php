@@ -23,7 +23,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             ? Appointment::with('client')->visible()->where('starts_at', '>=', now())->orderBy('starts_at')->take(5)->get()
             : collect();
         $hasEmployees = Tenant::hasFeature(tenant('plan'), 'employees');
-        $employeeCount = $hasEmployees ? Employee::where('is_active', true)->count() : 0;
+        $employeeCount = $hasEmployees ? Employee::where('status', Employee::STATUS_ACTIVE)->count() : 0;
 
         return [
             'businessName'   => $profile?->business_name ?? tenant('name'),

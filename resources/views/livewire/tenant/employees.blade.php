@@ -26,7 +26,13 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     public string $password = '';
 
-    public bool $is_active = true;
+    public string $role = '';
+
+    public string $salary = '';
+
+    public string $salary_period = Employee::PERIOD_MONTHLY;
+
+    public string $status = Employee::STATUS_ACTIVE;
 
     public function mount(): void
     {
@@ -58,7 +64,10 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $this->name = $employee->name;
         $this->email = $employee->email;
         $this->password = '';
-        $this->is_active = $employee->is_active;
+        $this->role = $employee->role ?? '';
+        $this->salary = $employee->salary !== null ? (string) $employee->salary : '';
+        $this->salary_period = $employee->salary_period ?? Employee::PERIOD_MONTHLY;
+        $this->status = $employee->status;
         $this->showModal = true;
     }
 
@@ -68,12 +77,19 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             'name' => 'required|string|max:100',
             'email' => ['required', 'email', 'max:100', Rule::unique('employees', 'email')->ignore($this->editingId)],
             'password' => $this->editingId ? 'nullable|min:8' : 'required|min:8',
+            'role' => 'nullable|string|max:100',
+            'salary' => 'nullable|numeric|min:0',
+            'salary_period' => 'nullable|in:'.implode(',', Employee::SALARY_PERIODS),
+            'status' => 'required|in:'.implode(',', Employee::STATUSES),
         ]);
 
         $data = [
             'name' => $this->name,
             'email' => $this->email,
-            'is_active' => $this->is_active,
+            'role' => $this->role !== '' ? $this->role : null,
+            'salary' => $this->salary !== '' ? $this->salary : null,
+            'salary_period' => $this->salary !== '' ? $this->salary_period : null,
+            'status' => $this->status,
         ];
 
         if ($this->password !== '') {
@@ -124,7 +140,10 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $this->name = '';
         $this->email = '';
         $this->password = '';
-        $this->is_active = true;
+        $this->role = '';
+        $this->salary = '';
+        $this->salary_period = Employee::PERIOD_MONTHLY;
+        $this->status = Employee::STATUS_ACTIVE;
         $this->resetValidation();
     }
 }; ?>
@@ -158,6 +177,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.name') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.employees.code_label') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.email') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.employees.role_label') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.employees.salary_label') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.status') }}</th>
                                 <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.actions') }}</th>
                             </tr>
@@ -188,12 +209,29 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 text-zinc-500">{{ $employee->email }}</td>
-                                    <td class="px-6 py-4">
-                                        @if ($employee->is_active)
-                                            <flux:badge color="green" size="sm">{{ __('tenant.common.active') }}</flux:badge>
+                                    <td class="px-6 py-4 text-zinc-500">{{ $employee->role ?? '—' }}</td>
+                                    <td class="px-6 py-4 text-zinc-500">
+                                        @if ($employee->salary !== null)
+                                            ${{ number_format((float) $employee->salary, 2) }}
+                                            @if ($employee->salary_period)
+                                                <span class="text-xs">/ {{ __('tenant.employees.period_'.$employee->salary_period) }}</span>
+                                            @endif
                                         @else
-                                            <flux:badge color="zinc" size="sm">{{ __('tenant.common.inactive') }}</flux:badge>
+                                            —
                                         @endif
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        @php
+                                            $statusColors = [
+                                                'active' => 'green',
+                                                'inactive' => 'zinc',
+                                                'vacation' => 'blue',
+                                                'suspended' => 'amber',
+                                            ];
+                                        @endphp
+                                        <flux:badge color="{{ $statusColors[$employee->status] ?? 'zinc' }}" size="sm">
+                                            {{ __('tenant.employees.status_'.$employee->status) }}
+                                        </flux:badge>
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         <div class="flex justify-end gap-2">
@@ -204,7 +242,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-12 text-center text-zinc-500">
+                                    <td colspan="7" class="px-6 py-12 text-center text-zinc-500">
                                         {{ __('tenant.employees.empty') }}
                                     </td>
                                 </tr>
@@ -251,8 +289,36 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     <flux:error name="password" />
                 </flux:field>
 
+                <flux:field class="sm:col-span-2">
+                    <flux:label>{{ __('tenant.employees.role_label') }}</flux:label>
+                    <flux:input wire:model="role" />
+                    <flux:error name="role" />
+                </flux:field>
+
                 <flux:field>
-                    <flux:checkbox wire:model="is_active" label="{{ __('tenant.employees.active_checkbox') }}" />
+                    <flux:label>{{ __('tenant.employees.salary_label') }}</flux:label>
+                    <flux:input wire:model="salary" type="number" step="0.01" min="0" />
+                    <flux:error name="salary" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('tenant.employees.salary_period_label') }}</flux:label>
+                    <flux:select wire:model="salary_period">
+                        @foreach (Employee::SALARY_PERIODS as $period)
+                            <flux:select.option value="{{ $period }}">{{ __('tenant.employees.period_'.$period) }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="salary_period" />
+                </flux:field>
+
+                <flux:field class="sm:col-span-2">
+                    <flux:label>{{ __('tenant.employees.status_label') }}</flux:label>
+                    <flux:select wire:model="status">
+                        @foreach (Employee::STATUSES as $statusOption)
+                            <flux:select.option value="{{ $statusOption }}">{{ __('tenant.employees.status_'.$statusOption) }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="status" />
                 </flux:field>
             </div>
 
