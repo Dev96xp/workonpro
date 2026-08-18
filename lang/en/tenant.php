@@ -18,6 +18,7 @@ return [
         'appointments' => 'Appointments',
         'employees' => 'Employees',
         'attendance' => 'Attendance',
+        'payroll' => 'Payroll',
         'settings' => 'Settings',
         'logout' => 'Log out',
     ],
@@ -362,6 +363,17 @@ return [
         'in_progress' => 'In progress',
         'empty' => 'No attendance records yet.',
         'print' => 'Print report',
+    ],
+
+    'attendance_payroll' => [
+        'heading' => 'Payroll',
+        'subheading' => 'Total to pay per employee based on attendance and salary',
+        'amount_label' => 'Amount to pay',
+        'total_label' => 'Total',
+        'no_salary' => 'No salary set',
+        'back_to_attendance' => 'Back to attendance',
+        'print' => 'Print payroll',
+        'empty' => 'No employees with attendance in this range.',
     ],
 
 ];

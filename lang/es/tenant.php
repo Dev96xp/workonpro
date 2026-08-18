@@ -18,6 +18,7 @@ return [
         'appointments' => 'Citas',
         'employees' => 'Empleados',
         'attendance' => 'Asistencia',
+        'payroll' => 'Nómina',
         'settings' => 'Configuración',
         'logout' => 'Cerrar sesión',
     ],
@@ -362,6 +363,17 @@ return [
         'in_progress' => 'En turno',
         'empty' => 'No hay registros de asistencia aún.',
         'print' => 'Imprimir reporte',
+    ],
+
+    'attendance_payroll' => [
+        'heading' => 'Nómina',
+        'subheading' => 'Total a pagar por empleado según su asistencia y salario',
+        'amount_label' => 'Monto a pagar',
+        'total_label' => 'Total',
+        'no_salary' => 'Sin salario definido',
+        'back_to_attendance' => 'Volver a asistencia',
+        'print' => 'Imprimir nómina',
+        'empty' => 'No hay empleados con asistencia en este rango.',
     ],
 
 ];

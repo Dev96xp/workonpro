@@ -102,6 +102,52 @@ Route::middleware([
                 'location' => $location,
             ]);
         })->name('tenant.attendance.print');
+        Volt::route('/attendance/payroll', 'tenant.attendance-payroll')->name('tenant.attendance.payroll');
+        Route::get('/attendance/payroll/print', function (Request $request) {
+            abort_unless(Tenant::hasFeature(tenant('plan'), 'employees'), 403);
+
+            $startDate = $request->query('startDate') ?: now()->subDays(6)->format('Y-m-d');
+            $endDate = $request->query('endDate') ?: now()->format('Y-m-d');
+            $employeeId = $request->query('employeeId');
+            $location = $request->query('location');
+
+            $rows = Employee::query()
+                ->when($employeeId, fn ($q) => $q->where('id', $employeeId))
+                ->orderBy('name')
+                ->get()
+                ->map(function (Employee $employee) use ($location, $startDate, $endDate) {
+                    $attendances = Attendance::where('employee_id', $employee->id)
+                        ->when($location, fn ($q) => $q->where('location', $location))
+                        ->whereDate('check_in', '>=', $startDate)
+                        ->whereDate('check_in', '<=', $endDate)
+                        ->get();
+
+                    if ($attendances->isEmpty()) {
+                        return null;
+                    }
+
+                    $hours = $attendances->whereNotNull('check_out')
+                        ->sum(fn (Attendance $attendance) => $attendance->check_in->diffInMinutes($attendance->check_out)) / 60;
+
+                    $amount = match ($employee->salary_period) {
+                        Employee::PERIOD_HOURLY => $employee->salary !== null ? round($hours * (float) $employee->salary, 2) : null,
+                        default => $employee->salary !== null ? (float) $employee->salary : null,
+                    };
+
+                    return ['employee' => $employee, 'hours' => $hours, 'amount' => $amount];
+                })
+                ->filter()
+                ->values();
+
+            return view('tenant.attendance-payroll-print', [
+                'rows' => $rows,
+                'total' => $rows->sum(fn (array $row) => $row['amount'] ?? 0),
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'employeeName' => $employeeId ? Employee::find($employeeId)?->name : null,
+                'location' => $location,
+            ]);
+        })->name('tenant.attendance.payroll.print');
         Volt::route('/invoices', 'tenant.invoices')->name('tenant.invoices');
         Route::get('/invoices/{invoice}/print', function (Request $request) {
             abort_unless(Tenant::hasFeature(tenant('plan'), 'invoices'), 403);
