@@ -56,11 +56,15 @@
             <flux:navlist.group
                 heading="{{ __('tenant.nav.employees') }}"
                 expandable
-                :expanded="request()->routeIs('tenant.employees', 'tenant.attendance', 'tenant.attendance.payroll')"
+                :expanded="request()->routeIs('tenant.employees', 'tenant.locations', 'tenant.attendance', 'tenant.attendance.payroll')"
             >
                 <flux:navlist.item href="{{ url('/employees') }}" icon="identification" wire:navigate
                     :current="request()->routeIs('tenant.employees')">
                     {{ __('tenant.nav.employees') }}
+                </flux:navlist.item>
+                <flux:navlist.item href="{{ url('/locations') }}" icon="map-pin" wire:navigate
+                    :current="request()->routeIs('tenant.locations')">
+                    {{ __('tenant.nav.locations') }}
                 </flux:navlist.item>
                 <flux:navlist.item href="{{ url('/attendance') }}" icon="clock" wire:navigate
                     :current="request()->routeIs('tenant.attendance')">

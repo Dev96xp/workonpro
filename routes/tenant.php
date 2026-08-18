@@ -77,6 +77,7 @@ Route::middleware([
         Volt::route('/products', 'tenant.products')->name('tenant.products');
         Volt::route('/taxes', 'tenant.taxes')->name('tenant.taxes');
         Volt::route('/employees', 'tenant.employees')->name('tenant.employees');
+        Volt::route('/locations', 'tenant.locations')->name('tenant.locations');
         Volt::route('/attendance', 'tenant.attendance')->name('tenant.attendance');
         Route::get('/attendance/print', function (Request $request) {
             abort_unless(Tenant::hasFeature(tenant('plan'), 'employees'), 403);
