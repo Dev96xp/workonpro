@@ -332,13 +332,16 @@ return [
         'check_in_button' => 'Clock in',
         'check_out_button' => 'Clock out',
         'logout' => 'Log out',
+        'marking_at' => 'Clocking at: :location',
     ],
 
     'attendance' => [
         'heading' => 'Attendance',
         'subheading' => 'History of your employees\' clock-ins and clock-outs',
         'all_employees' => 'All employees',
+        'all_locations' => 'All buildings',
         'employee_label' => 'Employee',
+        'location_label' => 'Building',
         'date_label' => 'Date',
         'check_in_label' => 'Check in',
         'check_out_label' => 'Check out',

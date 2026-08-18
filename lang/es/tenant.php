@@ -332,13 +332,16 @@ return [
         'check_in_button' => 'Marcar entrada',
         'check_out_button' => 'Marcar salida',
         'logout' => 'Cerrar sesión',
+        'marking_at' => 'Marcando en: :location',
     ],
 
     'attendance' => [
         'heading' => 'Asistencia',
         'subheading' => 'Historial de entradas y salidas de tus empleados',
         'all_employees' => 'Todos los empleados',
+        'all_locations' => 'Todos los edificios',
         'employee_label' => 'Empleado',
+        'location_label' => 'Edificio',
         'date_label' => 'Fecha',
         'check_in_label' => 'Entrada',
         'check_out_label' => 'Salida',

@@ -89,6 +89,24 @@ it('clocks an employee in and then out on the same day', function () {
     $tenant->delete();
 });
 
+it('captures the building location from the query string when clocking in', function () {
+    $tenant = makeAttendanceTestTenant('attendlocation', 'enterprise');
+    tenancy()->initialize($tenant);
+
+    $employee = Employee::factory()->create();
+    $this->actingAs($employee, 'employee');
+
+    Volt::test('tenant.clock-in')
+        ->set('location', 'Almacén 1')
+        ->call('toggle');
+
+    $attendance = Attendance::first();
+
+    expect($attendance->location)->toBe('Almacén 1');
+
+    $tenant->delete();
+});
+
 it('blocks a pro tenant from accessing the employee module (enterprise-only)', function () {
     $tenant = makeAttendanceTestTenant('attendpro', 'pro');
     tenancy()->initialize($tenant);

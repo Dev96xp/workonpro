@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Attributes\Validate;
 use Livewire\Volt\Component;
 
@@ -16,6 +17,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     #[Validate('required|string')]
     public string $password = '';
+
+    #[Url]
+    public string $location = '';
 
     public function mount(): void
     {
@@ -39,7 +43,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
 
-        $this->redirect(url('/clock-in'));
+        $this->redirect($this->location !== '' ? url('/clock-in').'?location='.urlencode($this->location) : url('/clock-in'));
     }
 
     protected function ensureIsNotRateLimited(): void
@@ -66,6 +70,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         <div class="mb-8 text-center">
             <flux:heading size="xl" class="text-2xl font-bold">{{ tenant('name') }}</flux:heading>
             <flux:text class="mt-1 text-zinc-500">{{ __('tenant.clock_in.login_subheading') }}</flux:text>
+            @if ($location !== '')
+                <flux:badge size="sm" class="mt-3">{{ __('tenant.clock_in.marking_at', ['location' => $location]) }}</flux:badge>
+            @endif
         </div>
 
         <form wire:submit="login" class="space-y-5">

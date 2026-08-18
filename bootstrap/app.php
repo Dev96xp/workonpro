@@ -26,7 +26,11 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             if ($request->is('clock-in*')) {
-                return $request->getSchemeAndHttpHost().'/clock-in/login';
+                $loginUrl = $request->getSchemeAndHttpHost().'/clock-in/login';
+
+                return $request->filled('location')
+                    ? $loginUrl.'?location='.urlencode($request->query('location'))
+                    : $loginUrl;
             }
 
             return $request->getSchemeAndHttpHost().'/login';

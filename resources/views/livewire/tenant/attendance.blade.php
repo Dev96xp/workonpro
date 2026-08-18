@@ -12,6 +12,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     public string $employeeId = '';
 
+    public string $location = '';
+
     public function mount(): void
     {
         abort_unless(Tenant::hasFeature(tenant('plan'), 'employees'), 403);
@@ -22,13 +24,24 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         return [
             'attendances' => Attendance::with('employee')
                 ->when($this->employeeId, fn ($q) => $q->where('employee_id', $this->employeeId))
+                ->when($this->location, fn ($q) => $q->where('location', $this->location))
                 ->latest('check_in')
                 ->paginate(15),
             'employeeOptions' => Employee::orderBy('name')->get(),
+            'locationOptions' => Attendance::query()
+                ->whereNotNull('location')
+                ->distinct()
+                ->orderBy('location')
+                ->pluck('location'),
         ];
     }
 
     public function updatedEmployeeId(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedLocation(): void
     {
         $this->resetPage();
     }
@@ -68,11 +81,18 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     </div>
                 </div>
 
-                <div class="mt-6 max-w-xs">
-                    <flux:select wire:model.live="employeeId">
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <flux:select wire:model.live="employeeId" class="max-w-xs">
                         <flux:select.option value="">{{ __('tenant.attendance.all_employees') }}</flux:select.option>
                         @foreach ($employeeOptions as $employee)
                             <flux:select.option value="{{ $employee->id }}">{{ $employee->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+
+                    <flux:select wire:model.live="location" class="max-w-xs">
+                        <flux:select.option value="">{{ __('tenant.attendance.all_locations') }}</flux:select.option>
+                        @foreach ($locationOptions as $option)
+                            <flux:select.option value="{{ $option }}">{{ $option }}</flux:select.option>
                         @endforeach
                     </flux:select>
                 </div>
@@ -82,6 +102,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                         <thead class="bg-zinc-50 dark:bg-zinc-900">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.attendance.employee_label') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.attendance.location_label') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.attendance.date_label') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.attendance.check_in_label') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.attendance.check_out_label') }}</th>
@@ -92,6 +113,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                             @forelse ($attendances as $attendance)
                                 <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700/50">
                                     <td class="px-6 py-4 font-medium">{{ $attendance->employee->name }}</td>
+                                    <td class="px-6 py-4 text-zinc-500">{{ $attendance->location ?? '—' }}</td>
                                     <td class="px-6 py-4 text-zinc-500">{{ $attendance->check_in?->format('d/m/Y') ?? '—' }}</td>
                                     <td class="px-6 py-4 text-zinc-500">{{ $attendance->check_in?->format('H:i') ?? '—' }}</td>
                                     <td class="px-6 py-4 text-zinc-500">
@@ -105,7 +127,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-12 text-center text-zinc-500">
+                                    <td colspan="6" class="px-6 py-12 text-center text-zinc-500">
                                         {{ __('tenant.attendance.empty') }}
                                     </td>
                                 </tr>

@@ -9,6 +9,7 @@ class Attendance extends Model
 {
     protected $fillable = [
         'employee_id',
+        'location',
         'check_in',
         'check_out',
     ];

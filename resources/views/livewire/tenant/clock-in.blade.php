@@ -3,9 +3,13 @@
 use App\Models\Attendance;
 use App\Models\Tenant;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.tenant')] class extends Component {
+    #[Url]
+    public string $location = '';
+
     public function mount(): void
     {
         abort_unless(Tenant::hasFeature(tenant('plan'), 'employees'), 403);
@@ -28,6 +32,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         } else {
             Attendance::create([
                 'employee_id' => auth('employee')->id(),
+                'location' => $this->location !== '' ? $this->location : null,
                 'check_in' => now(),
             ]);
         }
@@ -59,6 +64,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         <flux:text class="mt-2 text-zinc-500">
             {{ now()->locale(app()->getLocale())->translatedFormat('l, d F Y') }} · {{ now()->format('H:i') }}
         </flux:text>
+        @if ($location !== '')
+            <flux:badge size="sm" class="mt-3">{{ __('tenant.clock_in.marking_at', ['location' => $location]) }}</flux:badge>
+        @endif
     </div>
 
     @if ($openAttendance)
