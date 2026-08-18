@@ -107,6 +107,32 @@ it('captures the building location from the query string when clocking in', func
     $tenant->delete();
 });
 
+it('defaults the attendance report to the last week and excludes older records', function () {
+    $tenant = makeAttendanceTestTenant('attendrange', 'enterprise');
+    tenancy()->initialize($tenant);
+    $this->actingAs(User::factory()->create());
+
+    $employee = Employee::factory()->create();
+    $recent = Attendance::create(['employee_id' => $employee->id, 'check_in' => now()->subDays(2)]);
+    $old = Attendance::create(['employee_id' => $employee->id, 'check_in' => now()->subDays(20)]);
+
+    $component = Volt::test('tenant.attendance');
+
+    expect($component->get('startDate'))->toBe(now()->subDays(6)->format('Y-m-d'))
+        ->and($component->get('endDate'))->toBe(now()->format('Y-m-d'));
+
+    $ids = $component->viewData('attendances')->pluck('id');
+    expect($ids)->toContain($recent->id)
+        ->and($ids)->not->toContain($old->id);
+
+    $component->set('startDate', now()->subDays(30)->format('Y-m-d'));
+    $ids = $component->viewData('attendances')->pluck('id');
+    expect($ids)->toContain($recent->id)
+        ->and($ids)->toContain($old->id);
+
+    $tenant->delete();
+});
+
 it('blocks a pro tenant from accessing the employee module (enterprise-only)', function () {
     $tenant = makeAttendanceTestTenant('attendpro', 'pro');
     tenancy()->initialize($tenant);

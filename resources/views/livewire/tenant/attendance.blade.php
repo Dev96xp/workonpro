@@ -14,9 +14,16 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     public string $location = '';
 
+    public string $startDate = '';
+
+    public string $endDate = '';
+
     public function mount(): void
     {
         abort_unless(Tenant::hasFeature(tenant('plan'), 'employees'), 403);
+
+        $this->startDate = now()->subDays(6)->format('Y-m-d');
+        $this->endDate = now()->format('Y-m-d');
     }
 
     public function with(): array
@@ -25,6 +32,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             'attendances' => Attendance::with('employee')
                 ->when($this->employeeId, fn ($q) => $q->where('employee_id', $this->employeeId))
                 ->when($this->location, fn ($q) => $q->where('location', $this->location))
+                ->when($this->startDate, fn ($q) => $q->whereDate('check_in', '>=', $this->startDate))
+                ->when($this->endDate, fn ($q) => $q->whereDate('check_in', '<=', $this->endDate))
                 ->latest('check_in')
                 ->paginate(15),
             'employeeOptions' => Employee::orderBy('name')->get(),
@@ -42,6 +51,16 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     }
 
     public function updatedLocation(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStartDate(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedEndDate(): void
     {
         $this->resetPage();
     }
@@ -95,6 +114,16 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                             <flux:select.option value="{{ $option }}">{{ $option }}</flux:select.option>
                         @endforeach
                     </flux:select>
+
+                    <flux:field class="w-auto">
+                        <flux:label class="text-xs">{{ __('tenant.attendance.from_label') }}</flux:label>
+                        <flux:input wire:model.live="startDate" type="date" class="max-w-[10rem]" />
+                    </flux:field>
+
+                    <flux:field class="w-auto">
+                        <flux:label class="text-xs">{{ __('tenant.attendance.to_label') }}</flux:label>
+                        <flux:input wire:model.live="endDate" type="date" class="max-w-[10rem]" />
+                    </flux:field>
                 </div>
 
                 <div class="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">

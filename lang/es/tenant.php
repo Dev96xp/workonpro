@@ -340,6 +340,8 @@ return [
         'subheading' => 'Historial de entradas y salidas de tus empleados',
         'all_employees' => 'Todos los empleados',
         'all_locations' => 'Todos los edificios',
+        'from_label' => 'Desde',
+        'to_label' => 'Hasta',
         'employee_label' => 'Empleado',
         'location_label' => 'Edificio',
         'date_label' => 'Fecha',

@@ -340,6 +340,8 @@ return [
         'subheading' => 'History of your employees\' clock-ins and clock-outs',
         'all_employees' => 'All employees',
         'all_locations' => 'All buildings',
+        'from_label' => 'From',
+        'to_label' => 'To',
         'employee_label' => 'Employee',
         'location_label' => 'Building',
         'date_label' => 'Date',
