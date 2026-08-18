@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Tenant\ImageController;
 use App\Http\Middleware\SetLocale;
+use App\Models\Attendance;
+use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
@@ -76,6 +78,30 @@ Route::middleware([
         Volt::route('/taxes', 'tenant.taxes')->name('tenant.taxes');
         Volt::route('/employees', 'tenant.employees')->name('tenant.employees');
         Volt::route('/attendance', 'tenant.attendance')->name('tenant.attendance');
+        Route::get('/attendance/print', function (Request $request) {
+            abort_unless(Tenant::hasFeature(tenant('plan'), 'employees'), 403);
+
+            $startDate = $request->query('startDate') ?: now()->subDays(6)->format('Y-m-d');
+            $endDate = $request->query('endDate') ?: now()->format('Y-m-d');
+            $employeeId = $request->query('employeeId');
+            $location = $request->query('location');
+
+            $attendances = Attendance::with('employee')
+                ->when($employeeId, fn ($q) => $q->where('employee_id', $employeeId))
+                ->when($location, fn ($q) => $q->where('location', $location))
+                ->whereDate('check_in', '>=', $startDate)
+                ->whereDate('check_in', '<=', $endDate)
+                ->orderBy('check_in')
+                ->get();
+
+            return view('tenant.attendance-print', [
+                'attendances' => $attendances,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'employeeName' => $employeeId ? Employee::find($employeeId)?->name : null,
+                'location' => $location,
+            ]);
+        })->name('tenant.attendance.print');
         Volt::route('/invoices', 'tenant.invoices')->name('tenant.invoices');
         Route::get('/invoices/{invoice}/print', function (Request $request) {
             abort_unless(Tenant::hasFeature(tenant('plan'), 'invoices'), 403);

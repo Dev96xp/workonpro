@@ -350,6 +350,7 @@ return [
         'hours_worked_label' => 'Hours worked',
         'in_progress' => 'In progress',
         'empty' => 'No attendance records yet.',
+        'print' => 'Print report',
     ],
 
 ];

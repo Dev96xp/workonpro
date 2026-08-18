@@ -98,6 +98,14 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                         <flux:heading size="xl">{{ __('tenant.attendance.heading') }}</flux:heading>
                         <flux:text class="text-zinc-500">{{ __('tenant.attendance.subheading') }}</flux:text>
                     </div>
+                    <flux:button
+                        href="{{ url('/attendance/print').'?'.http_build_query(['employeeId' => $employeeId, 'location' => $location, 'startDate' => $startDate, 'endDate' => $endDate]) }}"
+                        target="_blank"
+                        icon="printer"
+                        class="sm:w-auto"
+                    >
+                        {{ __('tenant.attendance.print') }}
+                    </flux:button>
                 </div>
 
                 <div class="mt-6 flex flex-wrap gap-3">

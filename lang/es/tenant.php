@@ -350,6 +350,7 @@ return [
         'hours_worked_label' => 'Horas trabajadas',
         'in_progress' => 'En turno',
         'empty' => 'No hay registros de asistencia aún.',
+        'print' => 'Imprimir reporte',
     ],
 
 ];
