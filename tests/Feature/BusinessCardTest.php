@@ -8,6 +8,11 @@ it('shows the business card page', function () {
         ->assertSee('(770) 412-2535');
 });
 
+it('links the name to the website', function () {
+    $this->get('/businesscard')
+        ->assertSee('href="'.route('home').'"', false);
+});
+
 it('downloads a vcard with the contact info', function () {
     $response = $this->get('/businesscard/vcard');
 

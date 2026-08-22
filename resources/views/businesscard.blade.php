@@ -15,7 +15,7 @@
 
     <div class="relative w-full max-w-sm">
         <div class="mb-6 text-center">
-            <span class="text-2xl font-black tracking-tighter text-yellow-400">Workon</span>
+            <span class="text-4xl font-black tracking-tighter text-yellow-400">Workon</span>
         </div>
 
         <div class="card-slash bg-white p-8 shadow-2xl" style="clip-path: polygon(0 0, 100% 0, 100% 92%, 96% 100%, 0 100%);">
@@ -24,7 +24,9 @@
                     RR
                 </div>
 
-                <h1 class="mt-5 text-3xl font-black tracking-tighter text-zinc-900">Ricardo Ramirez</h1>
+                <h1 class="mt-5 text-3xl font-black tracking-tighter text-zinc-900">
+                    <a href="{{ route('home') }}" class="transition hover:text-yellow-500">Ricardo Ramirez</a>
+                </h1>
 
                 <div class="mt-2 inline-flex items-center gap-2">
                     <div class="h-px w-6 bg-yellow-400"></div>
