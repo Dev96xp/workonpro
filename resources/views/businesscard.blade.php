@@ -15,7 +15,7 @@
 
     <div class="relative w-full max-w-sm">
         <div class="mb-6 text-center">
-            <span class="text-4xl font-black tracking-tighter text-yellow-400">Workon</span>
+            <a href="{{ route('home') }}" class="text-4xl font-black tracking-tighter text-yellow-400 transition hover:text-yellow-300">Workon</a>
         </div>
 
         <div class="card-slash bg-white p-8 shadow-2xl" style="clip-path: polygon(0 0, 100% 0, 100% 92%, 96% 100%, 0 100%);">
