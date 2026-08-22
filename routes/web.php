@@ -12,6 +12,29 @@ Route::domain($centralDomain)->middleware(SetLocale::class)->group(function () {
         return view('welcome');
     })->name('home');
 
+    Route::get('/businesscard', function () {
+        return view('businesscard');
+    })->name('businesscard');
+
+    Route::get('/businesscard/vcard', function () {
+        $vcard = implode("\r\n", [
+            'BEGIN:VCARD',
+            'VERSION:3.0',
+            'N:Ramirez;Ricardo;;;',
+            'FN:Ricardo Ramirez',
+            'ORG:Workon',
+            'TITLE:Fundador',
+            'TEL;TYPE=CELL,VOICE:+17704122535',
+            'URL:'.url('/'),
+            'END:VCARD',
+        ]);
+
+        return response($vcard, 200, [
+            'Content-Type' => 'text/vcard; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="ricardo-ramirez-workon.vcf"',
+        ]);
+    })->name('businesscard.vcard');
+
     Route::get('/lang/{locale}', function (string $locale) {
         if (in_array($locale, ['es', 'en'], true)) {
             $domain = parse_url(config('app.url'), PHP_URL_HOST);

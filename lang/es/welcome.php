@@ -51,6 +51,8 @@ return [
         'item_coupons' => 'Cupones de descuento',
         'item_subdomain' => 'Subdominio propio',
         'item_billing' => 'Sistema de Facturación',
+        'item_appointments' => 'Sistema de citas',
+        'item_employees' => 'Gestión de empleados y asistencia',
         'cta_start' => 'Empezar',
 
         'basic_badge' => 'Solo este mes',

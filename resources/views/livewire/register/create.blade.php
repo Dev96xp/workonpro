@@ -22,14 +22,16 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     public string $password_confirmation = '';
 
-    public array $plans = [
-        'basic'      => ['label' => 'Básico',     'price' => 'Gratis'],
-        'pro'        => ['label' => 'Pro',         'price' => '$39/mes'],
-        'enterprise' => ['label' => 'Enterprise',  'price' => '$79/mes'],
-    ];
+    public array $plans = [];
 
     public function mount(): void
     {
+        $this->plans = [
+            'basic'      => ['label' => __('register.create.plan_label_basic'),      'price' => __('register.create.plan_price_basic')],
+            'pro'        => ['label' => __('register.create.plan_label_pro'),        'price' => __('register.create.plan_price_pro')],
+            'enterprise' => ['label' => __('register.create.plan_label_enterprise'), 'price' => __('register.create.plan_price_enterprise')],
+        ];
+
         $this->plan = request('plan', 'pro');
 
         if (! array_key_exists($this->plan, $this->plans)) {
@@ -120,25 +122,25 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
 <div class="mx-auto max-w-lg">
     <div class="mb-6 text-center">
-        <flux:heading size="xl">Crear tu negocio</flux:heading>
+        <flux:heading size="xl">{{ __('register.create.heading') }}</flux:heading>
         <flux:text class="mt-1 text-zinc-500">
-            Plan seleccionado:
+            {{ __('register.create.selected_plan') }}
             <strong>{{ $plans[$plan]['label'] }}</strong> — {{ $plans[$plan]['price'] }}
-            <flux:link href="{{ route('register.plans') }}" wire:navigate class="ml-1 text-sm">Cambiar</flux:link>
+            <flux:link href="{{ route('register.plans') }}" wire:navigate class="ml-1 text-sm">{{ __('register.create.change') }}</flux:link>
         </flux:text>
     </div>
 
     <form wire:submit="checkout" class="space-y-5">
         <flux:field>
-            <flux:label>Nombre del negocio</flux:label>
-            <flux:input wire:model="business_name" placeholder="Mi Constructora S.A." autofocus />
+            <flux:label>{{ __('register.create.business_name_label') }}</flux:label>
+            <flux:input wire:model="business_name" placeholder="{{ __('register.create.business_name_placeholder') }}" autofocus />
             <flux:error name="business_name" />
         </flux:field>
 
         <flux:field>
-            <flux:label>Subdominio</flux:label>
+            <flux:label>{{ __('register.create.subdomain_label') }}</flux:label>
             <div class="flex items-center gap-0">
-                <flux:input wire:model.live="subdomain" placeholder="miconstructora" class="rounded-r-none" />
+                <flux:input wire:model.live="subdomain" placeholder="{{ __('register.create.subdomain_placeholder') }}" class="rounded-r-none" />
                 <span class="inline-flex h-10 items-center rounded-r-lg border border-l-0 border-zinc-300 bg-zinc-100 px-3 text-sm text-zinc-500 dark:border-zinc-600 dark:bg-zinc-700">
                     .workonpro.com
                 </span>
@@ -147,33 +149,33 @@ new #[Layout('components.layouts.auth')] class extends Component {
         </flux:field>
 
         <flux:field>
-            <flux:label>Email</flux:label>
-            <flux:input wire:model="email" type="email" placeholder="admin@minegocio.com" />
+            <flux:label>{{ __('register.create.email_label') }}</flux:label>
+            <flux:input wire:model="email" type="email" placeholder="{{ __('register.create.email_placeholder') }}" />
             <flux:error name="email" />
         </flux:field>
 
         <flux:field>
-            <flux:label>Contraseña</flux:label>
-            <flux:input wire:model="password" type="password" placeholder="Mínimo 8 caracteres" />
+            <flux:label>{{ __('register.create.password_label') }}</flux:label>
+            <flux:input wire:model="password" type="password" placeholder="{{ __('register.create.password_placeholder') }}" />
             <flux:error name="password" />
         </flux:field>
 
         <flux:field>
-            <flux:label>Confirmar contraseña</flux:label>
+            <flux:label>{{ __('register.create.password_confirmation_label') }}</flux:label>
             <flux:input wire:model="password_confirmation" type="password" />
         </flux:field>
 
         <flux:button type="submit" variant="primary" class="w-full" wire:loading.attr="disabled">
-            <span wire:loading.remove>{{ $plan === 'basic' ? 'Crear mi negocio →' : 'Continuar al pago →' }}</span>
-            <span wire:loading>Procesando...</span>
+            <span wire:loading.remove>{{ $plan === 'basic' ? __('register.create.submit_free') : __('register.create.submit_paid') }}</span>
+            <span wire:loading>{{ __('register.create.processing') }}</span>
         </flux:button>
     </form>
 
     <p class="mt-4 text-center text-xs text-zinc-400">
         @if ($plan === 'basic')
-            El plan Básico es gratis, no se te pedirá ningún método de pago.
+            {{ __('register.create.note_free') }}
         @else
-            Al continuar, serás redirigido a Stripe para completar el pago de forma segura.
+            {{ __('register.create.note_paid') }}
         @endif
     </p>
 </div>

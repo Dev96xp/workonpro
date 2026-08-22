@@ -89,18 +89,18 @@ new #[Layout('components.layouts.guest')] class extends Component {
             </div>
         </div>
 
-        <flux:heading size="xl">¡Bienvenido a Workonpro!</flux:heading>
+        <flux:heading size="xl">{{ __('register.success.welcome') }}</flux:heading>
         <flux:text class="mt-3 text-zinc-500">
-            Tu negocio <strong>{{ $businessName }}</strong> está listo.
+            {!! __('register.success.ready', ['name' => '<strong>'.e($businessName).'</strong>']) !!}
         </flux:text>
 
         <div class="mt-6 rounded-xl border border-zinc-200 bg-white p-5 text-left dark:border-zinc-700 dark:bg-zinc-800">
-            <flux:text class="text-sm text-zinc-500">Tu panel de administración:</flux:text>
+            <flux:text class="text-sm text-zinc-500">{{ __('register.success.panel_label') }}</flux:text>
             <p class="mt-1 font-mono text-blue-600 dark:text-blue-400">{{ $loginUrl }}</p>
         </div>
 
         <a href="{{ $loginUrl }}" class="mt-6 block w-full rounded-lg bg-blue-600 px-4 py-3 text-center font-medium text-white hover:bg-blue-700">
-            Ir a mi panel →
+            {{ __('register.success.go_to_panel') }}
         </a>
     </div>
 </div>

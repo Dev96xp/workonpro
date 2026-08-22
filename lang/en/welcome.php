@@ -51,6 +51,8 @@ return [
         'item_coupons' => 'Discount coupons',
         'item_subdomain' => 'Your own subdomain',
         'item_billing' => 'Billing System',
+        'item_appointments' => 'Appointments system',
+        'item_employees' => 'Employee & attendance management',
         'cta_start' => 'Get started',
 
         'basic_badge' => 'This month only',
