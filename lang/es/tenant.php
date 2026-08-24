@@ -402,4 +402,11 @@ return [
         'empty' => 'No hay empleados con asistencia en este rango.',
     ],
 
+    'businesscard' => [
+        'call' => 'Llamar',
+        'whatsapp' => 'WhatsApp',
+        'save_contact' => 'Guardar contacto',
+        'powered_by' => 'Powered by',
+    ],
+
 ];

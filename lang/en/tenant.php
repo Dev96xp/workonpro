@@ -402,4 +402,11 @@ return [
         'empty' => 'No employees with attendance in this range.',
     ],
 
+    'businesscard' => [
+        'call' => 'Call',
+        'whatsapp' => 'WhatsApp',
+        'save_contact' => 'Save contact',
+        'powered_by' => 'Powered by',
+    ],
+
 ];

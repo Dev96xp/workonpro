@@ -5,12 +5,15 @@ declare(strict_types=1);
 use App\Http\Controllers\Tenant\ImageController;
 use App\Http\Middleware\SetLocale;
 use App\Models\Attendance;
+use App\Models\BusinessImage;
+use App\Models\BusinessProfile;
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Livewire\Volt\Volt;
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +36,46 @@ Route::middleware([
 ])->group(function () {
     // Public welcome page
     Volt::route('/', 'tenant.welcome')->name('tenant.welcome');
+
+    // Tarjeta de presentación digital del negocio
+    Route::get('/card', function () {
+        $profile = BusinessProfile::first();
+        $businessName = $profile?->business_name ?: tenant('name');
+
+        return view('tenant.businesscard', [
+            'businessName' => $businessName,
+            'businessSlogan' => $profile?->slogan,
+            'businessAddress' => $profile?->address,
+            'businessCity' => $profile?->city,
+            'businessPhone' => $profile?->phone,
+            'businessEmail' => $profile?->email,
+            'businessWa' => $profile?->whatsapp,
+            'logoImage' => BusinessImage::gallery()->where('is_logo', true)->first(),
+            'initials' => Str::of($businessName)->explode(' ')->take(2)->map(fn ($word) => Str::upper(Str::substr($word, 0, 1)))->implode('') ?: '?',
+        ]);
+    })->name('tenant.businesscard');
+
+    Route::get('/card/vcard', function () {
+        $profile = BusinessProfile::first();
+        $businessName = $profile?->business_name ?: tenant('name');
+
+        $vcard = implode("\r\n", array_filter([
+            'BEGIN:VCARD',
+            'VERSION:3.0',
+            'FN:'.$businessName,
+            'ORG:'.$businessName,
+            $profile?->phone ? 'TEL;TYPE=WORK,VOICE:'.$profile->phone : null,
+            $profile?->email ? 'EMAIL:'.$profile->email : null,
+            $profile?->address ? 'ADR;TYPE=WORK:;;'.$profile->address.';'.$profile->city.';;;' : null,
+            'URL:'.url('/'),
+            'END:VCARD',
+        ]));
+
+        return response($vcard, 200, [
+            'Content-Type' => 'text/vcard; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="'.Str::slug($businessName).'.vcf"',
+        ]);
+    })->name('tenant.businesscard.vcard');
 
     Route::get('/lang/{locale}', function (Request $request) {
         $locale = $request->route('locale');
