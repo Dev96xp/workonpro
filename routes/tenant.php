@@ -52,6 +52,7 @@ Route::middleware([
             'businessWa' => $profile?->whatsapp,
             'logoImage' => BusinessImage::gallery()->where('is_logo', true)->first(),
             'initials' => Str::of($businessName)->explode(' ')->take(2)->map(fn ($word) => Str::upper(Str::substr($word, 0, 1)))->implode('') ?: '?',
+            'tenantDomain' => request()->getHost(),
         ]);
     })->name('tenant.businesscard');
 
