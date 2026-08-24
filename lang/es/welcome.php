@@ -53,6 +53,7 @@ return [
         'item_billing' => 'Sistema de Facturación',
         'item_appointments' => 'Sistema de citas',
         'item_employees' => 'Gestión de empleados y asistencia',
+        'item_businesscard' => 'Workon Card: tarjeta digital de tu negocio',
         'cta_start' => 'Empezar',
 
         'basic_badge' => 'Solo este mes',

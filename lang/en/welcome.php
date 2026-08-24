@@ -53,6 +53,7 @@ return [
         'item_billing' => 'Billing System',
         'item_appointments' => 'Appointments system',
         'item_employees' => 'Employee & attendance management',
+        'item_businesscard' => 'Workon Card: your business digital card',
         'cta_start' => 'Get started',
 
         'basic_badge' => 'This month only',

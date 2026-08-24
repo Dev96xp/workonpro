@@ -259,6 +259,7 @@
                         <li class="flex items-center gap-3"><span class="font-black text-zinc-900">—</span> {{ __('welcome.pricing.item_subdomain') }}</li>
                         <li class="flex items-center gap-3"><span class="font-black text-zinc-900">—</span> <span class="font-bold">{{ __('welcome.pricing.item_billing') }}</span></li>
                         <li class="flex items-center gap-3"><span class="font-black text-zinc-900">—</span> <span class="font-bold">{{ __('welcome.pricing.item_appointments') }}</span></li>
+                        <li class="flex items-center gap-3"><span class="font-black text-zinc-900">—</span> <span class="font-bold">{{ __('welcome.pricing.item_businesscard') }}</span></li>
                         <li class="flex items-center gap-3"><span class="font-black text-zinc-900">—</span> {{ __('welcome.pricing.pro_item_support') }}</li>
                     </ul>
                     <a href="{{ route('register.plans') }}" class="mt-8 block bg-zinc-900 py-4 text-center text-sm font-black text-yellow-400 transition hover:bg-zinc-800">
@@ -282,6 +283,7 @@
                         <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> <span class="font-bold">{{ __('welcome.pricing.item_billing') }}</span></li>
                         <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> <span class="font-bold">{{ __('welcome.pricing.item_appointments') }}</span></li>
                         <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> <span class="font-bold">{{ __('welcome.pricing.item_employees') }}</span></li>
+                        <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> <span class="font-bold">{{ __('welcome.pricing.item_businesscard') }}</span></li>
                         <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> {{ __('welcome.pricing.enterprise_item_support') }}</li>
                         <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> {{ __('welcome.pricing.enterprise_item_integrations') }}</li>
                     </ul>
