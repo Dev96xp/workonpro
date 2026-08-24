@@ -39,6 +39,8 @@ Route::middleware([
 
     // Tarjeta de presentación digital del negocio
     Route::get('/card', function () {
+        abort_unless(Tenant::hasFeature(tenant('plan'), 'businesscard'), 403);
+
         $profile = BusinessProfile::first();
         $businessName = $profile?->business_name ?: tenant('name');
 
@@ -57,6 +59,8 @@ Route::middleware([
     })->name('tenant.businesscard');
 
     Route::get('/card/vcard', function () {
+        abort_unless(Tenant::hasFeature(tenant('plan'), 'businesscard'), 403);
+
         $profile = BusinessProfile::first();
         $businessName = $profile?->business_name ?: tenant('name');
 

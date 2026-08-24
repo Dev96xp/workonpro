@@ -1,9 +1,17 @@
 <?php
 
 use App\Models\BusinessProfile;
+use App\Models\Plan;
 use App\Models\Tenant;
+use Database\Seeders\PlanSeeder;
 use Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
+
+beforeEach(function () {
+    (new PlanSeeder)->run();
+
+    Plan::where('slug', 'pro')->first()->items()->create(['name' => 'businesscard', 'quantity' => null]);
+});
 
 afterEach(function () {
     if (tenancy()->initialized) {
@@ -11,14 +19,14 @@ afterEach(function () {
     }
 });
 
-function makeBusinessCardTestTenant(string $id): Tenant
+function makeBusinessCardTestTenant(string $id, string $plan = 'pro'): Tenant
 {
     $tenant = Tenant::create([
         'id' => $id,
         'name' => "Tenant {$id}",
         'email' => "{$id}@example.com",
         'status' => 'active',
-        'plan' => 'starter',
+        'plan' => $plan,
     ]);
     $tenant->domains()->create(['domain' => $id]);
 
@@ -76,4 +84,17 @@ it('downloads a vcard with the business contact info', function () {
         ->assertSee('FN:Barberia El Corte')
         ->assertSee('TEL;TYPE=WORK,VOICE:(555) 123-4567')
         ->assertSee('EMAIL:contacto@elcorte.com');
+});
+
+it('blocks the business card and vcard on plans without the feature', function () {
+    $tenant = makeBusinessCardTestTenant('cardtenantbasic', 'basic');
+    tenancy()->initialize($tenant);
+
+    $this->withoutMiddleware([PreventAccessFromCentralDomains::class, InitializeTenancyBySubdomain::class])
+        ->get(route('tenant.businesscard', ['subdomain' => $tenant->id]))
+        ->assertForbidden();
+
+    $this->withoutMiddleware([PreventAccessFromCentralDomains::class, InitializeTenancyBySubdomain::class])
+        ->get(route('tenant.businesscard.vcard', ['subdomain' => $tenant->id]))
+        ->assertForbidden();
 });

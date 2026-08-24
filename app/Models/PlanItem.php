@@ -22,6 +22,7 @@ class PlanItem extends Model
         'invoices' => 'Facturación',
         'appointments' => 'Citas',
         'employees' => 'Empleados',
+        'businesscard' => 'Tarjeta de presentación',
     ];
 
     protected $fillable = [
