@@ -10,4 +10,8 @@ return [
     'city_placeholder' => 'Ciudad',
     'view_business' => 'Ver negocio →',
     'no_results' => 'No se encontraron servicios con esos filtros.',
+    'detect_location' => 'Usar mi ubicación',
+    'detecting_location' => 'Ubicando...',
+    'location_not_found' => 'No encontramos negocios registrados en tu ciudad.',
+    'location_error' => 'No se pudo acceder a tu ubicación. Revisa los permisos de tu navegador.',
 ];

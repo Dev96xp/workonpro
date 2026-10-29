@@ -22,6 +22,9 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     public string $password_confirmation = '';
 
+    #[Validate('accepted', message: 'register.create.accept_terms_required')]
+    public bool $accepted_terms = false;
+
     public array $plans = [];
 
     public function mount(): void
@@ -163,6 +166,19 @@ new #[Layout('components.layouts.auth')] class extends Component {
         <flux:field>
             <flux:label>{{ __('register.create.password_confirmation_label') }}</flux:label>
             <flux:input wire:model="password_confirmation" type="password" />
+        </flux:field>
+
+        <flux:field>
+            <div class="flex items-start gap-3">
+                <flux:checkbox wire:model="accepted_terms" />
+                <span class="text-sm text-zinc-600 dark:text-zinc-400">
+                    {!! __('register.create.accept_terms', [
+                        'terms_link' => '<a href="' . route('terms') . '" target="_blank" class="text-yellow-500 underline hover:no-underline">' . __('register.create.terms_link_text') . '</a>',
+                        'privacy_link' => '<a href="' . route('privacy') . '" target="_blank" class="text-yellow-500 underline hover:no-underline">' . __('register.create.privacy_link_text') . '</a>',
+                    ]) !!}
+                </span>
+            </div>
+            <flux:error name="accepted_terms" />
         </flux:field>
 
         <flux:button type="submit" variant="primary" class="w-full" wire:loading.attr="disabled">

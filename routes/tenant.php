@@ -197,7 +197,9 @@ Route::middleware([
                 'location' => $location,
             ]);
         })->name('tenant.attendance.payroll.print');
+
         Volt::route('/invoices', 'tenant.invoices')->name('tenant.invoices');
+
         Route::get('/invoices/{invoice}/print', function (Request $request) {
             abort_unless(Tenant::hasFeature(tenant('plan'), 'invoices'), 403);
 

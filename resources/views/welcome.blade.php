@@ -94,9 +94,9 @@
                     </div>
                 </details>
 
-                <a href="{{ route('register.plans') }}" class="border-b-2 border-yellow-400 bg-yellow-400 px-4 py-2 text-sm font-black text-zinc-900 transition hover:bg-transparent hover:text-yellow-400 sm:px-6">
+                {{-- <a href="{{ route('register.plans') }}" class="border-b-2 border-yellow-400 bg-yellow-400 px-4 py-2 text-sm font-black text-zinc-900 transition hover:bg-transparent hover:text-yellow-400 sm:px-6">
                     {{ __('welcome.nav.start') }}
-                </a>
+                </a> --}}
             </nav>
         </div>
     </header>
@@ -322,9 +322,13 @@
         <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:gap-6 sm:px-6 md:flex-row">
             <span class="text-xl font-black tracking-tighter text-yellow-400 sm:text-2xl">Workon</span>
             <p class="text-sm text-zinc-600">© {{ date('Y') }} Workon. {{ __('welcome.footer.rights') }}</p>
-            <a href="{{ auth('super_admin')->check() ? route('admin.dashboard') : url('/admin/login') }}" class="text-sm text-zinc-500 transition hover:text-yellow-400">
-                {{ auth('super_admin')->check() ? __('welcome.footer.panel') : __('welcome.footer.login') }}
-            </a>
+            <div class="flex items-center gap-4">
+                <a href="{{ route('terms') }}" class="text-sm text-zinc-500 transition hover:text-yellow-400">{{ __('welcome.footer.terms') }}</a>
+                <a href="{{ route('privacy') }}" class="text-sm text-zinc-500 transition hover:text-yellow-400">{{ __('welcome.footer.privacy') }}</a>
+                <a href="{{ auth('super_admin')->check() ? route('admin.dashboard') : url('/admin/login') }}" class="text-sm text-zinc-500 transition hover:text-yellow-400">
+                    {{ auth('super_admin')->check() ? __('welcome.footer.panel') : __('welcome.footer.login') }}
+                </a>
+            </div>
         </div>
     </footer>
 

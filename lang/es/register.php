@@ -69,6 +69,11 @@ return [
 
         'note_free' => 'El plan Básico es gratis, no se te pedirá ningún método de pago.',
         'note_paid' => 'Al continuar, serás redirigido a Stripe para completar el pago de forma segura.',
+
+        'accept_terms' => 'Acepto los :terms_link y la :privacy_link de Workon.',
+        'terms_link_text' => 'Términos y Condiciones',
+        'privacy_link_text' => 'Política de Privacidad',
+        'accept_terms_required' => 'Debes aceptar los Términos y Condiciones para continuar.',
     ],
 
     'success' => [

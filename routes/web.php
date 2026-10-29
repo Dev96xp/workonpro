@@ -12,6 +12,8 @@ Route::domain($centralDomain)->middleware(SetLocale::class)->group(function () {
         return view('welcome');
     })->name('home');
 
+    Volt::route('/welcome-v2', 'welcome-v2')->name('welcome.v2');
+
     Route::get('/businesscard', function () {
         return view('businesscard');
     })->name('businesscard');
@@ -34,6 +36,14 @@ Route::domain($centralDomain)->middleware(SetLocale::class)->group(function () {
             'Content-Disposition' => 'attachment; filename="ricardo-ramirez-workon.vcf"',
         ]);
     })->name('businesscard.vcard');
+
+    Route::get('/terminos', function () {
+        return view('terms');
+    })->name('terms');
+
+    Route::get('/privacidad', function () {
+        return view('privacy');
+    })->name('privacy');
 
     Route::get('/lang/{locale}', function (string $locale) {
         if (in_array($locale, ['es', 'en'], true)) {

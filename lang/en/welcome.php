@@ -91,6 +91,8 @@ return [
         'rights' => 'All rights reserved.',
         'panel' => 'Go to dashboard',
         'login' => 'Log in',
+        'terms' => 'Terms',
+        'privacy' => 'Privacy',
     ],
 
 ];

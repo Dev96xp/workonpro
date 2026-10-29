@@ -16,6 +16,8 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
     public string $city = '';
 
+    public bool $locationNotFound = false;
+
     public function with(): array
     {
         return [
@@ -51,7 +53,26 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
     public function updatedCity(): void
     {
+        $this->locationNotFound = false;
         $this->resetPage();
+    }
+
+    public function detectCity(string $detectedCity): void
+    {
+        $this->locationNotFound = false;
+
+        $match = ServiceListing::query()
+            ->whereNotNull('city')
+            ->distinct()
+            ->pluck('city')
+            ->first(fn (string $city) => Str::lower($city) === Str::lower($detectedCity));
+
+        if ($match) {
+            $this->city = $match;
+            $this->resetPage();
+        } else {
+            $this->locationNotFound = true;
+        }
     }
 }; ?>
 
@@ -97,29 +118,78 @@ new #[Layout('components.layouts.guest')] class extends Component {
     <div class="mx-auto max-w-5xl px-6 pb-16 sm:px-8">
 
         {{-- Filters --}}
-        <div class="mb-16 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <flux:input
-                wire:model.live.debounce.300ms="search"
-                placeholder="{{ __('search.search_placeholder') }}"
-                icon="magnifying-glass"
-                class="sm:flex-1"
-            />
+        <div class="mb-16">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <flux:input
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="{{ __('search.search_placeholder') }}"
+                    icon="magnifying-glass"
+                    class="sm:flex-1"
+                />
 
-            <div class="flex gap-3">
-                <flux:select wire:model.live="category" class="sm:w-48">
-                    <flux:select.option value="">{{ __('search.category_placeholder') }}</flux:select.option>
-                    @foreach ($categoryOptions as $option)
-                        <flux:select.option value="{{ $option->slug }}">{{ $option->name }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+                <div class="flex gap-3">
+                    <flux:select wire:model.live="category" class="sm:w-48">
+                        <flux:select.option value="">{{ __('search.category_placeholder') }}</flux:select.option>
+                        @foreach ($categoryOptions as $option)
+                            <flux:select.option value="{{ $option->slug }}">{{ $option->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
 
-                <flux:select wire:model.live="city" class="sm:w-44">
-                    <flux:select.option value="">{{ __('search.city_placeholder') }}</flux:select.option>
-                    @foreach ($cities as $option)
-                        <flux:select.option value="{{ $option }}">{{ $option }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+                    <flux:select wire:model.live="city" class="sm:w-44">
+                        <flux:select.option value="">{{ __('search.city_placeholder') }}</flux:select.option>
+                        @foreach ($cities as $option)
+                            <flux:select.option value="{{ $option }}">{{ $option }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+
+                    <div
+                        x-data="{
+                            detecting: false,
+                            error: '',
+                            detect() {
+                                this.detecting = true;
+                                this.error = '';
+
+                                if (!navigator.geolocation) {
+                                    this.detecting = false;
+                                    this.error = @js(__('search.location_error'));
+                                    return;
+                                }
+
+                                navigator.geolocation.getCurrentPosition(
+                                    (position) => {
+                                        fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=es`)
+                                            .then((response) => response.json())
+                                            .then((data) => {
+                                                this.detecting = false;
+                                                $wire.call('detectCity', data.city || data.locality || '');
+                                            })
+                                            .catch(() => {
+                                                this.detecting = false;
+                                                this.error = @js(__('search.location_error'));
+                                            });
+                                    },
+                                    () => {
+                                        this.detecting = false;
+                                        this.error = @js(__('search.location_error'));
+                                    },
+                                    { enableHighAccuracy: true, timeout: 10000 }
+                                );
+                            },
+                        }"
+                    >
+                        <flux:button type="button" x-on:click="detect()" x-bind:disabled="detecting" icon="map-pin">
+                            <span x-show="!detecting">{{ __('search.detect_location') }}</span>
+                            <span x-show="detecting" x-cloak>{{ __('search.detecting_location') }}</span>
+                        </flux:button>
+                        <p class="mt-1 text-xs text-red-400" x-show="error" x-text="error" x-cloak></p>
+                    </div>
+                </div>
             </div>
+
+            @if ($locationNotFound)
+                <p class="mt-3 text-sm text-zinc-500">{{ __('search.location_not_found') }}</p>
+            @endif
         </div>
 
         {{-- Results --}}

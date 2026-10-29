@@ -91,6 +91,8 @@ return [
         'rights' => 'Todos los derechos reservados.',
         'panel' => 'Ir al panel',
         'login' => 'Iniciar sesión',
+        'terms' => 'Términos',
+        'privacy' => 'Privacidad',
     ],
 
 ];
