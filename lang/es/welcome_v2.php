@@ -14,6 +14,7 @@ return [
     'hero' => [
         'badge' => 'Hecho para negocios que se mueven',
         'subtitle' => 'Tu negocio con su propia página, citas, cupones y tarjeta digital. Todo en un solo lugar.',
+        'visitor_city' => 'Hola, :city',
         'counter_label' => 'negocios ya están en Workon',
         'counter_tag' => 'y contando',
         'cta_explore' => 'Explorar negocios',
@@ -26,10 +27,8 @@ return [
     ],
 
     'directory' => [
-        'all' => 'Todos',
-        'empty' => 'Aún no hay negocios en esta categoría.',
+        'empty' => 'Aún no hay negocios con categoría.',
         'no_results' => 'Nada por aquí con “:term”. Prueba con otro nombre o ciudad.',
-        'visit' => 'Visitar',
     ],
 
     'search' => [

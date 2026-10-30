@@ -14,6 +14,7 @@ return [
     'hero' => [
         'badge' => 'Made for businesses on the move',
         'subtitle' => 'Your business with its own page, appointments, coupons and digital card. All in one place.',
+        'visitor_city' => 'Hello, :city',
         'counter_label' => 'businesses are already on Workon',
         'counter_tag' => 'and counting',
         'cta_explore' => 'Explore businesses',
@@ -26,10 +27,8 @@ return [
     ],
 
     'directory' => [
-        'all' => 'All',
-        'empty' => 'No businesses in this category yet.',
+        'empty' => 'No businesses with a category yet.',
         'no_results' => 'Nothing here for “:term”. Try another name or city.',
-        'visit' => 'Visit',
     ],
 
     'search' => [

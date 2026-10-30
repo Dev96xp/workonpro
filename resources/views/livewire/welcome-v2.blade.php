@@ -3,8 +3,10 @@
 use App\Models\Category;
 use App\Models\ServiceListing;
 use App\Models\Tenant;
+use App\Services\IpGeolocationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -12,8 +14,6 @@ use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Component
 {
-    public string $category = '';
-
     public string $search = '';
 
     /** @var array<int, array{id: string, name: string, image: ?string, url: ?string, initial: string}> */
@@ -21,11 +21,14 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
 
     public ?string $heroImage = null;
 
+    public ?string $visitorCity = null;
+
     public function mount(): void
     {
         abort_unless(app()->environment('local', 'testing') || auth('super_admin')->check(), 404);
 
         $this->heroImage = $this->imageOfTheDay();
+        $this->visitorCity = $this->detectVisitorCity();
 
         $this->spotlight = $this->activeTenants()
             ->whereNotNull('featured_image_url')
@@ -50,25 +53,20 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
             ->groupBy('tenant_id')
             ->map(fn (Collection $listings) => $listings->pluck('category')->filter()->unique()->values());
 
-        $directory = $this->activeTenants()
-            ->when($this->category, fn ($query) => $query->whereIn('id', $categoriesByTenant
-                ->filter(fn (Collection $categories) => $categories->contains($this->category))
-                ->keys()))
+        $tenants = $this->activeTenants()
             ->when(trim($this->search), fn ($query, string $term) => $query->where(fn ($query) => $query
                 ->where('name', 'like', "%{$term}%")
                 ->orWhere('signup_city', 'like', "%{$term}%")))
             ->orderBy('name')
             ->get()
-            ->map(fn (Tenant $tenant) => [
-                ...$this->presentTenant($tenant),
-                'city' => $tenant->signup_city,
-                'isPro' => in_array($tenant->plan, ['pro', 'enterprise'], true),
-                'categories' => $categoriesByTenant->get($tenant->id, collect())
-                    ->map(fn (string $slug) => $categoryLabels->get($slug, $slug))
-                    ->take(2)
-                    ->all(),
-            ])
-            ->groupBy(fn (array $tenant) => $tenant['initial']);
+            ->mapWithKeys(fn (Tenant $tenant) => [$tenant->id => $this->presentTenant($tenant)]);
+
+        $categoryChips = Category::query()
+            ->where('is_active', true)
+            ->whereIn('slug', $categoriesByTenant->flatten()->unique())
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn (Category $category) => ['slug' => $category->slug, 'label' => $categoryLabels->get($category->slug)]);
 
         return [
             'tenantsCount' => $this->activeTenants()->count(),
@@ -78,14 +76,17 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
                 ->limit(8)
                 ->get()
                 ->map(fn (Tenant $tenant) => $this->presentTenant($tenant)),
-            'directory' => $directory,
-            'letters' => range('A', 'Z'),
-            'categoryChips' => Category::query()
-                ->where('is_active', true)
-                ->whereIn('slug', $categoriesByTenant->flatten()->unique())
-                ->orderBy('sort_order')
-                ->get()
-                ->map(fn (Category $category) => ['slug' => $category->slug, 'label' => $categoryLabels->get($category->slug)]),
+            'categoryChips' => $categoryChips,
+            'categoryBands' => $categoryChips
+                ->map(fn (array $chip) => [
+                    ...$chip,
+                    'tenants' => $tenants
+                        ->filter(fn (array $tenant, string $id) => $categoriesByTenant->get($id, collect())->contains($chip['slug']))
+                        ->values()
+                        ->all(),
+                ])
+                ->filter(fn (array $band) => count($band['tenants']) > 0)
+                ->values(),
         ];
     }
 
@@ -95,6 +96,21 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
     private function activeTenants(): Builder
     {
         return Tenant::query()->where('status', 'active')->with('domains');
+    }
+
+    /**
+     * Prefers the city Cloudflare already resolved, then falls back to an IP lookup using the
+     * visitor's real address, since behind Cloudflare request()->ip() is the proxy's address.
+     */
+    private function detectVisitorCity(): ?string
+    {
+        if ($cloudflareCity = request()->header('CF-IPCity')) {
+            return $cloudflareCity;
+        }
+
+        $ip = request()->header('CF-Connecting-IP') ?: request()->ip();
+
+        return Cache::remember("visitor-city:{$ip}", now()->addDay(), fn () => app(IpGeolocationService::class)->city((string) $ip));
     }
 
     /**
@@ -142,12 +158,15 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
         .wv2-float-slow { animation: wv2-float 9s ease-in-out infinite; }
         .wv2-marquee { animation: wv2-marquee 40s linear infinite; }
         .wv2-marquee-wrap:hover .wv2-marquee { animation-play-state: paused; }
+        .wv2-slide { animation: wv2-slide 20s linear infinite paused; }
+        .wv2-slide-wrap:hover .wv2-slide { animation-play-state: running; }
         .wv2-glow { animation: wv2-glow 8s ease-in-out infinite; }
         @keyframes wv2-float { 0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-14px) rotate(var(--r, 0deg)); } }
         @keyframes wv2-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        @keyframes wv2-slide { 0% { transform: translateX(0); } 90%, 100% { transform: translateX(min(0px, calc(100vw - 100%))); } }
         @keyframes wv2-glow { 0%, 100% { transform: scale(1); opacity: .35; } 50% { transform: scale(1.15); opacity: .55; } }
         @media (prefers-reduced-motion: reduce) {
-            .wv2-float, .wv2-float-slow, .wv2-marquee, .wv2-glow { animation: none; }
+            .wv2-float, .wv2-float-slow, .wv2-marquee, .wv2-slide, .wv2-glow { animation: none; }
         }
     </style>
 
@@ -195,10 +214,17 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
         @endforeach
 
         <div class="relative flex flex-col items-center text-center">
-            <span class="mb-6 inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-yellow-400">
-                <span class="size-2 animate-pulse rounded-full bg-yellow-400"></span>
-                {{ __('welcome_v2.hero.badge') }}
-            </span>
+            <div class="mb-6 flex flex-wrap items-center justify-center gap-2">
+                <span class="inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-yellow-400">
+                    <span class="size-2 animate-pulse rounded-full bg-yellow-400"></span>
+                    {{ __('welcome_v2.hero.badge') }}
+                </span>
+                @if ($visitorCity)
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-extrabold uppercase tracking-widest text-zinc-950">
+                        📍 {{ __('welcome_v2.hero.visitor_city', ['city' => $visitorCity]) }}
+                    </span>
+                @endif
+            </div>
 
             <div class="relative">
                 <h1 class="text-[24vw] font-extrabold leading-[0.8] tracking-[-0.06em] text-yellow-400 drop-shadow-[0_10px_60px_rgba(250,204,21,0.35)] md:text-[13rem] lg:text-[16rem]">
@@ -274,8 +300,8 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
         </section>
     @endif
 
-    {{-- Directory --}}
-    <section id="directory" class="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6">
+    {{-- Businesses by category --}}
+    <section id="directory" class="scroll-mt-24 py-20">
         {{-- Search: floating at the bottom on small screens only --}}
         <div class="pointer-events-none fixed inset-x-0 bottom-4 z-50 px-3 md:hidden">
             <label class="pointer-events-auto mx-auto flex w-full items-center gap-3 rounded-full border border-white/15 bg-zinc-900/80 py-2 pl-5 pr-2 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)] backdrop-blur-xl transition focus-within:border-yellow-400 focus-within:shadow-[0_0_0_4px_rgba(250,204,21,0.15),0_20px_60px_-15px_rgba(0,0,0,0.8)]">
@@ -302,76 +328,37 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
             </label>
         </div>
 
-        {{-- Category chips --}}
-        <div class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0">
-            <button type="button" wire:click="$set('category', '')" class="shrink-0 rounded-full px-5 py-2 text-sm font-bold transition {{ $category === '' ? 'bg-yellow-400 text-zinc-950' : 'border border-white/15 text-zinc-300 hover:border-yellow-400 hover:text-yellow-400' }}">
-                {{ __('welcome_v2.directory.all') }}
-            </button>
-            @foreach ($categoryChips as $chip)
-                <button type="button" wire:click="$set('category', '{{ $chip['slug'] }}')" class="shrink-0 rounded-full px-5 py-2 text-sm font-bold transition {{ $category === $chip['slug'] ? 'bg-yellow-400 text-zinc-950' : 'border border-white/15 text-zinc-300 hover:border-yellow-400 hover:text-yellow-400' }}">
-                    {{ $chip['label'] }}
-                </button>
-            @endforeach
-        </div>
+        {{-- Category bands --}}
+        <div class="space-y-10" wire:loading.class="opacity-50">
+            @forelse ($categoryBands as $band)
+                <div>
+                    <div class="mb-4 flex items-center gap-3 px-4 sm:px-6">
+                        <h3 class="text-xl font-extrabold tracking-tight sm:text-2xl">{{ $band['label'] }}</h3>
+                        <span class="rounded-full bg-yellow-400 px-2.5 py-0.5 text-xs font-extrabold text-zinc-950">{{ count($band['tenants']) }}</span>
+                    </div>
 
-        <div class="relative mt-10 flex gap-6" wire:loading.class="opacity-50">
-            {{-- A–Z index --}}
-            <nav class="sticky top-28 hidden h-fit flex-col items-center gap-0.5 rounded-full border border-white/10 bg-zinc-900/80 px-1.5 py-3 text-[11px] font-extrabold md:flex">
-                @foreach ($letters as $letter)
-                    @if ($directory->has($letter))
-                        <a href="#letter-{{ $letter }}" class="flex size-5 items-center justify-center rounded-full text-yellow-400 transition hover:bg-yellow-400 hover:text-zinc-950">{{ $letter }}</a>
-                    @else
-                        <span class="flex size-5 items-center justify-center text-zinc-700">{{ $letter }}</span>
-                    @endif
-                @endforeach
-            </nav>
-
-            <div class="min-w-0 flex-1 space-y-12">
-                @forelse ($directory as $letter => $tenants)
-                    <div id="letter-{{ $letter }}" class="scroll-mt-28">
-                        <div class="mb-4 flex items-center gap-4">
-                            <span class="text-5xl font-extrabold leading-none text-yellow-400">{{ $letter }}</span>
-                            <div class="h-px flex-1 bg-white/10"></div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
-                            @foreach ($tenants as $tenant)
-                                <a href="{{ $tenant['url'] ?? '#' }}" target="_blank" class="group relative overflow-hidden rounded-3xl border border-white/10 bg-zinc-900 transition duration-300 hover:-translate-y-1 hover:-rotate-1 hover:border-yellow-400 hover:shadow-[0_20px_50px_-20px_rgba(250,204,21,0.5)]">
-                                    <div class="relative aspect-[4/3] overflow-hidden bg-zinc-800">
+                    <div class="wv2-slide-wrap relative overflow-x-auto [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_92%,transparent)] md:overflow-hidden">
+                        <div class="wv2-slide flex w-max gap-6 px-4 pb-1 pt-2 sm:gap-8 sm:px-6" style="animation-duration: {{ 6 + count($band['tenants']) * 2 }}s">
+                            @foreach ($band['tenants'] as $tenant)
+                                <a href="{{ $tenant['url'] ?? '#' }}" target="_blank" class="group flex w-24 shrink-0 flex-col items-center gap-2 sm:w-28">
+                                    <span class="rounded-[1.4rem] bg-gradient-to-tr from-yellow-500 via-yellow-300 to-amber-500 p-[3px] transition duration-300 group-hover:-rotate-6 group-hover:scale-110">
                                         @if ($tenant['image'])
-                                            <img src="{{ $tenant['image'] }}" alt="{{ $tenant['name'] }}" loading="lazy" class="size-full object-cover transition duration-500 group-hover:scale-110">
+                                            <img src="{{ $tenant['image'] }}" alt="{{ $tenant['name'] }}" loading="lazy" class="size-20 rounded-[1.2rem] border-4 border-zinc-950 object-cover sm:size-24">
                                         @else
-                                            <div class="flex size-full items-center justify-center bg-gradient-to-br from-yellow-400 to-amber-500 text-6xl font-extrabold text-zinc-950">{{ $tenant['initial'] }}</div>
+                                            <span class="flex size-20 items-center justify-center rounded-[1.2rem] border-4 border-zinc-950 bg-zinc-800 text-3xl font-extrabold text-yellow-400 sm:size-24">{{ $tenant['initial'] }}</span>
                                         @endif
-                                        <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent"></div>
-                                        @if ($tenant['isPro'])
-                                            <span class="absolute right-3 top-3 rounded-full bg-yellow-400 px-2.5 py-1 text-[10px] font-extrabold uppercase text-zinc-950">⚡ Pro</span>
-                                        @endif
-                                    </div>
-                                    <div class="p-4">
-                                        <p class="truncate text-base font-extrabold sm:text-lg">{{ $tenant['name'] }}</p>
-                                        @if ($tenant['city'])
-                                            <p class="truncate text-xs text-zinc-400 sm:text-sm">📍 {{ $tenant['city'] }}</p>
-                                        @endif
-                                        @if (count($tenant['categories']))
-                                            <div class="mt-3 flex flex-wrap gap-1.5">
-                                                @foreach ($tenant['categories'] as $label)
-                                                    <span class="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-300">{{ $label }}</span>
-                                                @endforeach
-                                            </div>
-                                        @endif
-                                        <p class="mt-3 text-sm font-bold text-yellow-400 opacity-0 transition group-hover:opacity-100">{{ __('welcome_v2.directory.visit') }} →</p>
-                                    </div>
+                                    </span>
+                                    <span class="w-full truncate text-center text-xs font-semibold text-zinc-300 group-hover:text-yellow-400">{{ $tenant['name'] }}</span>
                                 </a>
                             @endforeach
                         </div>
                     </div>
-                @empty
-                    <div class="rounded-3xl border border-dashed border-white/15 p-12 text-center text-zinc-400">
-                        {{ trim($search) ? __('welcome_v2.directory.no_results', ['term' => trim($search)]) : __('welcome_v2.directory.empty') }}
-                    </div>
-                @endforelse
-            </div>
+                </div>
+            @empty
+                <div class="mx-4 rounded-3xl border border-dashed border-white/15 p-12 text-center text-zinc-400 sm:mx-6">
+                    {{ trim($search) ? __('welcome_v2.directory.no_results', ['term' => trim($search)]) : __('welcome_v2.directory.empty') }}
+                </div>
+            @endforelse
         </div>
     </section>
 

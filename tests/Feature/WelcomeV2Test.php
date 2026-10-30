@@ -4,6 +4,7 @@ use App\Models\Category;
 use App\Models\ServiceListing;
 use App\Models\SuperAdmin;
 use App\Models\Tenant;
+use Illuminate\Support\Facades\Http;
 use Livewire\Volt\Volt;
 
 function createDirectoryTenant(string $id, string $name, array $attributes = []): Tenant
@@ -32,37 +33,82 @@ it('shows the page to a super admin outside local environments', function () {
         ->assertOk();
 });
 
-it('shows the active tenants count and directory', function () {
+function listTenantInCategory(string $tenantId, string $categorySlug): void
+{
+    ServiceListing::create(['tenant_id' => $tenantId, 'service_id' => ServiceListing::query()->where('tenant_id', $tenantId)->count() + 1, 'name' => 'Service', 'price' => 10, 'category' => $categorySlug, 'is_active' => true]);
+}
+
+it('greets the visitor with the city cloudflare resolved', function () {
+    Http::fake();
+
+    $this->withHeader('CF-IPCity', 'Atlanta')
+        ->get('/welcome-v2')
+        ->assertSee('Hola, Atlanta');
+
+    Http::assertNothingSent();
+});
+
+it('looks up the city from the real visitor ip behind cloudflare', function () {
+    config(['services.ipinfo.token' => 'fake-token']);
+    Http::fake(['ipinfo.io/8.8.8.8*' => Http::response(['city' => 'Omaha'])]);
+
+    $this->withHeader('CF-Connecting-IP', '8.8.8.8')
+        ->get('/welcome-v2')
+        ->assertSee('Hola, Omaha');
+});
+
+it('hides the city greeting when the location is unknown', function () {
+    $this->get('/welcome-v2')->assertDontSee('📍');
+});
+
+it('counts only active tenants', function () {
     createDirectoryTenant('zeta', 'Zeta Barber');
-    createDirectoryTenant('alpha', 'Alpha Nails', ['plan' => 'pro', 'signup_city' => 'Miami']);
     createDirectoryTenant('pending', 'Pending Shop', ['status' => 'pending']);
 
-    $this->get('/welcome-v2')
-        ->assertOk()
-        ->assertSee('negocios ya están en Workon')
-        ->assertSeeInOrder(['Alpha Nails', 'Zeta Barber'])
-        ->assertSee('Miami')
+    Volt::test('welcome-v2')
+        ->assertViewHas('tenantsCount', 1)
         ->assertDontSee('Pending Shop');
 });
 
-it('filters the directory by category', function () {
-    Category::create(['name' => 'Barbería', 'slug' => 'barber', 'sort_order' => 1, 'is_active' => true]);
-    createDirectoryTenant('zeta', 'Zeta Barber');
-    createDirectoryTenant('alpha', 'Alpha Nails');
-    Tenant::query()->whereKey('alpha')->update(['created_at' => now()->subMonth()]);
-    ServiceListing::create(['tenant_id' => 'zeta', 'service_id' => 1, 'name' => 'Corte', 'price' => 10, 'category' => 'barber', 'is_active' => true]);
+it('shows one band per category with the tenants listed in it', function () {
+    Category::updateOrCreate(['slug' => 'construction'], ['name' => 'Construcción', 'sort_order' => 1, 'is_active' => true]);
+    Category::updateOrCreate(['slug' => 'cleaning'], ['name' => 'Cleaning', 'sort_order' => 2, 'is_active' => true]);
+    Category::updateOrCreate(['slug' => 'framing'], ['name' => 'Framing', 'sort_order' => 3, 'is_active' => true]);
+    createDirectoryTenant('build', 'Build Co');
+    createDirectoryTenant('shine', 'Shine Cleaners');
+    createDirectoryTenant('loner', 'No Category Shop');
+    Tenant::query()->update(['created_at' => now()->subMonth()]);
+    listTenantInCategory('build', 'construction');
+    listTenantInCategory('build', 'cleaning');
+    listTenantInCategory('shine', 'cleaning');
 
-    Volt::test('welcome-v2')
-        ->assertSee('Alpha Nails')
-        ->set('category', 'barber')
-        ->assertSee('Zeta Barber')
-        ->assertDontSee('Alpha Nails');
+    $bands = Volt::test('welcome-v2')
+        ->assertSeeInOrder(['Build Co', 'Build Co', 'Shine Cleaners'])
+        ->assertDontSee('No Category Shop')
+        ->viewData('categoryBands');
+
+    expect($bands->pluck('slug')->all())->toBe(['construction', 'cleaning'])
+        ->and(collect($bands[1]['tenants'])->pluck('name')->all())->toBe(['Build Co', 'Shine Cleaners']);
 });
 
-it('searches the directory by business name or city', function () {
+it('shows each tenant only once in its category band', function () {
+    Category::updateOrCreate(['slug' => 'framing'], ['name' => 'Framing', 'sort_order' => 1, 'is_active' => true]);
+    createDirectoryTenant('frame', 'Solo Framer');
+    Tenant::query()->update(['created_at' => now()->subMonth()]);
+    listTenantInCategory('frame', 'framing');
+
+    $html = Volt::test('welcome-v2')->html();
+
+    expect(substr_count($html, '>Solo Framer</span>'))->toBe(1);
+});
+
+it('searches the category bands by business name or city', function () {
+    Category::updateOrCreate(['slug' => 'barber'], ['name' => 'Barbería', 'sort_order' => 1, 'is_active' => true]);
     createDirectoryTenant('zeta', 'Zeta Barber', ['signup_city' => 'Orlando']);
     createDirectoryTenant('alpha', 'Alpha Nails', ['signup_city' => 'Miami']);
     Tenant::query()->update(['created_at' => now()->subMonth()]);
+    listTenantInCategory('zeta', 'barber');
+    listTenantInCategory('alpha', 'barber');
 
     Volt::test('welcome-v2')
         ->set('search', 'zeta')
