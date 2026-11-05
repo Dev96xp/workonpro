@@ -32,6 +32,10 @@ return new class extends Migration
             $table->string('x')->nullable();
             $table->string('tiktok')->nullable();
             $table->string('discord')->nullable();
+            $table->boolean('has_license')->default(false);
+            $table->string('license_number')->nullable();
+            $table->boolean('has_insurance')->default(false);
+            $table->string('insurance_number')->nullable();
             $table->timestamps();
         });
     }

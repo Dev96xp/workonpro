@@ -8,6 +8,7 @@ use App\Models\Coupon;
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\Tenant;
+use App\Models\TenantAvailability;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
@@ -27,9 +28,6 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
         return [
             'businessName'   => $profile?->business_name ?? tenant('name'),
-            'clientCount'    => Client::count(),
-            'activeCoupons'  => Coupon::where('is_active', true)->count(),
-            'imageCount'     => BusinessImage::count(),
             'plan'           => tenant('plan') ?? 'basic',
             'images'         => BusinessImage::latest()->take(12)->get(),
             'hasInvoicing'   => $hasInvoicing,
@@ -39,7 +37,49 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             'upcomingAppointments' => $upcomingAppointments,
             'hasEmployees'         => $hasEmployees,
             'employeeCount'        => $employeeCount,
+            'modules'              => $this->modules($hasAppointments, $hasInvoicing, $hasEmployees, [
+                '/clients' => Client::count(),
+                '/coupons' => Coupon::where('is_active', true)->count(),
+                '/images' => BusinessImage::count(),
+                '/employees' => $employeeCount,
+            ]),
+            'availableNow'         => TenantAvailability::firstWhere('tenant_id', tenant('id'))?->isAvailableAt(now()) ?? false,
         ];
+    }
+
+    /**
+     * Quick links to every module the tenant's plan includes, mirroring the sidebar.
+     *
+     * @param  array<string, int>  $counts  Totals shown on a module's tile, keyed by its path.
+     * @return array<int, array{url: string, icon: string, label: string, external?: bool, count?: int}>
+     */
+    private function modules(bool $hasAppointments, bool $hasInvoicing, bool $hasEmployees, array $counts): array
+    {
+        $modules = array_values(array_filter([
+            ['url' => url('/clients'), 'icon' => 'users', 'label' => __('tenant.nav.clients')],
+            ['url' => url('/services'), 'icon' => 'wrench-screwdriver', 'label' => __('tenant.nav.services')],
+            ['url' => url('/coupons'), 'icon' => 'tag', 'label' => __('tenant.nav.coupons')],
+            $hasAppointments ? ['url' => url('/appointments'), 'icon' => 'calendar-days', 'label' => __('tenant.nav.appointments')] : null,
+            ['url' => url('/availability'), 'icon' => 'signal', 'label' => __('availability.nav')],
+            ['url' => url('/images'), 'icon' => 'photo', 'label' => __('tenant.nav.images')],
+            $hasInvoicing ? ['url' => url('/invoices'), 'icon' => 'banknotes', 'label' => __('tenant.nav.invoices_list')] : null,
+            $hasInvoicing ? ['url' => url('/products'), 'icon' => 'cube', 'label' => __('tenant.nav.products')] : null,
+            $hasInvoicing ? ['url' => url('/product-categories'), 'icon' => 'tag', 'label' => __('tenant.nav.product_categories')] : null,
+            $hasInvoicing ? ['url' => url('/taxes'), 'icon' => 'receipt-percent', 'label' => __('tenant.nav.taxes')] : null,
+            $hasEmployees ? ['url' => url('/employees'), 'icon' => 'identification', 'label' => __('tenant.nav.employees')] : null,
+            $hasEmployees ? ['url' => url('/locations'), 'icon' => 'map-pin', 'label' => __('tenant.nav.locations')] : null,
+            $hasEmployees ? ['url' => url('/attendance'), 'icon' => 'clock', 'label' => __('tenant.nav.attendance')] : null,
+            $hasEmployees ? ['url' => url('/attendance/payroll'), 'icon' => 'banknotes', 'label' => __('tenant.nav.payroll')] : null,
+            Tenant::hasFeature(tenant('plan'), 'businesscard') ? ['url' => url('/card'), 'icon' => 'identification', 'label' => __('tenant.dashboard.business_card'), 'external' => true] : null,
+            ['url' => url('/'), 'icon' => 'globe-alt', 'label' => __('tenant.dashboard.public_page'), 'external' => true],
+            ['url' => url('/settings'), 'icon' => 'cog-6-tooth', 'label' => __('tenant.nav.settings')],
+        ]));
+
+        return array_map(function (array $module) use ($counts) {
+            $path = parse_url($module['url'], PHP_URL_PATH) ?? '/';
+
+            return array_key_exists($path, $counts) ? [...$module, 'count' => $counts[$path]] : $module;
+        }, $modules);
     }
 
     public function logout(): void
@@ -97,57 +137,33 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     </div>
                 </div>
 
-                {{-- Stats --}}
-                <div class="grid gap-4 sm:grid-cols-3">
-                    <a href="{{ url('/clients') }}" wire:navigate
-                       class="group rounded-xl border border-stone-200 bg-white p-5 shadow-sm transition hover:border-yellow-400 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800">
-                        <div class="flex items-center justify-between">
-                            <flux:text class="text-sm font-medium text-zinc-500">{{ __('tenant.nav.clients') }}</flux:text>
-                            <div class="rounded-lg bg-zinc-900 p-2 text-yellow-400 transition group-hover:bg-yellow-400 group-hover:text-zinc-900 dark:bg-zinc-700">
-                                <flux:icon.users class="size-5" />
-                            </div>
-                        </div>
-                        <p class="mt-3 text-3xl font-bold text-zinc-900 dark:text-white">{{ $clientCount }}</p>
-                        <p class="mt-1 text-xs text-zinc-400">{{ __('tenant.dashboard.total_registered') }}</p>
-                    </a>
-
-                    <a href="{{ url('/coupons') }}" wire:navigate
-                       class="group rounded-xl border border-stone-200 bg-white p-5 shadow-sm transition hover:border-yellow-400 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800">
-                        <div class="flex items-center justify-between">
-                            <flux:text class="text-sm font-medium text-zinc-500">{{ __('tenant.dashboard.active_coupons') }}</flux:text>
-                            <div class="rounded-lg bg-zinc-900 p-2 text-yellow-400 transition group-hover:bg-yellow-400 group-hover:text-zinc-900 dark:bg-zinc-700">
-                                <flux:icon.tag class="size-5" />
-                            </div>
-                        </div>
-                        <p class="mt-3 text-3xl font-bold text-zinc-900 dark:text-white">{{ $activeCoupons }}</p>
-                        <p class="mt-1 text-xs text-zinc-400">{{ __('tenant.dashboard.in_circulation') }}</p>
-                    </a>
-
-                    <a href="{{ url('/images') }}" wire:navigate
-                       class="group rounded-xl border border-stone-200 bg-white p-5 shadow-sm transition hover:border-yellow-400 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800">
-                        <div class="flex items-center justify-between">
-                            <flux:text class="text-sm font-medium text-zinc-500">{{ __('tenant.nav.images') }}</flux:text>
-                            <div class="rounded-lg bg-zinc-900 p-2 text-yellow-400 transition group-hover:bg-yellow-400 group-hover:text-zinc-900 dark:bg-zinc-700">
-                                <flux:icon.photo class="size-5" />
-                            </div>
-                        </div>
-                        <p class="mt-3 text-3xl font-bold text-zinc-900 dark:text-white">{{ $imageCount }}</p>
-                        <p class="mt-1 text-xs text-zinc-400">{{ __('tenant.dashboard.uploaded') }}</p>
-                    </a>
-
-                    @if ($hasEmployees)
-                        <a href="{{ url('/employees') }}" wire:navigate
-                           class="group rounded-xl border border-stone-200 bg-white p-5 shadow-sm transition hover:border-yellow-400 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800">
-                            <div class="flex items-center justify-between">
-                                <flux:text class="text-sm font-medium text-zinc-500">{{ __('tenant.nav.employees') }}</flux:text>
-                                <div class="rounded-lg bg-zinc-900 p-2 text-yellow-400 transition group-hover:bg-yellow-400 group-hover:text-zinc-900 dark:bg-zinc-700">
-                                    <flux:icon.identification class="size-5" />
+                {{-- Modules --}}
+                <div>
+                    <flux:heading size="lg">{{ __('tenant.dashboard.modules_heading') }}</flux:heading>
+                    <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                        @foreach ($modules as $module)
+                            <a
+                                href="{{ $module['url'] }}"
+                                @if ($module['external'] ?? false) target="_blank" @else wire:navigate @endif
+                                class="group relative flex flex-col items-center gap-2 rounded-xl border border-stone-200 bg-white p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-yellow-400 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800"
+                                data-module="{{ $module['url'] }}"
+                            >
+                                <div class="rounded-lg bg-zinc-900 p-2.5 text-yellow-400 transition group-hover:bg-yellow-400 group-hover:text-zinc-900 dark:bg-zinc-700">
+                                    <flux:icon :name="$module['icon']" class="size-5" />
                                 </div>
-                            </div>
-                            <p class="mt-3 text-3xl font-bold text-zinc-900 dark:text-white">{{ $employeeCount }}</p>
-                            <p class="mt-1 text-xs text-zinc-400">{{ __('tenant.dashboard.active_employees') }}</p>
-                        </a>
-                    @endif
+                                <span class="text-sm font-semibold text-zinc-700 dark:text-zinc-200">{{ $module['label'] }}</span>
+                                @isset($module['count'])
+                                    <span class="text-2xl font-bold leading-none text-zinc-900 dark:text-white">{{ $module['count'] }}</span>
+                                @endisset
+                                @if ($module['url'] === url('/availability') && $availableNow)
+                                    <span class="absolute right-3 top-3 size-2.5 rounded-full bg-green-500" title="{{ __('availability.status_now') }}"></span>
+                                @endif
+                                @if ($module['external'] ?? false)
+                                    <flux:icon.arrow-top-right-on-square variant="micro" class="absolute right-2.5 top-2.5 text-zinc-300" />
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
                 </div>
 
                 {{-- Facturación --}}

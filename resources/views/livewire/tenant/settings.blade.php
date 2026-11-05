@@ -43,6 +43,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public string $city = '';
 
     #[Validate('nullable|string|max:100')]
+    public string $state = '';
+
+    #[Validate('nullable|string|max:100')]
     public string $country = '';
 
     #[Validate('nullable|url|max:255')]
@@ -138,11 +141,16 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         } else {
             $this->business_name = tenant('name') ?? '';
         }
+
+        $this->state = tenant('state') ?? '';
+        $this->address = $this->address ?: (tenant('street_address') ?? '');
+        $this->city = $this->city ?: (tenant('city') ?? '');
+        $this->country = $this->country ?: (tenant('country') ?? '');
     }
 
     public function saveProfile(): void
     {
-        $this->validateOnly('account_type,business_name,business_title,slogan,business_email,phone,phone_2,whatsapp,address,city,country,website,instagram,facebook,youtube,x,tiktok,discord,business_hours,license_number,insurance_number,description,policy,objectives');
+        $this->validateOnly('account_type,business_name,business_title,slogan,business_email,phone,phone_2,whatsapp,address,city,state,country,website,instagram,facebook,youtube,x,tiktok,discord,business_hours,license_number,insurance_number,description,policy,objectives');
 
         BusinessProfile::updateOrCreate(
             ['id' => 1],
@@ -176,7 +184,13 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             ]
         );
 
-        tenant()->update(['account_type' => $this->account_type]);
+        tenant()->update([
+            'account_type' => $this->account_type,
+            'street_address' => $this->address ?: null,
+            'city' => $this->city ?: null,
+            'state' => $this->state ?: null,
+            'country' => $this->country ?: null,
+        ]);
 
         $this->profileSaved = __('tenant.settings.profile_saved');
     }
@@ -332,6 +346,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                     <flux:field class="sm:col-span-2">
                                         <flux:label>{{ __('tenant.common.address') }}</flux:label>
                                         <flux:input wire:model="address" />
+                                        @if ($account_type === 'personal')
+                                            <flux:description>{{ __('tenant.settings.address_private_hint') }}</flux:description>
+                                        @endif
                                         <flux:error name="address" />
                                     </flux:field>
 
@@ -339,6 +356,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                         <flux:label>{{ __('tenant.settings.city_label') }}</flux:label>
                                         <flux:input wire:model="city" />
                                         <flux:error name="city" />
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label>{{ __('tenant.settings.state_label') }}</flux:label>
+                                        <flux:input wire:model="state" />
+                                        <flux:error name="state" />
                                     </flux:field>
 
                                     <flux:field>

@@ -22,3 +22,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# SQLite databases stancl/tenancy creates for test tenants
+/database/tenant*

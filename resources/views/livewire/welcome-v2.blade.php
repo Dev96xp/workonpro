@@ -35,7 +35,7 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
         $this->heroImage = $this->imageOfTheDay();
         $this->visitorCity = $this->detectVisitorCity();
 
-        $this->spotlight = $this->activeTenants()
+        $this->spotlight = $this->localFirst($this->activeTenants())
             ->whereNotNull('featured_image_url')
             ->inRandomOrder()
             ->limit(16)
@@ -58,9 +58,10 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
             ->groupBy('tenant_id')
             ->map(fn (Collection $listings) => $listings->pluck('category')->filter()->unique()->values());
 
-        $tenants = $this->activeTenants()
+        $tenants = $this->localFirst($this->activeTenants())
             ->when(trim($this->search), fn ($query, string $term) => $query->where(fn ($query) => $query
                 ->where('name', 'like', "%{$term}%")
+                ->orWhere('city', 'like', "%{$term}%")
                 ->orWhere('signup_city', 'like', "%{$term}%")))
             ->orderBy('name')
             ->get()
@@ -105,6 +106,33 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
     }
 
     /**
+     * Puts tenants from the visitor's city first, so people see their neighbours before anyone else.
+     *
+     * @param  Builder<Tenant>  $query
+     * @return Builder<Tenant>
+     */
+    private function localFirst(Builder $query): Builder
+    {
+        if (! $this->visitorCity) {
+            return $query;
+        }
+
+        return $query->orderByRaw(
+            'CASE WHEN LOWER(COALESCE(city, signup_city)) = ? THEN 0 ELSE 1 END',
+            [Str::lower(trim($this->visitorCity))]
+        );
+    }
+
+    private function isLocal(Tenant $tenant): bool
+    {
+        $tenantCity = $tenant->city ?: $tenant->signup_city;
+
+        return $this->visitorCity !== null
+            && $tenantCity !== null
+            && Str::lower(trim($tenantCity)) === Str::lower(trim($this->visitorCity));
+    }
+
+    /**
      * Prefers the city Cloudflare already resolved, then falls back to an IP lookup using the
      * visitor's real address, since behind Cloudflare request()->ip() is the proxy's address.
      */
@@ -114,9 +142,9 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
             return $cloudflareCity;
         }
 
-        $ip = request()->header('CF-Connecting-IP') ?: request()->ip();
+        $ip = IpGeolocationService::clientIp();
 
-        return Cache::remember("visitor-city:{$ip}", now()->addDay(), fn () => app(IpGeolocationService::class)->city((string) $ip));
+        return Cache::remember("visitor-city:{$ip}", now()->addDay(), fn () => app(IpGeolocationService::class)->city($ip));
     }
 
     /**
@@ -166,7 +194,7 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
                     ...$this->presentTenant($availability->tenant),
                     'isNow' => $isNow,
                     'time' => $time->format('g:i A').' '.$time->format('T'),
-                    'sortKey' => ($isNow ? '0' : '1').$slot['start'],
+                    'sortKey' => ($isNow ? '0' : '1').($this->isLocal($availability->tenant) ? '0' : '1').$slot['start'],
                     'note' => $availability->note,
                 ];
             })
@@ -381,7 +409,7 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
     {{-- Available today --}}
     @if ($availableToday->isNotEmpty())
         <section class="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
-            <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ __('welcome_v2.available.title') }} 🟢</h2>
+            <h2 class="text-xl font-extrabold tracking-tight sm:text-2xl">{{ __('welcome_v2.available.title') }} 🟢</h2>
             <div class="-mx-4 mt-6 flex snap-x gap-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
                 @foreach ($availableToday as $tenant)
                     <a href="{{ $tenant['url'] ?? '#' }}" target="_blank" class="group flex w-72 shrink-0 snap-start items-center gap-3 rounded-2xl border bg-white/5 p-3 transition hover:bg-white/10 {{ $tenant['isNow'] ? 'border-green-500/40 hover:border-green-400' : 'border-white/10 hover:border-yellow-400/60' }}">
@@ -413,7 +441,7 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
     {{-- New this week --}}
     @if ($freshTenants->isNotEmpty())
         <section class="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
-            <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ __('welcome_v2.fresh.title') }} 🔥</h2>
+            <h2 class="text-xl font-extrabold tracking-tight sm:text-2xl">{{ __('welcome_v2.fresh.title') }} 🔥</h2>
             <div class="-mx-4 mt-6 flex snap-x gap-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
                 @foreach ($freshTenants as $tenant)
                     <a href="{{ $tenant['url'] ?? '#' }}" target="_blank" class="group flex w-64 shrink-0 snap-start items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 transition hover:border-yellow-400/60 hover:bg-white/10">

@@ -36,7 +36,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
             'businessTitle'   => $profile?->business_title ?: ($profile?->business_name ?? tenant('name')),
             'showLogoOnHero'  => (bool) ($profile?->show_logo_on_hero ?? false),
             'businessSlogan'  => $profile?->slogan,
-            'businessAddress' => $profile?->address,
+            'businessAddress' => tenant()->isPersonal() ? null : $profile?->address,
             'businessPhone'   => $profile?->phone,
             'businessPhone2'  => $profile?->phone_2,
             'businessCity'    => $profile?->city,
@@ -62,6 +62,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
             'images'              => BusinessImage::gallery()->latest()->take(12)->get(),
             'services'            => Service::with('images')->where('is_active', true)->orderBy('name')->get(),
             'availability'        => TenantAvailability::query()->active()->firstWhere('tenant_id', tenant('id')),
+            'needsSetup'          => $profile === null,
             'coupons'         => Coupon::with('images')
                 ->where('is_active', true)
                 ->where(function ($q) {
@@ -167,11 +168,55 @@ new #[Layout('components.layouts.guest')] class extends Component {
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
                     </svg>
-                    Acceso
+                    Log in
                 </button>
             @endauth
         </div>
     </nav>
+
+    {{-- First-time setup notice: shown until the owner saves the profile for the first time --}}
+    @if ($needsSetup)
+        <div
+            x-data="{ open: true }"
+            x-init="try { open = localStorage.getItem('setup-notice-dismissed-{{ tenant('id') }}') !== '1' } catch (e) {}"
+            x-show="open"
+            x-transition
+            class="fixed inset-x-4 bottom-4 z-40 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:max-w-sm"
+            data-setup-notice
+        >
+            <div class="relative rounded-2xl border border-yellow-400/40 bg-zinc-900/95 p-5 shadow-2xl backdrop-blur-md">
+                <button
+                    type="button"
+                    x-on:click="open = false; try { localStorage.setItem('setup-notice-dismissed-{{ tenant('id') }}', '1') } catch (e) {}"
+                    class="absolute right-3 top-3 text-zinc-500 transition-colors hover:text-white"
+                    aria-label="{{ __('tenant.setup_notice.dismiss') }}"
+                >
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+
+                <p class="pr-6 text-lg font-black text-yellow-400">👋 {{ __('tenant.setup_notice.title') }}</p>
+                <p class="mt-2 text-sm leading-relaxed text-zinc-300">
+                    @auth
+                        {{ __('tenant.setup_notice.body_owner') }}
+                    @else
+                        {{ __('tenant.setup_notice.body_guest') }}
+                    @endauth
+                </p>
+
+                @auth
+                    <a href="{{ url('/settings') }}" wire:navigate class="mt-4 inline-flex items-center gap-2 rounded-full bg-yellow-400 px-5 py-2.5 text-sm font-bold text-zinc-950 transition hover:bg-yellow-300">
+                        {{ __('tenant.setup_notice.cta_owner') }} →
+                    </a>
+                @else
+                    <button type="button" wire:click="$set('showLogin', true)" class="mt-4 inline-flex items-center gap-2 rounded-full bg-yellow-400 px-5 py-2.5 text-sm font-bold text-zinc-950 transition hover:bg-yellow-300">
+                        {{ __('tenant.setup_notice.cta_guest') }} →
+                    </button>
+                @endauth
+            </div>
+        </div>
+    @endif
 
     {{-- Login Modal --}}
     @if ($showLogin)
@@ -182,8 +227,8 @@ new #[Layout('components.layouts.guest')] class extends Component {
         >
             <div class="w-full max-w-sm bg-zinc-900 border border-zinc-700 rounded-2xl p-8 shadow-2xl">
                 <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-bold text-white">Acceso al Panel</h2>
-                    <button wire:click="$set('showLogin', false)" class="text-zinc-500 hover:text-white transition-colors">
+                    <h2 class="text-xl font-bold text-white">{{ __('tenant.login_modal.title') }}</h2>
+                    <button wire:click="$set('showLogin', false)" class="text-zinc-500 hover:text-white transition-colors" aria-label="{{ __('tenant.login_modal.close') }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -192,20 +237,20 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
                 <form wire:submit="login" class="flex flex-col gap-4">
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-medium text-zinc-300">Email</label>
+                        <label class="text-sm font-medium text-zinc-300">{{ __('tenant.login_modal.email') }}</label>
                         <input
                             wire:model="email"
                             type="email"
                             required
                             autofocus
-                            placeholder="admin@tunegocio.com"
+                            placeholder="{{ __('tenant.login_modal.email_placeholder') }}"
                             class="bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors"
                         />
                         @error('email') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-medium text-zinc-300">Contraseña</label>
+                        <label class="text-sm font-medium text-zinc-300">{{ __('tenant.login_modal.password') }}</label>
                         <input
                             wire:model="password"
                             type="password"
@@ -217,7 +262,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
                     <label class="flex items-center gap-2 text-sm text-zinc-400 cursor-pointer">
                         <input wire:model="remember" type="checkbox" class="rounded border-zinc-600 bg-zinc-800 text-yellow-400 focus:ring-yellow-400" />
-                        Recordarme
+                        {{ __('tenant.login_modal.remember') }}
                     </label>
 
                     <button
@@ -226,13 +271,13 @@ new #[Layout('components.layouts.guest')] class extends Component {
                         wire:loading.attr="disabled"
                         wire:loading.class="opacity-70 cursor-not-allowed"
                     >
-                        <span wire:loading.remove>Iniciar sesión</span>
+                        <span wire:loading.remove>{{ __('tenant.login_modal.submit') }}</span>
                         <span wire:loading class="flex items-center justify-center gap-2">
                             <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                             </svg>
-                            Entrando...
+                            {{ __('tenant.login_modal.submitting') }}
                         </span>
                     </button>
                 </form>

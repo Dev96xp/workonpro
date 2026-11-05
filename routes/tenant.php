@@ -47,7 +47,7 @@ Route::middleware([
         return view('tenant.businesscard', [
             'businessName' => $businessName,
             'businessSlogan' => $profile?->slogan,
-            'businessAddress' => $profile?->address,
+            'businessAddress' => tenant()->isPersonal() ? null : $profile?->address,
             'businessCity' => $profile?->city,
             'businessPhone' => $profile?->phone,
             'businessEmail' => $profile?->email,
@@ -71,7 +71,7 @@ Route::middleware([
             'ORG:'.$businessName,
             $profile?->phone ? 'TEL;TYPE=WORK,VOICE:'.$profile->phone : null,
             $profile?->email ? 'EMAIL:'.$profile->email : null,
-            $profile?->address ? 'ADR;TYPE=WORK:;;'.$profile->address.';'.$profile->city.';;;' : null,
+            $profile?->address && ! tenant()->isPersonal() ? 'ADR;TYPE=WORK:;;'.$profile->address.';'.$profile->city.';;;' : null,
             'URL:'.url('/'),
             'END:VCARD',
         ]));

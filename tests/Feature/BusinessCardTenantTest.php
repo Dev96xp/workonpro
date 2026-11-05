@@ -7,6 +7,14 @@ use Database\Seeders\PlanSeeder;
 use Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
+afterEach(function () {
+    if (tenancy()->initialized) {
+        tenancy()->end();
+    }
+
+    Tenant::query()->where('id', 'like', 'cardtenant%')->get()->each->delete();
+});
+
 beforeEach(function () {
     (new PlanSeeder)->run();
 

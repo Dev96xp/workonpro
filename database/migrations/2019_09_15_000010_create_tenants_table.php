@@ -10,8 +10,6 @@ class CreateTenantsTable extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up(): void
     {
@@ -21,10 +19,17 @@ class CreateTenantsTable extends Migration
             $table->string('email')->nullable();
             $table->string('status')->default('pending');
             $table->string('plan')->nullable();
+            $table->string('account_type')->default('business');
             $table->string('stripe_id')->nullable()->index();
             $table->string('pm_type')->nullable();
             $table->string('pm_last_four', 4)->nullable();
             $table->timestamp('trial_ends_at')->nullable();
+            $table->string('signup_city')->nullable();
+            $table->string('street_address')->nullable();
+            $table->string('city', 100)->nullable()->index();
+            $table->string('state', 100)->nullable();
+            $table->string('country', 100)->nullable();
+            $table->string('featured_image_url')->nullable();
             $table->timestamps();
             $table->json('data')->nullable();
         });
@@ -32,8 +37,6 @@ class CreateTenantsTable extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down(): void
     {

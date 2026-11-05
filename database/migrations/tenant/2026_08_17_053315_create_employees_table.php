@@ -13,10 +13,14 @@ return new class extends Migration
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
+            $table->string('employee_code')->nullable()->unique();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('role')->nullable();
+            $table->decimal('salary', 10, 2)->nullable();
+            $table->string('salary_period')->nullable();
+            $table->string('status')->default('active');
             $table->string('password');
-            $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();
         });

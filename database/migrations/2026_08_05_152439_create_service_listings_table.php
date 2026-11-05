@@ -21,6 +21,7 @@ return new class extends Migration
             $table->decimal('price', 10, 2)->nullable();
             $table->string('category')->nullable()->index();
             $table->string('city')->nullable()->index();
+            $table->string('phone')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 

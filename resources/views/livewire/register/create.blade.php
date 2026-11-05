@@ -17,6 +17,18 @@ new #[Layout('components.layouts.auth')] class extends Component {
     #[Validate('required|string|min:3|max:30|alpha_dash|unique:domains,domain')]
     public string $subdomain = '';
 
+    #[Validate('required|string|max:100')]
+    public string $city = '';
+
+    #[Validate('required|string|max:100')]
+    public string $state = '';
+
+    #[Validate('required|string|max:100')]
+    public string $country = '';
+
+    #[Validate('nullable|string|max:255')]
+    public string $street_address = '';
+
     #[Validate('required|email|unique:tenants,email')]
     public string $email = '';
 
@@ -43,6 +55,11 @@ new #[Layout('components.layouts.auth')] class extends Component {
         if (! array_key_exists($this->plan, $this->plans)) {
             $this->plan = 'pro';
         }
+
+        $detected = app(IpGeolocationService::class)->location(IpGeolocationService::clientIp());
+        $this->city = $detected['city'] ?? '';
+        $this->state = $detected['state'] ?? '';
+        $this->country = $this->countryName($detected['country'] ?? null);
     }
 
     public function updatedSubdomain(): void
@@ -54,7 +71,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     {
         $this->validate();
 
-        $signupCity = app(IpGeolocationService::class)->city(request()->ip());
+        $signupCity = app(IpGeolocationService::class)->city(IpGeolocationService::clientIp());
 
         if ($this->plan === 'basic') {
             $this->registerFreeTenant($signupCity);
@@ -79,6 +96,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
                 'plan'        => $this->plan,
                 'account_type' => $this->account_type,
                 'signup_city' => $signupCity,
+                ...$this->locationAttributes(),
             ]
         ));
 
@@ -94,6 +112,38 @@ new #[Layout('components.layouts.auth')] class extends Component {
         $this->redirect($checkoutUrl->url);
     }
 
+    /**
+     * @return array{street_address: ?string, city: string, state: string, country: string}
+     */
+    protected function locationAttributes(): array
+    {
+        return [
+            'street_address' => $this->street_address ?: null,
+            'city' => $this->city,
+            'state' => $this->state,
+            'country' => $this->country,
+        ];
+    }
+
+    /**
+     * ipinfo returns ISO codes; show the common ones by name so people only confirm them.
+     */
+    protected function countryName(?string $code): string
+    {
+        return match ($code) {
+            null => '',
+            'US' => 'United States',
+            'MX' => 'México',
+            'CA' => 'Canada',
+            'GT' => 'Guatemala',
+            'SV' => 'El Salvador',
+            'HN' => 'Honduras',
+            'CO' => 'Colombia',
+            'ES' => 'España',
+            default => $code,
+        };
+    }
+
     protected function registerFreeTenant(?string $signupCity): void
     {
         // Plan Básico: sin costo, no pasa por Stripe. Se activa de inmediato.
@@ -106,6 +156,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
                 'plan'        => 'basic',
                 'account_type' => $this->account_type,
                 'signup_city' => $signupCity,
+                ...$this->locationAttributes(),
             ]
         );
 
@@ -156,6 +207,33 @@ new #[Layout('components.layouts.auth')] class extends Component {
                 </span>
             </div>
             <flux:error name="subdomain" />
+        </flux:field>
+
+        <div class="grid gap-4 sm:grid-cols-3">
+            <flux:field>
+                <flux:label>{{ __('register.create.city_label') }}</flux:label>
+                <flux:input wire:model="city" placeholder="Omaha" />
+                <flux:error name="city" />
+            </flux:field>
+
+            <flux:field>
+                <flux:label>{{ __('register.create.state_label') }}</flux:label>
+                <flux:input wire:model="state" placeholder="Nebraska" />
+                <flux:error name="state" />
+            </flux:field>
+
+            <flux:field>
+                <flux:label>{{ __('register.create.country_label') }}</flux:label>
+                <flux:input wire:model="country" placeholder="United States" />
+                <flux:error name="country" />
+            </flux:field>
+        </div>
+
+        <flux:field>
+            <flux:label>{{ __('register.create.street_label') }}</flux:label>
+            <flux:input wire:model="street_address" placeholder="{{ __('register.create.street_placeholder') }}" />
+            <flux:description>{{ $account_type === 'personal' ? __('register.create.street_hint_personal') : __('register.create.street_hint') }}</flux:description>
+            <flux:error name="street_address" />
         </flux:field>
 
         <flux:field>

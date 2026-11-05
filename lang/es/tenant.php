@@ -50,6 +50,9 @@ return [
 
     'dashboard' => [
         'panel_label' => 'Panel de administración',
+        'modules_heading' => 'Módulos',
+        'business_card' => 'Tarjeta digital',
+        'public_page' => 'Mi página',
         'welcome' => 'Bienvenido, :name',
         'plan' => 'Plan',
         'total_registered' => 'Total registrados',
@@ -288,6 +291,8 @@ return [
         'insurance_number_label' => 'Número de póliza',
         'section_location' => 'Ubicación',
         'city_label' => 'Ciudad',
+        'state_label' => 'Estado / Provincia',
+        'address_private_hint' => 'Es privada: en tu página pública solo se mostrará tu ciudad.',
         'country_label' => 'País',
         'hours_label' => 'Horario de atención',
         'hours_placeholder' => 'Lun-Vie 9am-6pm, Sáb 10am-2pm',
@@ -415,6 +420,26 @@ return [
         'whatsapp' => 'WhatsApp',
         'save_contact' => 'Guardar contacto',
         'powered_by' => 'Powered by',
+    ],
+
+    'login_modal' => [
+        'title' => 'Acceso al panel',
+        'close' => 'Cerrar',
+        'email' => 'Correo electrónico',
+        'email_placeholder' => 'admin@tunegocio.com',
+        'password' => 'Contraseña',
+        'remember' => 'Recordarme',
+        'submit' => 'Iniciar sesión',
+        'submitting' => 'Entrando...',
+    ],
+
+    'setup_notice' => [
+        'title' => '¡Bienvenido a tu nueva página!',
+        'body_guest' => '¿Esta es tu página? Inicia sesión y completa tu información: nombre, contacto, fotos y servicios. Así tus clientes podrán encontrarte y contactarte.',
+        'body_owner' => 'Tu página todavía está vacía. Completa tu perfil con tu información de contacto, fotos y servicios para que tus clientes puedan encontrarte.',
+        'cta_guest' => 'Iniciar sesión',
+        'cta_owner' => 'Completar mi perfil',
+        'dismiss' => 'Cerrar',
     ],
 
 ];

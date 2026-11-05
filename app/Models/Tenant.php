@@ -29,6 +29,10 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'pm_last_four',
             'trial_ends_at',
             'signup_city',
+            'street_address',
+            'city',
+            'state',
+            'country',
             'featured_image_url',
             'account_type',
         ];

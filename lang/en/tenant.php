@@ -50,6 +50,9 @@ return [
 
     'dashboard' => [
         'panel_label' => 'Admin panel',
+        'modules_heading' => 'Modules',
+        'business_card' => 'Digital card',
+        'public_page' => 'My page',
         'welcome' => 'Welcome, :name',
         'plan' => 'Plan',
         'total_registered' => 'Total registered',
@@ -288,6 +291,8 @@ return [
         'insurance_number_label' => 'Policy number',
         'section_location' => 'Location',
         'city_label' => 'City',
+        'state_label' => 'State / Province',
+        'address_private_hint' => 'It stays private: your public page only shows your city.',
         'country_label' => 'Country',
         'hours_label' => 'Business hours',
         'hours_placeholder' => 'Mon-Fri 9am-6pm, Sat 10am-2pm',
@@ -415,6 +420,26 @@ return [
         'whatsapp' => 'WhatsApp',
         'save_contact' => 'Save contact',
         'powered_by' => 'Powered by',
+    ],
+
+    'login_modal' => [
+        'title' => 'Dashboard access',
+        'close' => 'Close',
+        'email' => 'Email',
+        'email_placeholder' => 'admin@yourbusiness.com',
+        'password' => 'Password',
+        'remember' => 'Remember me',
+        'submit' => 'Log in',
+        'submitting' => 'Logging in...',
+    ],
+
+    'setup_notice' => [
+        'title' => 'Welcome to your new page!',
+        'body_guest' => 'Is this your page? Log in and add your information: name, contact, photos and services. That way your customers can find and reach you.',
+        'body_owner' => 'Your page is still empty. Complete your profile with your contact info, photos and services so your customers can find you.',
+        'cta_guest' => 'Log in',
+        'cta_owner' => 'Complete my profile',
+        'dismiss' => 'Close',
     ],
 
 ];

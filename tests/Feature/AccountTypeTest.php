@@ -22,6 +22,9 @@ function signUpWithAccountType(string $subdomain, ?string $accountType = null): 
         ->set('business_name', 'María López')
         ->set('subdomain', $subdomain)
         ->set('email', "{$subdomain}@example.com")
+        ->set('city', 'Omaha')
+        ->set('state', 'Nebraska')
+        ->set('country', 'United States')
         ->set('password', 'password123')
         ->set('password_confirmation', 'password123')
         ->set('accepted_terms', true);

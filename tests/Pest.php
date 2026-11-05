@@ -1,5 +1,8 @@
 <?php
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -11,8 +14,17 @@
 |
 */
 
-pest()->extend(Tests\TestCase::class)
-    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+pest()->extend(TestCase::class)
+    ->use(RefreshDatabase::class)
+    ->beforeEach(function () {
+        // RefreshDatabase rolls back tenant rows without firing their delete events, so the
+        // SQLite file each test tenant gets in database/ would survive and break the next run.
+        foreach (glob(database_path('tenant*')) ?: [] as $leftoverTenantDatabase) {
+            if (is_file($leftoverTenantDatabase)) {
+                @unlink($leftoverTenantDatabase);
+            }
+        }
+    })
     ->in('Feature');
 
 /*
