@@ -55,6 +55,8 @@ return [
 
         'business_name_label' => 'Nombre del negocio',
         'business_name_placeholder' => 'Mi Constructora S.A.',
+        'personal_name_label' => 'Tu nombre',
+        'personal_name_placeholder' => 'María López',
         'subdomain_label' => 'Subdominio',
         'subdomain_placeholder' => 'miconstructora',
         'email_label' => 'Email',

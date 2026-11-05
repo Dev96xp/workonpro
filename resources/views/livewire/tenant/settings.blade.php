@@ -1,5 +1,6 @@
 <?php
 
+use App\AccountType;
 use App\Models\BusinessProfile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
@@ -8,6 +9,9 @@ use Livewire\Attributes\Validate;
 use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.tenant')] class extends Component {
+    #[Validate('required|in:business,personal')]
+    public string $account_type = 'business';
+
     // Basic info
     #[Validate('required|string|max:100')]
     public string $business_name = '';
@@ -100,6 +104,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     public function mount(): void
     {
+        $this->account_type = tenant()->account_type?->value ?? AccountType::Business->value;
+
         $profile = BusinessProfile::first();
 
         if ($profile) {
@@ -136,7 +142,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     public function saveProfile(): void
     {
-        $this->validateOnly('business_name,business_title,slogan,business_email,phone,phone_2,whatsapp,address,city,country,website,instagram,facebook,youtube,x,tiktok,discord,business_hours,license_number,insurance_number,description,policy,objectives');
+        $this->validateOnly('account_type,business_name,business_title,slogan,business_email,phone,phone_2,whatsapp,address,city,country,website,instagram,facebook,youtube,x,tiktok,discord,business_hours,license_number,insurance_number,description,policy,objectives');
 
         BusinessProfile::updateOrCreate(
             ['id' => 1],
@@ -169,6 +175,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 'objectives'     => $this->objectives ?: null,
             ]
         );
+
+        tenant()->update(['account_type' => $this->account_type]);
 
         $this->profileSaved = __('tenant.settings.profile_saved');
     }
@@ -211,8 +219,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
                     {{-- Información básica --}}
                     <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
-                        <flux:heading size="lg">{{ __('tenant.settings.profile_heading') }}</flux:heading>
-                        <flux:text class="mt-1 text-sm text-zinc-500">{{ __('tenant.settings.profile_sub') }}</flux:text>
+                        <flux:heading size="lg">{{ $account_type === 'personal' ? __('tenant.settings.personal_profile_heading') : __('tenant.settings.profile_heading') }}</flux:heading>
+                        <flux:text class="mt-1 text-sm text-zinc-500">{{ $account_type === 'personal' ? __('tenant.settings.personal_profile_sub') : __('tenant.settings.profile_sub') }}</flux:text>
 
                         @if ($profileSaved)
                             <div class="mt-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-400">
@@ -222,19 +230,21 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
                         <form wire:submit="saveProfile" class="mt-5 space-y-6">
 
+                            @include('partials.account-type-picker')
+
                             {{-- Identidad --}}
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">{{ __('tenant.settings.section_identity') }}</p>
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <flux:field class="sm:col-span-2">
-                                        <flux:label>{{ __('tenant.settings.business_name_label') }} <span class="text-red-500">*</span></flux:label>
+                                        <flux:label>{{ $account_type === 'personal' ? __('tenant.settings.personal_name_label') : __('tenant.settings.business_name_label') }} <span class="text-red-500">*</span></flux:label>
                                         <flux:input wire:model="business_name" />
                                         <flux:error name="business_name" />
                                     </flux:field>
 
                                     <flux:field class="sm:col-span-2">
-                                        <flux:label>{{ __('tenant.settings.business_title_label') }}</flux:label>
-                                        <flux:input wire:model="business_title" placeholder="{{ __('tenant.settings.business_title_placeholder') }}" />
+                                        <flux:label>{{ $account_type === 'personal' ? __('tenant.settings.personal_title_label') : __('tenant.settings.business_title_label') }}</flux:label>
+                                        <flux:input wire:model="business_title" placeholder="{{ $account_type === 'personal' ? __('tenant.settings.personal_title_placeholder') : __('tenant.settings.business_title_placeholder') }}" />
                                         <flux:description>{{ __('tenant.settings.business_title_hint') }}</flux:description>
                                         <flux:error name="business_title" />
                                     </flux:field>
@@ -283,6 +293,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                             </div>
 
                             {{-- Licencia y seguro --}}
+                            @unless ($account_type === 'personal')
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">{{ __('tenant.settings.section_license') }}</p>
                                 <div class="grid gap-4 sm:grid-cols-2">
@@ -312,6 +323,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 </div>
                             </div>
 
+                            @endunless
+
                             {{-- Ubicación --}}
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">{{ __('tenant.settings.section_location') }}</p>
@@ -334,11 +347,13 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                         <flux:error name="country" />
                                     </flux:field>
 
-                                    <flux:field class="sm:col-span-2">
-                                        <flux:label>{{ __('tenant.settings.hours_label') }}</flux:label>
-                                        <flux:input wire:model="business_hours" placeholder="{{ __('tenant.settings.hours_placeholder') }}" />
-                                        <flux:error name="business_hours" />
-                                    </flux:field>
+                                    @unless ($account_type === 'personal')
+                                        <flux:field class="sm:col-span-2">
+                                            <flux:label>{{ __('tenant.settings.hours_label') }}</flux:label>
+                                            <flux:input wire:model="business_hours" placeholder="{{ __('tenant.settings.hours_placeholder') }}" />
+                                            <flux:error name="business_hours" />
+                                        </flux:field>
+                                    @endunless
                                 </div>
                             </div>
 
@@ -392,19 +407,21 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
                             {{-- Descripción, políticas y objetivos --}}
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">{{ __('tenant.settings.section_business_info') }}</p>
+                                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">{{ $account_type === 'personal' ? __('tenant.settings.section_personal_info') : __('tenant.settings.section_business_info') }}</p>
                                 <div class="grid gap-4">
                                     <flux:field>
-                                        <flux:label>{{ __('tenant.settings.description_label') }}</flux:label>
-                                        <flux:textarea wire:model="description" rows="4" placeholder="{{ __('tenant.settings.description_placeholder') }}" />
+                                        <flux:label>{{ $account_type === 'personal' ? __('tenant.settings.personal_description_label') : __('tenant.settings.description_label') }}</flux:label>
+                                        <flux:textarea wire:model="description" rows="4" placeholder="{{ $account_type === 'personal' ? __('tenant.settings.personal_description_placeholder') : __('tenant.settings.description_placeholder') }}" />
                                         <flux:error name="description" />
                                     </flux:field>
 
-                                    <flux:field>
-                                        <flux:label>{{ __('tenant.settings.policy_label') }}</flux:label>
-                                        <flux:textarea wire:model="policy" rows="4" placeholder="{{ __('tenant.settings.policy_placeholder') }}" />
-                                        <flux:error name="policy" />
-                                    </flux:field>
+                                    @unless ($account_type === 'personal')
+                                        <flux:field>
+                                            <flux:label>{{ __('tenant.settings.policy_label') }}</flux:label>
+                                            <flux:textarea wire:model="policy" rows="4" placeholder="{{ __('tenant.settings.policy_placeholder') }}" />
+                                            <flux:error name="policy" />
+                                        </flux:field>
+                                    @endunless
 
                                     <flux:field>
                                         <flux:label>{{ __('tenant.settings.objectives_label') }}</flux:label>

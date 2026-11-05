@@ -119,6 +119,7 @@ Route::middleware([
         Volt::route('/services', 'tenant.services')->name('tenant.services');
         Volt::route('/coupons', 'tenant.coupons')->name('tenant.coupons');
         Volt::route('/appointments', 'tenant.appointments')->name('tenant.appointments');
+        Volt::route('/availability', 'tenant.availability')->name('tenant.availability');
         Volt::route('/images', 'tenant.images')->name('tenant.images');
         Route::post('/images/upload', [ImageController::class, 'store'])->name('tenant.images.upload');
         Volt::route('/product-categories', 'tenant.product-categories')->name('tenant.product-categories');

@@ -21,6 +21,12 @@ return [
         'cta_join' => 'Join',
     ],
 
+    'available' => [
+        'title' => 'Available today',
+        'now_until' => 'Available until :time',
+        'later_from' => 'Today from :time',
+    ],
+
     'fresh' => [
         'title' => 'New this week',
         'badge' => 'New',

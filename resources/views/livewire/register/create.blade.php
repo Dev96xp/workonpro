@@ -8,6 +8,9 @@ use Livewire\Volt\Component;
 new #[Layout('components.layouts.auth')] class extends Component {
     public string $plan = '';
 
+    #[Validate('required|in:business,personal')]
+    public string $account_type = 'business';
+
     #[Validate('required|string|max:100')]
     public string $business_name = '';
 
@@ -74,6 +77,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
                 'email'       => $this->email,
                 'status'      => 'pending',
                 'plan'        => $this->plan,
+                'account_type' => $this->account_type,
                 'signup_city' => $signupCity,
             ]
         ));
@@ -100,6 +104,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
                 'email'       => $this->email,
                 'status'      => 'active',
                 'plan'        => 'basic',
+                'account_type' => $this->account_type,
                 'signup_city' => $signupCity,
             ]
         );
@@ -134,9 +139,11 @@ new #[Layout('components.layouts.auth')] class extends Component {
     </div>
 
     <form wire:submit="checkout" class="space-y-5">
+        @include('partials.account-type-picker')
+
         <flux:field>
-            <flux:label>{{ __('register.create.business_name_label') }}</flux:label>
-            <flux:input wire:model="business_name" placeholder="{{ __('register.create.business_name_placeholder') }}" autofocus />
+            <flux:label>{{ $account_type === 'personal' ? __('register.create.personal_name_label') : __('register.create.business_name_label') }}</flux:label>
+            <flux:input wire:model="business_name" placeholder="{{ $account_type === 'personal' ? __('register.create.personal_name_placeholder') : __('register.create.business_name_placeholder') }}" autofocus />
             <flux:error name="business_name" />
         </flux:field>
 

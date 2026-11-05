@@ -4,6 +4,7 @@ use App\Models\BusinessImage;
 use App\Models\BusinessProfile;
 use App\Models\Coupon;
 use App\Models\Service;
+use App\Models\TenantAvailability;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Session;
@@ -60,6 +61,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
             'logoImage'           => BusinessImage::gallery()->where('is_logo', true)->first(),
             'images'              => BusinessImage::gallery()->latest()->take(12)->get(),
             'services'            => Service::with('images')->where('is_active', true)->orderBy('name')->get(),
+            'availability'        => TenantAvailability::query()->active()->firstWhere('tenant_id', tenant('id')),
             'coupons'         => Coupon::with('images')
                 ->where('is_active', true)
                 ->where(function ($q) {
@@ -541,6 +543,57 @@ new #[Layout('components.layouts.guest')] class extends Component {
                         </div>
                     </div>
                 @endforeach
+            </div>
+        </div>
+    @endif
+
+    {{-- Availability to work --}}
+    @if ($availability && $availability->sortedSlots()->isNotEmpty())
+        <div class="max-w-3xl mx-auto px-6 py-16">
+            <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 sm:p-8">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <h2 class="text-2xl font-bold text-white">{{ __('availability.public_heading') }}</h2>
+                    @if ($availability->isAvailableAt(now()))
+                        <span class="inline-flex items-center gap-2 rounded-full bg-green-500/15 px-3 py-1 text-sm font-semibold text-green-400">
+                            <span class="relative flex size-2.5">
+                                <span class="absolute inline-flex size-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+                                <span class="relative inline-flex size-2.5 rounded-full bg-green-500"></span>
+                            </span>
+                            {{ __('availability.public_now') }}
+                        </span>
+                    @endif
+                </div>
+
+                @if ($availability->note)
+                    <p class="mt-3 text-zinc-300">{{ $availability->note }}</p>
+                @endif
+
+                <ul class="mt-6 divide-y divide-zinc-800">
+                    @foreach ($availability->sortedSlots() as $slot)
+                        <li class="flex items-center justify-between py-3 text-sm">
+                            <span class="font-semibold text-zinc-200">{{ __('availability.days.'.$slot['day']) }}</span>
+                            <span class="text-zinc-400">
+                                {{ \Carbon\Carbon::createFromFormat('H:i', $slot['start'])->format('g:i A') }}
+                                –
+                                {{ \Carbon\Carbon::createFromFormat('H:i', $slot['end'])->format('g:i A') }}
+                            </span>
+                        </li>
+                    @endforeach
+                </ul>
+
+                <div class="mt-6 flex flex-wrap items-center justify-between gap-4">
+                    <div class="text-xs text-zinc-500">
+                        {{ __('availability.public_timezone', ['timezone' => str_replace('_', ' ', $availability->timezone)]) }}
+                        @if ($availability->hourly_rate !== null)
+                            <span class="ml-3 text-base font-black text-yellow-400">{{ __('availability.public_rate', ['rate' => '$'.number_format((float) $availability->hourly_rate, 2)]) }}</span>
+                        @endif
+                    </div>
+                    @if ($businessWa)
+                        <a href="https://wa.me/{{ preg_replace('/\D/', '', $businessWa) }}" target="_blank" class="inline-flex items-center gap-2 rounded-full bg-green-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-green-400">
+                            {{ __('availability.public_contact') }}
+                        </a>
+                    @endif
+                </div>
             </div>
         </div>
     @endif

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\AccountType;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Laravel\Cashier\Billable;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
@@ -28,7 +30,26 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'trial_ends_at',
             'signup_city',
             'featured_image_url',
+            'account_type',
         ];
+    }
+
+    protected function casts(): array
+    {
+        return [
+            ...parent::casts(),
+            'account_type' => AccountType::class,
+        ];
+    }
+
+    public function availability(): HasOne
+    {
+        return $this->hasOne(TenantAvailability::class);
+    }
+
+    public function isPersonal(): bool
+    {
+        return $this->account_type === AccountType::Personal;
     }
 
     /**

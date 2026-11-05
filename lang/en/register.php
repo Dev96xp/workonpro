@@ -55,6 +55,8 @@ return [
 
         'business_name_label' => 'Business name',
         'business_name_placeholder' => 'My Construction Co.',
+        'personal_name_label' => 'Your name',
+        'personal_name_placeholder' => 'Mary Lopez',
         'subdomain_label' => 'Subdomain',
         'subdomain_placeholder' => 'myconstruction',
         'email_label' => 'Email',

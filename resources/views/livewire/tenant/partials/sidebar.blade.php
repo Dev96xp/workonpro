@@ -24,6 +24,10 @@
                 {{ __('tenant.nav.appointments') }}
             </flux:navlist.item>
         @endif
+        <flux:navlist.item href="{{ url('/availability') }}" icon="signal" wire:navigate
+            :current="request()->routeIs('tenant.availability')">
+            {{ __('availability.nav') }}
+        </flux:navlist.item>
         <flux:navlist.item href="{{ url('/images') }}" icon="photo" wire:navigate
             :current="request()->routeIs('tenant.images')">
             {{ __('tenant.nav.images') }}

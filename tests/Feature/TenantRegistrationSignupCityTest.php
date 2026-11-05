@@ -23,6 +23,7 @@ it('stores the geolocated signup city when a free tenant registers', function ()
         ->set('email', 'signupcity@example.com')
         ->set('password', 'password123')
         ->set('password_confirmation', 'password123')
+        ->set('accepted_terms', true)
         ->call('checkout');
 
     $tenant = Tenant::find('signupcitytest');

@@ -1,5 +1,6 @@
 <?php
 
+use App\AccountType;
 use App\Models\Plan;
 use App\Models\Tenant;
 use Livewire\Attributes\Layout;
@@ -96,6 +97,7 @@ new #[Layout('components.layouts.admin')] class extends Component {
             <flux:table.column>Subdominio</flux:table.column>
             <flux:table.column>Base de datos</flux:table.column>
             <flux:table.column>Plan</flux:table.column>
+            <flux:table.column>Tipo de cuenta</flux:table.column>
             <flux:table.column>Ciudad de registro</flux:table.column>
             <flux:table.column>Registrado</flux:table.column>
             <flux:table.column></flux:table.column>
@@ -120,6 +122,13 @@ new #[Layout('components.layouts.admin')] class extends Component {
                             <flux:badge size="sm" color="yellow">{{ $planLabels[$tenant->plan] ?? ucfirst($tenant->plan) }}</flux:badge>
                         @else
                             —
+                        @endif
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        @if ($tenant->isPersonal())
+                            <flux:badge size="sm" color="sky" icon="user">{{ AccountType::Personal->label() }}</flux:badge>
+                        @else
+                            <flux:badge size="sm" color="zinc" icon="building-office">{{ AccountType::Business->label() }}</flux:badge>
                         @endif
                     </flux:table.cell>
                     <flux:table.cell>{{ $tenant->signup_city ?? '—' }}</flux:table.cell>

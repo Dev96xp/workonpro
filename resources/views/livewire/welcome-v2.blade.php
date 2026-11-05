@@ -3,7 +3,9 @@
 use App\Models\Category;
 use App\Models\ServiceListing;
 use App\Models\Tenant;
+use App\Models\TenantAvailability;
 use App\Services\IpGeolocationService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -16,7 +18,10 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
 {
     public string $search = '';
 
-    /** @var array<int, array{id: string, name: string, image: ?string, url: ?string, initial: string}> */
+    /** @var Collection<int, string>|null Tenant ids available right now, resolved once per request. */
+    private ?Collection $availableTenantIds = null;
+
+    /** @var array<int, array{id: string, name: string, image: ?string, url: ?string, initial: string, availableNow: bool}> */
     public array $spotlight = [];
 
     public ?string $heroImage = null;
@@ -70,6 +75,7 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
 
         return [
             'tenantsCount' => $this->activeTenants()->count(),
+            'availableToday' => $this->availableToday(),
             'freshTenants' => $this->activeTenants()
                 ->where('created_at', '>=', now()->subWeek())
                 ->latest()
@@ -131,12 +137,52 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
     }
 
     /**
-     * @return array{id: string, name: string, image: ?string, url: ?string, initial: string}
+     * Tenants working right now (until their end time) followed by those starting later today,
+     * each read in the tenant's own time zone.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function availableToday(): Collection
+    {
+        $now = now();
+
+        return TenantAvailability::query()
+            ->active()
+            ->whereHas('tenant', fn ($query) => $query->where('status', 'active'))
+            ->with('tenant.domains')
+            ->get()
+            ->map(function (TenantAvailability $availability) use ($now) {
+                $slot = $availability->slotOn($now);
+                $localTime = $now->copy()->setTimezone($availability->timezone)->format('H:i');
+
+                if ($slot === null || $localTime >= $slot['end']) {
+                    return null;
+                }
+
+                $isNow = $localTime >= $slot['start'];
+                $time = Carbon::createFromFormat('H:i', $isNow ? $slot['end'] : $slot['start'], $availability->timezone);
+
+                return [
+                    ...$this->presentTenant($availability->tenant),
+                    'isNow' => $isNow,
+                    'time' => $time->format('g:i A').' '.$time->format('T'),
+                    'sortKey' => ($isNow ? '0' : '1').$slot['start'],
+                    'note' => $availability->note,
+                ];
+            })
+            ->filter()
+            ->sortBy('sortKey')
+            ->values();
+    }
+
+    /**
+     * @return array{id: string, name: string, image: ?string, url: ?string, initial: string, availableNow: bool}
      */
     private function presentTenant(Tenant $tenant): array
     {
         $domain = $tenant->domains->first()?->domain;
         $initial = Str::upper(Str::substr(Str::ascii((string) $tenant->name), 0, 1));
+        $this->availableTenantIds ??= TenantAvailability::tenantIdsAvailableAt(now());
 
         return [
             'id' => $tenant->id,
@@ -144,6 +190,7 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
             'image' => $tenant->featured_image_url,
             'url' => $domain ? request()->getScheme().'://'.$domain.'.'.parse_url(config('app.url'), PHP_URL_HOST) : null,
             'initial' => ctype_alpha($initial) ? $initial : '#',
+            'availableNow' => $this->availableTenantIds->contains($tenant->id),
         ];
     }
 }; ?>
@@ -263,17 +310,102 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
     {{-- Stories --}}
     @if (count($spotlight))
         <section class="relative border-y border-white/10 bg-zinc-900 py-10">
-            <div class="wv2-marquee-wrap relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-                <div class="wv2-marquee flex w-max gap-6 px-3 sm:gap-8">
+            <div
+                wire:ignore
+                x-data="{
+                    offset: 0,
+                    speed: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 40,
+                    hovering: false,
+                    dragging: false,
+                    moved: false,
+                    startX: 0,
+                    startOffset: 0,
+                    lastTime: null,
+                    init() {
+                        const step = (time) => {
+                            const elapsed = this.lastTime === null ? 0 : (time - this.lastTime) / 1000;
+                            this.lastTime = time;
+                            if (! this.dragging && ! this.hovering) {
+                                this.offset -= this.speed * elapsed;
+                            }
+                            this.wrap();
+                            this.$refs.track.style.transform = `translateX(${this.offset}px)`;
+                            requestAnimationFrame(step);
+                        };
+                        requestAnimationFrame(step);
+                    },
+                    wrap() {
+                        const half = this.$refs.track.scrollWidth / 2;
+                        if (! half) return;
+                        while (this.offset <= -half) this.offset += half;
+                        while (this.offset > 0) this.offset -= half;
+                    },
+                    start(event) {
+                        this.dragging = true;
+                        this.moved = false;
+                        this.startX = event.clientX;
+                        this.startOffset = this.offset;
+                    },
+                    move(event) {
+                        if (! this.dragging) return;
+                        const distance = event.clientX - this.startX;
+                        if (Math.abs(distance) > 5) this.moved = true;
+                        this.offset = this.startOffset + distance;
+                    },
+                }"
+                x-on:pointerdown="start($event)"
+                x-on:pointermove.window="move($event)"
+                x-on:pointerup.window="dragging = false"
+                x-on:pointercancel.window="dragging = false"
+                x-on:pointerenter="hovering = $event.pointerType === 'mouse'"
+                x-on:pointerleave="hovering = false"
+                class="relative cursor-grab touch-pan-y select-none overflow-hidden active:cursor-grabbing [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]"
+            >
+                <div x-ref="track" class="flex w-max gap-6 px-3 sm:gap-8">
                     @foreach ([...$spotlight, ...$spotlight] as $tenant)
-                        <a href="{{ $tenant['url'] ?? '#' }}" target="_blank" class="group flex w-24 shrink-0 flex-col items-center gap-2 sm:w-28">
-                            <span class="rounded-full bg-gradient-to-tr from-yellow-500 via-yellow-300 to-amber-500 p-[3px] transition duration-300 group-hover:rotate-6 group-hover:scale-110">
-                                <img src="{{ $tenant['image'] }}" alt="{{ $tenant['name'] }}" loading="lazy" class="size-20 rounded-full border-4 border-zinc-900 object-cover sm:size-24">
+                        <a href="{{ $tenant['url'] ?? '#' }}" target="_blank" draggable="false" x-on:click="if (moved) $event.preventDefault()" class="group flex w-24 shrink-0 flex-col items-center gap-2 sm:w-28">
+                            <span class="relative rounded-full bg-gradient-to-tr from-yellow-500 via-yellow-300 to-amber-500 p-[3px] transition duration-300 group-hover:rotate-6 group-hover:scale-110">
+                                <img src="{{ $tenant['image'] }}" alt="{{ $tenant['name'] }}" loading="lazy" draggable="false" class="size-20 rounded-full border-4 border-zinc-900 object-cover sm:size-24">
+                                @if ($tenant['availableNow'])
+                                    <span class="absolute bottom-1 right-1 size-5 rounded-full border-[3px] border-zinc-900 bg-green-500" title="{{ __('availability.available_now_badge') }}" data-available-now></span>
+                                @endif
                             </span>
                             <span class="w-full truncate text-center text-xs font-semibold text-zinc-300 group-hover:text-yellow-400">{{ $tenant['name'] }}</span>
                         </a>
                     @endforeach
                 </div>
+            </div>
+        </section>
+    @endif
+
+    {{-- Available today --}}
+    @if ($availableToday->isNotEmpty())
+        <section class="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
+            <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ __('welcome_v2.available.title') }} 🟢</h2>
+            <div class="-mx-4 mt-6 flex snap-x gap-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
+                @foreach ($availableToday as $tenant)
+                    <a href="{{ $tenant['url'] ?? '#' }}" target="_blank" class="group flex w-72 shrink-0 snap-start items-center gap-3 rounded-2xl border bg-white/5 p-3 transition hover:bg-white/10 {{ $tenant['isNow'] ? 'border-green-500/40 hover:border-green-400' : 'border-white/10 hover:border-yellow-400/60' }}">
+                        <span class="relative shrink-0">
+                            @if ($tenant['image'])
+                                <img src="{{ $tenant['image'] }}" alt="{{ $tenant['name'] }}" loading="lazy" class="size-14 rounded-xl object-cover">
+                            @else
+                                <span class="flex size-14 items-center justify-center rounded-xl bg-yellow-400 text-2xl font-extrabold text-zinc-950">{{ $tenant['initial'] }}</span>
+                            @endif
+                            @if ($tenant['isNow'])
+                                <span class="absolute -bottom-1 -right-1 size-4 rounded-full border-[3px] border-zinc-950 bg-green-500"></span>
+                            @endif
+                        </span>
+                        <div class="min-w-0">
+                            <p class="truncate font-bold group-hover:text-yellow-400">{{ $tenant['name'] }}</p>
+                            <p class="truncate text-xs font-semibold {{ $tenant['isNow'] ? 'text-green-400' : 'text-zinc-400' }}">
+                                {{ $tenant['isNow'] ? __('welcome_v2.available.now_until', ['time' => $tenant['time']]) : __('welcome_v2.available.later_from', ['time' => $tenant['time']]) }}
+                            </p>
+                            @if ($tenant['note'])
+                                <p class="truncate text-xs text-zinc-500">{{ $tenant['note'] }}</p>
+                            @endif
+                        </div>
+                    </a>
+                @endforeach
             </div>
         </section>
     @endif
@@ -333,7 +465,7 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
             @forelse ($categoryBands as $band)
                 <div>
                     <div class="mb-4 flex items-center gap-3 px-4 sm:px-6">
-                        <h3 class="text-xl font-extrabold tracking-tight sm:text-2xl">{{ $band['label'] }}</h3>
+                        <h3 class="text-xl font-semibold tracking-tight sm:text-2xl">{{ $band['label'] }}</h3>
                         <span class="rounded-full bg-yellow-400 px-2.5 py-0.5 text-xs font-extrabold text-zinc-950">{{ count($band['tenants']) }}</span>
                     </div>
 
@@ -341,11 +473,14 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
                         <div class="wv2-slide flex w-max gap-6 px-4 pb-1 pt-2 sm:gap-8 sm:px-6" style="animation-duration: {{ 6 + count($band['tenants']) * 2 }}s">
                             @foreach ($band['tenants'] as $tenant)
                                 <a href="{{ $tenant['url'] ?? '#' }}" target="_blank" class="group flex w-24 shrink-0 flex-col items-center gap-2 sm:w-28">
-                                    <span class="rounded-[1.4rem] bg-gradient-to-tr from-yellow-500 via-yellow-300 to-amber-500 p-[3px] transition duration-300 group-hover:-rotate-6 group-hover:scale-110">
+                                    <span class="relative rounded-lg bg-gradient-to-tr from-yellow-500 via-yellow-300 to-amber-500 p-[3px] transition duration-300 group-hover:-rotate-6 group-hover:scale-110">
                                         @if ($tenant['image'])
-                                            <img src="{{ $tenant['image'] }}" alt="{{ $tenant['name'] }}" loading="lazy" class="size-20 rounded-[1.2rem] border-4 border-zinc-950 object-cover sm:size-24">
+                                            <img src="{{ $tenant['image'] }}" alt="{{ $tenant['name'] }}" loading="lazy" class="size-20 rounded-md border-4 border-zinc-950 object-cover sm:size-24">
                                         @else
-                                            <span class="flex size-20 items-center justify-center rounded-[1.2rem] border-4 border-zinc-950 bg-zinc-800 text-3xl font-extrabold text-yellow-400 sm:size-24">{{ $tenant['initial'] }}</span>
+                                            <span class="flex size-20 items-center justify-center rounded-md border-4 border-zinc-950 bg-zinc-800 text-3xl font-extrabold text-yellow-400 sm:size-24">{{ $tenant['initial'] }}</span>
+                                        @endif
+                                        @if ($tenant['availableNow'])
+                                            <span class="absolute -bottom-1 -right-1 size-5 rounded-full border-[3px] border-zinc-950 bg-green-500" title="{{ __('availability.available_now_badge') }}" data-available-now></span>
                                         @endif
                                     </span>
                                     <span class="w-full truncate text-center text-xs font-semibold text-zinc-300 group-hover:text-yellow-400">{{ $tenant['name'] }}</span>

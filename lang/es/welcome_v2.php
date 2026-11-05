@@ -21,6 +21,12 @@ return [
         'cta_join' => 'Súmate',
     ],
 
+    'available' => [
+        'title' => 'Disponibles hoy',
+        'now_until' => 'Disponible hasta :time',
+        'later_from' => 'Hoy desde :time',
+    ],
+
     'fresh' => [
         'title' => 'Nuevos esta semana',
         'badge' => 'Nuevo',
