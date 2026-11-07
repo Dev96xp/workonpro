@@ -119,6 +119,29 @@ it('keeps the street address of personal accounts off the public page', function
         ->assertSee('Omaha');
 });
 
+it('translates the public tenant page labels to the current locale', function () {
+    $tenant = Tenant::create([
+        'id' => 'locationtenant',
+        'name' => 'Location Co',
+        'email' => 'locationtenant@example.com',
+        'status' => 'active',
+        'plan' => 'basic',
+    ]);
+    $tenant->domains()->create(['domain' => 'locationtenant']);
+
+    tenancy()->initialize($tenant);
+    BusinessProfile::create(['business_name' => 'Location Co', 'has_license' => true, 'has_insurance' => true]);
+
+    app()->setLocale('en');
+    Volt::test('tenant.welcome')
+        ->assertSee(['Licensed', 'Insured', 'Photos coming soon'])
+        ->assertDontSee(['Con licencia', 'Con seguro', 'Pronto habrá fotos aquí']);
+
+    app()->setLocale('es');
+    Volt::test('tenant.welcome')
+        ->assertSee(['Con licencia', 'Con seguro', 'Pronto habrá fotos aquí']);
+});
+
 it('shows tenants from the visitor city first on the landing page', function () {
     Http::fake();
     Category::updateOrCreate(['slug' => 'cleaning'], ['name' => 'Cleaning', 'sort_order' => 1, 'is_active' => true]);

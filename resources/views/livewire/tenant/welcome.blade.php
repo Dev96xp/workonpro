@@ -142,20 +142,20 @@ new #[Layout('components.layouts.guest')] class extends Component {
                     <flux:menu>
                         <div class="px-3 py-2 text-left text-sm">
                             <span class="block truncate font-semibold">{{ auth()->user()->name }}</span>
-                            <span class="block truncate text-xs text-zinc-400">Administrador</span>
+                            <span class="block truncate text-xs text-zinc-400">{{ __('tenant.public_page.administrator') }}</span>
                         </div>
 
                         <flux:menu.separator />
 
-                        <flux:menu.item icon="squares-2x2" :href="url('/dashboard')" wire:navigate>Panel</flux:menu.item>
-                        <flux:menu.item icon="user-circle" :href="url('/settings')" wire:navigate>Mi perfil</flux:menu.item>
+                        <flux:menu.item icon="squares-2x2" :href="url('/dashboard')" wire:navigate>{{ __('tenant.public_page.panel') }}</flux:menu.item>
+                        <flux:menu.item icon="user-circle" :href="url('/settings')" wire:navigate>{{ __('tenant.public_page.my_profile') }}</flux:menu.item>
 
                         <flux:menu.separator />
 
                         <form method="POST" action="{{ url('/logout') }}" class="w-full">
                             @csrf
                             <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
-                                Cerrar sesión
+                                {{ __('tenant.public_page.logout') }}
                             </flux:menu.item>
                         </form>
                     </flux:menu>
@@ -168,7 +168,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
                     </svg>
-                    Log in
+                    {{ __('tenant.public_page.login') }}
                 </button>
             @endauth
         </div>
@@ -351,7 +351,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
-                            Con licencia
+                            {{ __('tenant.public_page.licensed') }}
                         </span>
                     @endif
                     @if ($businessHasInsurance)
@@ -359,7 +359,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75M12 3l7 3.5v4.5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6.5L12 3z"/>
                             </svg>
-                            Con seguro
+                            {{ __('tenant.public_page.insured') }}
                         </span>
                     @endif
                 </div>
@@ -398,7 +398,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
     {{-- Coupons --}}
     @if ($showCoupons && $coupons->isNotEmpty())
         <div class="max-w-5xl mx-auto px-6 pb-12" wire:transition>
-            <h2 class="text-2xl font-bold text-yellow-400 mb-6 text-center">Cupones Disponibles</h2>
+            <h2 class="text-2xl font-bold text-yellow-400 mb-6 text-center">{{ __('tenant.public_page.coupons_title') }}</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach ($coupons as $coupon)
                     <div class="bg-zinc-900 border border-yellow-400/20 rounded-2xl overflow-hidden flex flex-col hover:border-yellow-400/60 transition-all duration-200">
@@ -428,7 +428,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                                 <p class="text-zinc-300 text-sm">{{ $coupon->description }}</p>
                             @endif
                             @if ($coupon->expires_at)
-                                <p class="text-zinc-500 text-xs">Válido hasta: {{ $coupon->expires_at->format('d/m/Y') }}</p>
+                                <p class="text-zinc-500 text-xs">{{ __('tenant.public_page.valid_until', ['date' => $coupon->expires_at->format(app()->getLocale() === 'en' ? 'm/d/Y' : 'd/m/Y')]) }}</p>
                             @endif
                             @if ($coupon->terms)
                                 <p class="text-zinc-600 text-[0.65rem] leading-relaxed">{{ $coupon->terms }}</p>
@@ -456,7 +456,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
             @keydown.arrow-right.window="if (open) next()"
             @keydown.arrow-left.window="if (open) prev()"
         >
-            <h2 class="text-2xl font-bold text-zinc-300 mb-8 text-center tracking-wider uppercase">Galería</h2>
+            <h2 class="text-2xl font-bold text-zinc-300 mb-8 text-center tracking-wider uppercase">{{ __('tenant.public_page.gallery') }}</h2>
             <div class="columns-2 sm:columns-3 lg:columns-4 gap-3 space-y-3">
                 @foreach ($images as $i => $image)
                     <div
@@ -546,14 +546,14 @@ new #[Layout('components.layouts.guest')] class extends Component {
             <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
-            <p class="text-lg">Pronto habrá fotos aquí</p>
+            <p class="text-lg">{{ __('tenant.public_page.gallery_empty') }}</p>
         </div>
     @endif
 
     {{-- Services --}}
     @if ($services->isNotEmpty())
         <div class="max-w-6xl mx-auto px-6 py-20">
-            <h2 class="text-2xl font-bold text-zinc-300 mb-12 text-center tracking-wider uppercase">Servicios</h2>
+            <h2 class="text-2xl font-bold text-zinc-300 mb-12 text-center tracking-wider uppercase">{{ __('tenant.public_page.services') }}</h2>
 
             <div class="flex flex-col gap-16">
                 @foreach ($services as $service)
@@ -583,7 +583,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                                 <p class="mt-3 text-zinc-400 leading-relaxed">{{ $service->description }}</p>
                             @endif
                             @if ($service->price !== null)
-                                <p class="mt-4 text-yellow-400 font-black text-xl">Desde ${{ number_format($service->price, 2) }}</p>
+                                <p class="mt-4 text-yellow-400 font-black text-xl">{{ __('tenant.public_page.price_from', ['price' => '$'.number_format($service->price, 2)]) }}</p>
                             @endif
                         </div>
                     </div>
@@ -654,7 +654,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                             </svg>
-                            Quiénes somos
+                            {{ __('tenant.public_page.about') }}
                         </div>
                         <p class="text-zinc-300 text-sm leading-relaxed">{{ $businessDescription }}</p>
                     </div>
@@ -666,7 +666,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                             </svg>
-                            Objetivos
+                            {{ __('tenant.public_page.objectives') }}
                         </div>
                         <p class="text-zinc-300 text-sm leading-relaxed">{{ $businessObjectives }}</p>
                     </div>
@@ -678,7 +678,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
-                            Política
+                            {{ __('tenant.public_page.policy') }}
                         </div>
                         <p class="text-zinc-300 text-sm leading-relaxed">{{ $businessPolicy }}</p>
                     </div>
@@ -796,7 +796,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
             <div class="flex flex-col justify-center">
                 @if ($coupons->isNotEmpty())
-                    <p class="text-zinc-400 text-sm mb-3">Tenemos <span class="text-yellow-400 font-bold">{{ $coupons->count() }} cupón(es)</span> disponible(s) para ti.</p>
+                    <p class="text-zinc-400 text-sm mb-3">{!! __('tenant.public_page.coupons_available', ['count' => '<span class="text-yellow-400 font-bold">'.trans_choice('tenant.public_page.coupons_count', $coupons->count(), ['count' => $coupons->count()]).'</span>']) !!}</p>
                     <button
                         wire:click="toggleCoupons"
                         class="inline-flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-zinc-900 font-bold px-6 py-2.5 rounded-full transition-all duration-200 hover:scale-105 self-start"
@@ -804,7 +804,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
                         </svg>
-                        Ver Cupones
+                        {{ __('tenant.public_page.view_coupons') }}
                     </button>
                 @endif
             </div>
@@ -813,6 +813,6 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
     {{-- Footer --}}
     <div class="bg-zinc-950 py-4 text-center text-zinc-600 text-sm">
-        {{ $businessName }} &mdash; Powered by <span class="text-yellow-400 font-semibold">Workon</span>
+        {{ $businessName }} &mdash; {{ __('tenant.businesscard.powered_by') }} <span class="text-yellow-400 font-semibold">Workon</span>
     </div>
 </div>

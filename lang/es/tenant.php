@@ -442,4 +442,26 @@ return [
         'dismiss' => 'Cerrar',
     ],
 
+    'public_page' => [
+        'administrator' => 'Administrador',
+        'panel' => 'Panel',
+        'my_profile' => 'Mi perfil',
+        'logout' => 'Cerrar sesión',
+        'login' => 'Iniciar sesión',
+        'licensed' => 'Con licencia',
+        'insured' => 'Con seguro',
+        'coupons_title' => 'Cupones disponibles',
+        'valid_until' => 'Válido hasta: :date',
+        'gallery' => 'Galería',
+        'gallery_empty' => 'Pronto habrá fotos aquí',
+        'services' => 'Servicios',
+        'price_from' => 'Desde :price',
+        'about' => 'Quiénes somos',
+        'objectives' => 'Objetivos',
+        'policy' => 'Política',
+        'coupons_available' => 'Tenemos :count disponibles para ti.',
+        'coupons_count' => ':count cupón|:count cupones',
+        'view_coupons' => 'Ver cupones',
+    ],
+
 ];

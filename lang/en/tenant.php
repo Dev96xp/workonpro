@@ -442,4 +442,26 @@ return [
         'dismiss' => 'Close',
     ],
 
+    'public_page' => [
+        'administrator' => 'Administrator',
+        'panel' => 'Dashboard',
+        'my_profile' => 'My profile',
+        'logout' => 'Log out',
+        'login' => 'Log in',
+        'licensed' => 'Licensed',
+        'insured' => 'Insured',
+        'coupons_title' => 'Available coupons',
+        'valid_until' => 'Valid until: :date',
+        'gallery' => 'Gallery',
+        'gallery_empty' => 'Photos coming soon',
+        'services' => 'Services',
+        'price_from' => 'From :price',
+        'about' => 'About us',
+        'objectives' => 'Goals',
+        'policy' => 'Policy',
+        'coupons_available' => 'We have :count available for you.',
+        'coupons_count' => ':count coupon|:count coupons',
+        'view_coupons' => 'View coupons',
+    ],
+
 ];
