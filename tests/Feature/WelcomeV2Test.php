@@ -19,17 +19,35 @@ function createDirectoryTenant(string $id, string $name, array $attributes = [])
     ]));
 }
 
-it('hides the page from guests outside local environments', function () {
+it('serves the new landing page to everyone at the home route', function () {
     app()->detectEnvironment(fn () => 'production');
 
-    $this->get('/welcome-v2')->assertNotFound();
+    $this->get('/')
+        ->assertOk()
+        ->assertSee(__('welcome.nav.login'))
+        ->assertSee(url('/admin/login'), false);
+
+    $this->get('/welcome-v2')->assertRedirect('/');
 });
 
-it('shows the page to a super admin outside local environments', function () {
+it('shows the super admin menu instead of the login link', function () {
+    $admin = SuperAdmin::factory()->create(['name' => 'Ana Torres']);
+
+    $this->actingAs($admin, 'super_admin')
+        ->get('/')
+        ->assertSee('Ana Torres')
+        ->assertSee(route('admin.dashboard'), false)
+        ->assertSee(route('welcome.v1'), false)
+        ->assertDontSee(url('/admin/login'), false);
+});
+
+it('keeps the previous landing page only for the super admin outside local environments', function () {
     app()->detectEnvironment(fn () => 'production');
 
+    $this->get('/welcome-v1')->assertNotFound();
+
     $this->actingAs(SuperAdmin::factory()->create(), 'super_admin')
-        ->get('/welcome-v2')
+        ->get('/welcome-v1')
         ->assertOk();
 });
 
@@ -42,7 +60,7 @@ it('greets the visitor with the city cloudflare resolved', function () {
     Http::fake();
 
     $this->withHeader('CF-IPCity', 'Atlanta')
-        ->get('/welcome-v2')
+        ->get('/')
         ->assertSee('Hola, Atlanta');
 
     Http::assertNothingSent();
@@ -53,12 +71,12 @@ it('looks up the city from the real visitor ip behind cloudflare', function () {
     Http::fake(['ipinfo.io/8.8.8.8*' => Http::response(['city' => 'Omaha'])]);
 
     $this->withHeader('CF-Connecting-IP', '8.8.8.8')
-        ->get('/welcome-v2')
+        ->get('/')
         ->assertSee('Hola, Omaha');
 });
 
 it('hides the city greeting when the location is unknown', function () {
-    $this->get('/welcome-v2')->assertDontSee('📍');
+    $this->get('/')->assertDontSee('📍');
 });
 
 it('counts only active tenants', function () {
@@ -146,5 +164,5 @@ it('keeps the same hero image for the whole day and changes it on another day', 
 it('shows tenants with a featured image in the stories row', function () {
     createDirectoryTenant('photo', 'Photo Studio', ['featured_image_url' => 'https://example.com/photo.webp']);
 
-    $this->get('/welcome-v2')->assertSee('https://example.com/photo.webp');
+    $this->get('/')->assertSee('https://example.com/photo.webp');
 });

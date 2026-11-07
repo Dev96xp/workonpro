@@ -76,7 +76,7 @@ it('shows the prices from the database on the plans and landing pages', function
         ->assertSee('$29')
         ->assertSee('$39');
 
-    $this->get('/')
+    $this->get('/welcome-v1')
         ->assertSee('$9.99')
         ->assertSee('$79');
 });

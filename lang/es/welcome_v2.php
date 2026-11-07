@@ -9,6 +9,7 @@ return [
     'nav' => [
         'search' => 'Buscar servicios',
         'join' => 'Súmate',
+        'previous_version' => 'Ver página anterior',
     ],
 
     'hero' => [

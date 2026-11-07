@@ -9,13 +9,17 @@ use Livewire\Volt\Volt;
 $centralDomain = parse_url(config('app.url'), PHP_URL_HOST);
 
 Route::domain($centralDomain)->middleware(SetLocale::class)->group(function () {
-    Route::get('/', function () {
+    Volt::route('/', 'welcome-v2')->name('home');
+
+    Route::redirect('/welcome-v2', '/', 301)->name('welcome.v2');
+
+    Route::get('/welcome-v1', function () {
+        abort_unless(app()->environment('local', 'testing') || auth('super_admin')->check(), 404);
+
         return view('welcome', [
             'plans' => Plan::query()->whereIn('slug', ['basic', 'pro', 'enterprise'])->get()->keyBy('slug'),
         ]);
-    })->name('home');
-
-    Volt::route('/welcome-v2', 'welcome-v2')->name('welcome.v2');
+    })->name('welcome.v1');
 
     Route::get('/businesscard', function () {
         return view('businesscard');

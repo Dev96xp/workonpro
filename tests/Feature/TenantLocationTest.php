@@ -137,11 +137,11 @@ it('shows tenants from the visitor city first on the landing page', function () 
     Tenant::query()->update(['created_at' => now()->subMonth()]);
 
     $this->withHeader('CF-IPCity', 'Omaha')
-        ->get('/welcome-v2')
+        ->get('/')
         ->assertSeeInOrder(['Zeta Cleaners', 'Alpha Cleaners']);
 
     $this->withHeader('CF-IPCity', 'Miami')
-        ->get('/welcome-v2')
+        ->get('/')
         ->assertSeeInOrder(['Alpha Cleaners', 'Zeta Cleaners']);
 });
 

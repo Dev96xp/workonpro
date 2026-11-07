@@ -30,8 +30,6 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
 
     public function mount(): void
     {
-        abort_unless(app()->environment('local', 'testing') || auth('super_admin')->check(), 404);
-
         $this->heroImage = $this->imageOfTheDay();
         $this->visitorCity = $this->detectVisitorCity();
 
@@ -260,6 +258,37 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                     </svg>
                 </a>
+
+                @auth('super_admin')
+                    <details class="group relative">
+                        <summary class="flex cursor-pointer list-none items-center gap-2 rounded-full py-1 pl-1 pr-2 text-sm font-medium text-zinc-300 transition hover:bg-white/10 hover:text-yellow-400">
+                            <span class="flex size-7 items-center justify-center rounded-full bg-yellow-400 text-xs font-black text-zinc-900">
+                                {{ Str::of(auth('super_admin')->user()->name)->explode(' ')->map(fn ($n) => Str::substr($n, 0, 1))->take(2)->implode('') }}
+                            </span>
+                            <span class="hidden sm:inline">{{ Str::of(auth('super_admin')->user()->name)->before(' ') }}</span>
+                            <svg class="size-3 transition group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </summary>
+
+                        <div class="absolute right-0 z-10 mt-3 w-56 overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/95 py-2 shadow-xl backdrop-blur-xl">
+                            <div class="px-4 py-2">
+                                <p class="truncate text-sm font-semibold text-white">{{ auth('super_admin')->user()->name }}</p>
+                                <p class="truncate text-xs text-zinc-500">{{ __('welcome.nav.admin') }}</p>
+                            </div>
+                            <div class="my-1 h-px bg-white/10"></div>
+                            <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-sm text-zinc-400 transition hover:bg-white/5 hover:text-yellow-400">{{ __('welcome.nav.panel') }}</a>
+                            <a href="{{ route('welcome.v1') }}" class="block px-4 py-2 text-sm text-zinc-400 transition hover:bg-white/5 hover:text-yellow-400">{{ __('welcome_v2.nav.previous_version') }}</a>
+                            <form method="POST" action="{{ route('admin.logout') }}">
+                                @csrf
+                                <button type="submit" class="block w-full px-4 py-2 text-left text-sm text-zinc-400 transition hover:bg-white/5 hover:text-yellow-400">{{ __('welcome.nav.logout') }}</button>
+                            </form>
+                        </div>
+                    </details>
+                @else
+                    <a href="{{ url('/admin/login') }}" class="rounded-full px-3 py-2 text-sm font-medium text-zinc-300 transition hover:bg-white/10 hover:text-yellow-400">{{ __('welcome.nav.login') }}</a>
+                @endauth
+
                 <a href="{{ route('register.plans') }}" class="rounded-full bg-yellow-400 px-5 py-2 text-sm font-extrabold text-zinc-950 transition hover:scale-105 hover:bg-yellow-300">
                     {{ __('welcome_v2.nav.join') }}
                 </a>
