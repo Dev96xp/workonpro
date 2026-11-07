@@ -15,6 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
+            $table->decimal('price', 8, 2)->default(0);
+            $table->decimal('old_price', 8, 2)->nullable();
+            $table->string('stripe_price_id')->nullable();
             $table->unsignedInteger('sort_order')->default(0);
             $table->boolean('is_active')->default(false);
             $table->timestamps();

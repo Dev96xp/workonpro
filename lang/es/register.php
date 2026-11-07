@@ -17,25 +17,22 @@ return [
         'item_billing' => 'Sistema de Facturación',
         'item_appointments' => 'Sistema de citas',
         'item_employees' => 'Gestión de empleados y asistencia',
+        'item_businesscard' => 'Workon Card: tarjeta digital de tu negocio',
+        'cta_start_pro' => 'Empezar con Pro',
 
         'basic_badge' => '¡Solo por este mes!',
         'basic_name' => 'Básico',
-        'basic_price' => 'Gratis',
-        'basic_old_price' => '$29.00/mes',
         'basic_item_images' => '20 imágenes',
         'basic_item_services' => '3 servicios',
 
         'pro_badge' => 'Más popular',
         'pro_name' => 'Pro',
-        'pro_price' => '$39',
+        'free' => 'Gratis',
         'pro_per_month' => '/mes',
-        'pro_old_price' => '$79.00',
         'pro_item_images' => '100 imágenes',
         'pro_item_support' => 'Soporte prioritario',
 
         'enterprise_name' => 'Enterprise',
-        'enterprise_price' => '$79',
-        'enterprise_old_price' => '$129.00',
         'enterprise_item_images' => 'Imágenes ilimitadas',
         'enterprise_item_support' => 'Soporte 24/7',
         'enterprise_item_integrations' => 'Integraciones avanzadas',
@@ -45,13 +42,6 @@ return [
         'heading' => 'Crear tu negocio',
         'selected_plan' => 'Plan seleccionado:',
         'change' => 'Cambiar',
-
-        'plan_label_basic' => 'Básico',
-        'plan_label_pro' => 'Pro',
-        'plan_label_enterprise' => 'Enterprise',
-        'plan_price_basic' => 'Gratis',
-        'plan_price_pro' => '$39/mes',
-        'plan_price_enterprise' => '$79/mes',
 
         'business_name_label' => 'Nombre del negocio',
         'business_name_placeholder' => 'Mi Constructora S.A.',
@@ -76,7 +66,8 @@ return [
         'submit_paid' => 'Continuar al pago →',
         'processing' => 'Procesando...',
 
-        'note_free' => 'El plan Básico es gratis, no se te pedirá ningún método de pago.',
+        'note_free' => 'Este plan es gratis, no se te pedirá ningún método de pago.',
+        'plan_unavailable' => 'Este plan no está disponible en este momento. Elige otro plan.',
         'note_paid' => 'Al continuar, serás redirigido a Stripe para completar el pago de forma segura.',
 
         'accept_terms' => 'Acepto los :terms_link y la :privacy_link de Workon.',

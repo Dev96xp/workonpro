@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\SetLocale;
+use App\Models\Plan;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -9,7 +10,9 @@ $centralDomain = parse_url(config('app.url'), PHP_URL_HOST);
 
 Route::domain($centralDomain)->middleware(SetLocale::class)->group(function () {
     Route::get('/', function () {
-        return view('welcome');
+        return view('welcome', [
+            'plans' => Plan::query()->whereIn('slug', ['basic', 'pro', 'enterprise'])->get()->keyBy('slug'),
+        ]);
     })->name('home');
 
     Volt::route('/welcome-v2', 'welcome-v2')->name('welcome.v2');

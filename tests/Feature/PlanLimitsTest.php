@@ -59,7 +59,7 @@ it('blocks a basic tenant from creating a 4th service', function () {
     $this->actingAs(User::factory()->create());
 
     for ($i = 1; $i <= 3; $i++) {
-        Service::create(['name' => "Servicio {$i}", 'category' => 'general', 'is_active' => true]);
+        Service::create(['name' => "Servicio {$i}", 'subcategory' => 'general', 'is_active' => true]);
     }
 
     Volt::test('tenant.services')
@@ -80,7 +80,7 @@ it('lets a pro tenant create more than 3 services', function () {
     $this->actingAs(User::factory()->create());
 
     for ($i = 1; $i <= 5; $i++) {
-        Service::create(['name' => "Servicio {$i}", 'category' => 'general', 'is_active' => true]);
+        Service::create(['name' => "Servicio {$i}", 'subcategory' => 'general', 'is_active' => true]);
     }
 
     Volt::test('tenant.services')

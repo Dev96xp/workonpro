@@ -220,13 +220,20 @@
 
             <div class="mt-10 grid grid-cols-1 gap-px bg-zinc-700 sm:mt-16 md:grid-cols-3">
                 <div class="group relative flex flex-col bg-zinc-900 p-6 transition hover:bg-zinc-800 sm:p-10">
-                    <div class="absolute right-4 top-4 rotate-12 bg-yellow-400 px-3 py-1 text-xs font-black uppercase tracking-wider text-zinc-900 sm:right-6 sm:top-6">
-                        {{ __('welcome.pricing.basic_badge') }}
-                    </div>
+                    @if ($plans->get('basic')?->isFree())
+                        <div class="absolute right-4 top-4 rotate-12 bg-yellow-400 px-3 py-1 text-xs font-black uppercase tracking-wider text-zinc-900 sm:right-6 sm:top-6">
+                            {{ __('welcome.pricing.basic_badge') }}
+                        </div>
+                    @endif
                     <p class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-500">{{ __('welcome.pricing.basic_name') }}</p>
                     <div class="mt-4 flex items-end gap-2">
-                        <span class="text-5xl font-black text-white sm:text-6xl">{{ __('welcome.pricing.basic_price') }}</span>
-                        <span class="mb-2 text-sm text-zinc-500 line-through">{{ __('welcome.pricing.basic_old_price') }}</span>
+                        <span class="text-5xl font-black text-white sm:text-6xl">{{ $plans->get('basic')?->displayPrice() }}</span>
+                        @unless ($plans->get('basic')?->isFree())
+                            <span class="mb-2 text-zinc-500">{{ __('welcome.pricing.pro_per_month') }}</span>
+                        @endunless
+                        @if ($plans->get('basic')?->displayOldPrice())
+                            <span class="mb-2 text-sm text-zinc-500 line-through">{{ $plans->get('basic')->displayOldPrice() }}</span>
+                        @endif
                     </div>
                     <div class="mt-6 h-px bg-zinc-700 transition group-hover:bg-yellow-400/50 sm:mt-8"></div>
                     <ul class="mt-6 grow space-y-3 text-sm text-zinc-400 sm:mt-8 sm:space-y-4">
@@ -247,9 +254,13 @@
                     </div>
                     <p class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-700">{{ __('welcome.pricing.pro_name') }}</p>
                     <div class="mt-4 flex items-end gap-2">
-                        <span class="text-5xl font-black text-zinc-900 sm:text-6xl">{{ __('welcome.pricing.pro_price') }}</span>
-                        <span class="mb-2 text-zinc-700">{{ __('welcome.pricing.pro_per_month') }}</span>
-                        <span class="mb-2 text-sm text-zinc-700/70 line-through">{{ __('welcome.pricing.pro_old_price') }}</span>
+                        <span class="text-5xl font-black text-zinc-900 sm:text-6xl">{{ $plans->get('pro')?->displayPrice() }}</span>
+                        @unless ($plans->get('pro')?->isFree())
+                            <span class="mb-2 text-zinc-700">{{ __('welcome.pricing.pro_per_month') }}</span>
+                        @endunless
+                        @if ($plans->get('pro')?->displayOldPrice())
+                            <span class="mb-2 text-sm text-zinc-700/70 line-through">{{ $plans->get('pro')->displayOldPrice() }}</span>
+                        @endif
                     </div>
                     <div class="mt-6 h-px bg-zinc-900/20 sm:mt-8"></div>
                     <ul class="mt-6 grow space-y-3 text-sm text-zinc-800 sm:mt-8 sm:space-y-4">
@@ -270,9 +281,13 @@
                 <div class="group flex flex-col bg-zinc-900 p-6 transition hover:bg-zinc-800 sm:p-10">
                     <p class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-500">{{ __('welcome.pricing.enterprise_name') }}</p>
                     <div class="mt-4 flex items-end gap-2">
-                        <span class="text-5xl font-black text-white sm:text-6xl">{{ __('welcome.pricing.enterprise_price') }}</span>
-                        <span class="mb-2 text-zinc-500">{{ __('welcome.pricing.pro_per_month') }}</span>
-                        <span class="mb-2 text-sm text-zinc-500/70 line-through">{{ __('welcome.pricing.enterprise_old_price') }}</span>
+                        <span class="text-5xl font-black text-white sm:text-6xl">{{ $plans->get('enterprise')?->displayPrice() }}</span>
+                        @unless ($plans->get('enterprise')?->isFree())
+                            <span class="mb-2 text-zinc-500">{{ __('welcome.pricing.pro_per_month') }}</span>
+                        @endunless
+                        @if ($plans->get('enterprise')?->displayOldPrice())
+                            <span class="mb-2 text-sm text-zinc-500/70 line-through">{{ $plans->get('enterprise')->displayOldPrice() }}</span>
+                        @endif
                     </div>
                     <div class="mt-6 h-px bg-zinc-700 transition group-hover:bg-yellow-400/50 sm:mt-8"></div>
                     <ul class="mt-6 grow space-y-3 text-sm text-zinc-400 sm:mt-8 sm:space-y-4">

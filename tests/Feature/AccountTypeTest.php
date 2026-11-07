@@ -7,6 +7,10 @@ use App\Models\User;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Volt\Volt;
 
+beforeEach(function () {
+    seedSignupPlans();
+});
+
 afterEach(function () {
     if (tenancy()->initialized) {
         tenancy()->end();

@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\BusinessProfile;
 use App\Models\Service;
 use App\Models\ServiceListing;
+use App\Models\Subcategory;
 
 class ServiceObserver
 {
@@ -39,6 +40,18 @@ class ServiceObserver
             ->delete();
     }
 
+    /**
+     * The central listing also keeps the main category so search can filter a whole category at once.
+     */
+    private function categorySlugOf(?string $subcategorySlug): ?string
+    {
+        if (! $subcategorySlug) {
+            return null;
+        }
+
+        return Subcategory::query()->with('category')->firstWhere('slug', $subcategorySlug)?->category?->slug;
+    }
+
     private function sync(Service $service): void
     {
         if (! tenancy()->initialized) {
@@ -54,7 +67,8 @@ class ServiceObserver
                 'name' => $service->name,
                 'description' => $service->description,
                 'price' => $service->price,
-                'category' => $service->category,
+                'category' => $this->categorySlugOf($service->subcategory),
+                'subcategory' => $service->subcategory,
                 'city' => BusinessProfile::query()->value('city'),
                 'phone' => BusinessProfile::query()->value('phone'),
                 'is_active' => $service->is_active,

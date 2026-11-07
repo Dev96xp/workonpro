@@ -58,23 +58,17 @@ return [
 
         'basic_badge' => 'This month only',
         'basic_name' => 'Basic',
-        'basic_price' => 'Free',
-        'basic_old_price' => '$29.00/mo',
         'basic_item_images' => '20 images',
         'basic_item_services' => '3 services',
 
         'pro_badge' => 'Popular',
         'pro_name' => 'Pro',
-        'pro_price' => '$39',
         'pro_per_month' => '/mo',
-        'pro_old_price' => '$79.00',
         'pro_item_images' => '100 images',
         'pro_item_support' => 'Priority support',
         'cta_start_pro' => 'Get started with Pro',
 
         'enterprise_name' => 'Enterprise',
-        'enterprise_price' => '$79',
-        'enterprise_old_price' => '$129.00',
         'enterprise_item_images' => 'Unlimited images',
         'enterprise_item_support' => '24/7 support',
         'enterprise_item_integrations' => 'Advanced integrations',

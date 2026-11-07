@@ -4,7 +4,13 @@ use App\Models\BusinessProfile;
 use App\Models\Service;
 use App\Models\ServiceListing;
 use App\Models\Tenant;
+use App\Models\User;
+use Database\Seeders\CategorySeeder;
 use Livewire\Volt\Volt;
+
+beforeEach(function () {
+    (new CategorySeeder)->run();
+});
 
 afterEach(function () {
     if (tenancy()->initialized) {
@@ -12,7 +18,7 @@ afterEach(function () {
     }
 });
 
-function createTenantWithService(string $id, string $city, string $categorySlug, string $name): Tenant
+function createTenantWithService(string $id, string $city, string $subcategorySlug, string $name): Tenant
 {
     $tenant = Tenant::create([
         'id' => $id,
@@ -27,7 +33,7 @@ function createTenantWithService(string $id, string $city, string $categorySlug,
     BusinessProfile::create(['business_name' => "Business {$id}", 'city' => $city]);
     Service::create([
         'name' => $name,
-        'category' => $categorySlug,
+        'subcategory' => $subcategorySlug,
         'price' => 100,
         'is_active' => true,
     ]);
@@ -47,7 +53,8 @@ it('syncs a service into the central index on create, update, and delete', funct
 
     expect($listing)->not->toBeNull()
         ->and($listing->name)->toBe('Reparación de techos')
-        ->and($listing->category)->toBe('roofing')
+        ->and($listing->subcategory)->toBe('roofing')
+        ->and($listing->category)->toBe('construction')
         ->and($listing->city)->toBe('Miami')
         ->and((float) $listing->price)->toBe(100.0);
 
@@ -78,7 +85,7 @@ it('syncs the business phone into the central listing and shows it on the search
 
     tenancy()->initialize($tenant);
     BusinessProfile::create(['business_name' => 'Business phonetenant', 'city' => 'Denver', 'phone' => '555-0100']);
-    Service::create(['name' => 'Plomería de emergencia', 'category' => 'plumbing', 'price' => 80, 'is_active' => true]);
+    Service::create(['name' => 'Plomería de emergencia', 'subcategory' => 'plumbing-repair', 'price' => 80, 'is_active' => true]);
     tenancy()->end();
 
     $listing = ServiceListing::where('tenant_id', 'phonetenant')->firstOrFail();
@@ -91,15 +98,18 @@ it('syncs the business phone into the central listing and shows it on the search
 });
 
 it('filters central search results by category and city', function () {
-    $electric = createTenantWithService('electrictenant', 'Austin', 'electrical', 'Instalación eléctrica');
+    $electric = createTenantWithService('electrictenant', 'Austin', 'electrical-repair', 'Instalación eléctrica');
     $paint = createTenantWithService('painttenant', 'Miami', 'painting', 'Pintura de interiores');
 
     Volt::test('search.index')
         ->assertSee('Instalación eléctrica')
         ->assertSee('Pintura de interiores')
-        ->set('category', 'electrical')
+        ->set('category', 'maintenance')
         ->assertSee('Instalación eléctrica')
         ->assertDontSee('Pintura de interiores')
+        ->set('category', 'painting')
+        ->assertSee('Pintura de interiores')
+        ->assertDontSee('Instalación eléctrica')
         ->set('category', '')
         ->set('city', 'Miami')
         ->assertSee('Pintura de interiores')
@@ -107,4 +117,32 @@ it('filters central search results by category and city', function () {
 
     $electric->delete();
     $paint->delete();
+});
+
+it('lets a tenant pick a subcategory grouped by category for a service', function () {
+    $tenant = Tenant::create(['id' => 'pickertenant', 'name' => 'Picker Co', 'email' => 'picker@example.com', 'status' => 'active', 'plan' => 'pro']);
+    $tenant->domains()->create(['domain' => 'pickertenant']);
+
+    tenancy()->initialize($tenant);
+    $this->actingAs(User::factory()->create());
+
+    Volt::test('tenant.services')
+        ->call('openCreate')
+        ->assertSee('Construction')
+        ->assertSee('Foundation')
+        ->set('name', 'Losas de concreto')
+        ->set('subcategory', 'not-a-subcategory')
+        ->call('save')
+        ->assertHasErrors('subcategory')
+        ->set('subcategory', 'foundation')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(Service::first()->subcategory)->toBe('foundation');
+    tenancy()->end();
+
+    expect(ServiceListing::where('tenant_id', 'pickertenant')->first()->only(['category', 'subcategory']))
+        ->toBe(['category' => 'construction', 'subcategory' => 'foundation']);
+
+    $tenant->delete();
 });

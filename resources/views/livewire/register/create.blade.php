@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Plan;
 use App\Services\IpGeolocationService;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
@@ -40,20 +41,26 @@ new #[Layout('components.layouts.auth')] class extends Component {
     #[Validate('accepted', message: 'register.create.accept_terms_required')]
     public bool $accepted_terms = false;
 
+    /** @var array<string, array{label: string, price: string, free: bool}> Active plans keyed by slug. */
     public array $plans = [];
 
     public function mount(): void
     {
-        $this->plans = [
-            'basic'      => ['label' => __('register.create.plan_label_basic'),      'price' => __('register.create.plan_price_basic')],
-            'pro'        => ['label' => __('register.create.plan_label_pro'),        'price' => __('register.create.plan_price_pro')],
-            'enterprise' => ['label' => __('register.create.plan_label_enterprise'), 'price' => __('register.create.plan_price_enterprise')],
-        ];
+        $this->plans = Plan::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get()
+            ->mapWithKeys(fn (Plan $plan) => [$plan->slug => [
+                'label' => $plan->name,
+                'price' => $plan->isFree() ? $plan->displayPrice() : $plan->displayPrice().__('register.plans.pro_per_month'),
+                'free' => $plan->isFree(),
+            ]])
+            ->all();
 
         $this->plan = request('plan', 'pro');
 
         if (! array_key_exists($this->plan, $this->plans)) {
-            $this->plan = 'pro';
+            $this->plan = array_key_exists('pro', $this->plans) ? 'pro' : (string) array_key_first($this->plans);
         }
 
         $detected = app(IpGeolocationService::class)->location(IpGeolocationService::clientIp());
@@ -71,15 +78,29 @@ new #[Layout('components.layouts.auth')] class extends Component {
     {
         $this->validate();
 
+        $selectedPlan = Plan::query()->where('is_active', true)->firstWhere('slug', $this->plan);
+
+        if (! $selectedPlan) {
+            $this->addError('plan', __('register.create.plan_unavailable'));
+
+            return;
+        }
+
         $signupCity = app(IpGeolocationService::class)->city(IpGeolocationService::clientIp());
 
-        if ($this->plan === 'basic') {
+        if ($selectedPlan->isFree()) {
             $this->registerFreeTenant($signupCity);
 
             return;
         }
 
-        $priceId = config('services.stripe.prices.' . $this->plan);
+        $priceId = $selectedPlan->checkoutPriceId();
+
+        if (! $priceId) {
+            $this->addError('plan', __('register.create.plan_unavailable'));
+
+            return;
+        }
 
         // Guardamos password en session (no en BD)
         session(['pending_password_' . $this->subdomain => $this->password]);
@@ -146,14 +167,14 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     protected function registerFreeTenant(?string $signupCity): void
     {
-        // Plan Básico: sin costo, no pasa por Stripe. Se activa de inmediato.
+        // Plan con precio 0 (p. ej. una promoción del Básico): no pasa por Stripe y se activa de inmediato.
         $tenant = \App\Models\Tenant::updateOrCreate(
             ['id' => $this->subdomain],
             [
                 'name'        => $this->business_name,
                 'email'       => $this->email,
                 'status'      => 'active',
-                'plan'        => 'basic',
+                'plan'        => $this->plan,
                 'account_type' => $this->account_type,
                 'signup_city' => $signupCity,
                 ...$this->locationAttributes(),
@@ -184,9 +205,10 @@ new #[Layout('components.layouts.auth')] class extends Component {
         <flux:heading size="xl">{{ __('register.create.heading') }}</flux:heading>
         <flux:text class="mt-1 text-zinc-500">
             {{ __('register.create.selected_plan') }}
-            <strong>{{ $plans[$plan]['label'] }}</strong> — {{ $plans[$plan]['price'] }}
+            <strong>{{ $plans[$plan]['label'] ?? '—' }}</strong> — {{ $plans[$plan]['price'] ?? '' }}
             <flux:link href="{{ route('register.plans') }}" wire:navigate class="ml-1 text-sm">{{ __('register.create.change') }}</flux:link>
         </flux:text>
+        <flux:error name="plan" />
     </div>
 
     <form wire:submit="checkout" class="space-y-5">
@@ -267,13 +289,13 @@ new #[Layout('components.layouts.auth')] class extends Component {
         </flux:field>
 
         <flux:button type="submit" variant="primary" class="w-full" wire:loading.attr="disabled">
-            <span wire:loading.remove>{{ $plan === 'basic' ? __('register.create.submit_free') : __('register.create.submit_paid') }}</span>
+            <span wire:loading.remove>{{ ($plans[$plan]['free'] ?? false) ? __('register.create.submit_free') : __('register.create.submit_paid') }}</span>
             <span wire:loading>{{ __('register.create.processing') }}</span>
         </flux:button>
     </form>
 
     <p class="mt-4 text-center text-xs text-zinc-400">
-        @if ($plan === 'basic')
+        @if (($plans[$plan]['free'] ?? false))
             {{ __('register.create.note_free') }}
         @else
             {{ __('register.create.note_paid') }}

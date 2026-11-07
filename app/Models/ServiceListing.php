@@ -17,6 +17,7 @@ class ServiceListing extends Model
         'description',
         'price',
         'category',
+        'subcategory',
         'city',
         'phone',
         'is_active',

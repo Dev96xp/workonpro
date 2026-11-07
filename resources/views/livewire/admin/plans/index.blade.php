@@ -64,6 +64,7 @@ new #[Layout('components.layouts.admin')] class extends Component {
         <flux:table.columns>
             <flux:table.column>Nombre</flux:table.column>
             <flux:table.column>Slug</flux:table.column>
+            <flux:table.column>Precio</flux:table.column>
             <flux:table.column>Elementos</flux:table.column>
             <flux:table.column>Estado</flux:table.column>
             <flux:table.column></flux:table.column>
@@ -73,6 +74,12 @@ new #[Layout('components.layouts.admin')] class extends Component {
                 <flux:table.row>
                     <flux:table.cell class="font-medium">{{ $plan->name }}</flux:table.cell>
                     <flux:table.cell class="font-mono text-xs text-zinc-400">{{ $plan->slug }}</flux:table.cell>
+                    <flux:table.cell>
+                        <span class="font-semibold">{{ $plan->displayPrice() }}</span>
+                        @if ($plan->displayOldPrice())
+                            <span class="ml-1 text-xs text-zinc-400 line-through">{{ $plan->displayOldPrice() }}</span>
+                        @endif
+                    </flux:table.cell>
                     <flux:table.cell class="text-zinc-500">
                         @forelse ($plan->items as $item)
                             {{ $item->label() }}: {{ $item->quantity ?? '∞' }}@if (! $loop->last), @endif

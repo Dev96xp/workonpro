@@ -3,11 +3,16 @@
 use App\Models\BusinessProfile;
 use App\Models\Category;
 use App\Models\ServiceListing;
+use App\Models\SuperAdmin;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\IpGeolocationService;
 use Illuminate\Support\Facades\Http;
 use Livewire\Volt\Volt;
+
+beforeEach(function () {
+    seedSignupPlans();
+});
 
 afterEach(function () {
     if (tenancy()->initialized) {
@@ -138,4 +143,23 @@ it('shows tenants from the visitor city first on the landing page', function () 
     $this->withHeader('CF-IPCity', 'Miami')
         ->get('/welcome-v2')
         ->assertSeeInOrder(['Alpha Cleaners', 'Zeta Cleaners']);
+});
+
+it('shows the city the tenant typed in the admin list, not only the ip city', function () {
+    Tenant::withoutEvents(fn () => Tenant::create([
+        'id' => 'locationtenant',
+        'name' => 'Location Co',
+        'email' => 'locationtenant@example.com',
+        'status' => 'active',
+        'plan' => 'basic',
+        'city' => 'Omaha',
+        'state' => 'Nebraska',
+        'signup_city' => 'Council Bluffs',
+    ]));
+
+    $this->actingAs(SuperAdmin::factory()->create(), 'super_admin');
+
+    Volt::test('admin.tenants.index')
+        ->assertSee('Omaha, Nebraska')
+        ->assertSee('IP: Council Bluffs');
 });

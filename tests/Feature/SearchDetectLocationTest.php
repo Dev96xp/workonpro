@@ -26,7 +26,7 @@ function createSearchTestListing(string $id, string $city): Tenant
     BusinessProfile::create(['business_name' => "Business {$id}", 'city' => $city]);
     Service::create([
         'name' => "Service {$id}",
-        'category' => 'other',
+        'subcategory' => 'other',
         'price' => 100,
         'is_active' => true,
     ]);

@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Plan;
+use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -56,4 +58,15 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Seeds the three signup plans, with the Basic plan free unless a price is given, so the
+ * signup flow can activate tenants without going through Stripe.
+ */
+function seedSignupPlans(float $basicPrice = 0): void
+{
+    (new PlanSeeder)->run();
+
+    Plan::where('slug', 'basic')->update(['price' => $basicPrice]);
 }

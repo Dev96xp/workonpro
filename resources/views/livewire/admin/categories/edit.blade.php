@@ -51,7 +51,9 @@ new #[Layout('components.layouts.admin')] class extends Component {
 
     <flux:card class="max-w-lg">
         <form wire:submit="save" class="flex flex-col gap-6">
-            <flux:input wire:model="name" label="Nombre" required />
+            <flux:input wire:model="name" label="Nombre (español)" required />
+
+            <flux:input wire:model="name_en" label="Nombre (inglés)" />
 
             <flux:field>
                 <flux:label>Slug</flux:label>

@@ -3,6 +3,7 @@
 use App\Models\BusinessImage;
 use App\Models\Category;
 use App\Models\Service;
+use App\Models\Subcategory;
 use App\Models\Tenant;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -30,7 +31,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public string $description = '';
 
     #[Validate('required|string')]
-    public string $category = '';
+    public string $subcategory = '';
 
     #[Validate('nullable|numeric|min:0')]
     public string $price = '';
@@ -67,8 +68,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     ->orWhere('description', 'like', "%{$this->search}%"))
                 ->orderBy('name')
                 ->paginate(10),
-            'categoryOptions' => Category::query()->where('is_active', true)->orderBy('sort_order')->get(),
-            'categoryLabels' => Category::query()->orderBy('sort_order')->pluck('name', 'slug'),
+            'categoryOptions' => Category::query()
+                ->where('is_active', true)
+                ->with(['subcategories' => fn ($query) => $query->where('is_active', true)])
+                ->orderBy('sort_order')
+                ->get(),
+            'subcategoryLabels' => Subcategory::query()->get()->mapWithKeys(fn (Subcategory $subcategory) => [$subcategory->slug => $subcategory->label()]),
             'serviceLimit' => $limit,
             'serviceCount' => $count,
             'canCreateService' => $limit === null || $count < $limit,
@@ -94,7 +99,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $this->editingId        = $id;
         $this->name              = $service->name;
         $this->description       = $service->description ?? '';
-        $this->category          = $service->category ?? '';
+        $this->subcategory       = $service->subcategory ?? '';
         $this->price              = $service->price !== null ? (string) $service->price : '';
         $this->is_active         = $service->is_active;
         $this->existingImage1Id  = $service->images->get(0)?->id;
@@ -108,6 +113,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     {
         $this->validate();
 
+        if (! Subcategory::query()->where('slug', $this->subcategory)->where('is_active', true)->exists()) {
+            $this->addError('subcategory', __('validation.exists', ['attribute' => __('tenant.common.category')]));
+
+            return;
+        }
+
         if (! $this->editingId && ! Tenant::withinPlanLimit(tenant('plan'), 'services', Service::count())) {
             $this->addError('name', __('tenant.services.limit_error'));
 
@@ -117,7 +128,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $data = [
             'name'        => $this->name,
             'description' => $this->description ?: null,
-            'category'    => $this->category,
+            'subcategory' => $this->subcategory,
             'price'       => $this->price !== '' ? $this->price : null,
             'is_active'   => $this->is_active,
         ];
@@ -241,7 +252,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     {
         $this->name              = '';
         $this->description       = '';
-        $this->category          = '';
+        $this->subcategory       = '';
         $this->price              = '';
         $this->is_active         = true;
         $this->image1             = null;
@@ -317,8 +328,8 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 text-zinc-500">
-                                        @if ($service->category)
-                                            <flux:badge size="sm">{{ $categoryLabels[$service->category] ?? $service->category }}</flux:badge>
+                                        @if ($service->subcategory)
+                                            <flux:badge size="sm">{{ $subcategoryLabels[$service->subcategory] ?? $service->subcategory }}</flux:badge>
                                         @else
                                             —
                                         @endif
@@ -380,13 +391,17 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
                 <flux:field>
                     <flux:label>{{ __('tenant.common.category') }} <span class="text-red-500">*</span></flux:label>
-                    <flux:select wire:model="category">
+                    <flux:select wire:model="subcategory">
                         <flux:select.option value="">{{ __('tenant.services.select_category') }}</flux:select.option>
                         @foreach ($categoryOptions as $option)
-                            <flux:select.option value="{{ $option->slug }}">{{ $option->name }}</flux:select.option>
+                            <optgroup label="{{ $option->label() }}">
+                                @foreach ($option->subcategories as $suboption)
+                                    <flux:select.option value="{{ $suboption->slug }}">{{ $suboption->label() }}</flux:select.option>
+                                @endforeach
+                            </optgroup>
                         @endforeach
                     </flux:select>
-                    <flux:error name="category" />
+                    <flux:error name="subcategory" />
                 </flux:field>
 
                 <flux:field>

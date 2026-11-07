@@ -2,6 +2,7 @@
 
 use App\Models\Plan;
 use App\Models\PlanItem;
+use App\Services\StripePlanPricing;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Volt\Component;
@@ -11,6 +12,12 @@ new #[Layout('components.layouts.admin')] class extends Component {
 
     #[Validate('required|string|max:255')]
     public string $name = '';
+
+    #[Validate('required|numeric|min:0|max:9999')]
+    public string $price = '0';
+
+    #[Validate('nullable|numeric|min:0|max:9999')]
+    public string $old_price = '';
 
     #[Validate('integer|min:0')]
     public int $sort_order = 0;
@@ -27,6 +34,8 @@ new #[Layout('components.layouts.admin')] class extends Component {
     {
         $this->plan = $plan;
         $this->name = $plan->name;
+        $this->price = (string) $plan->price;
+        $this->old_price = $plan->old_price !== null ? (string) $plan->old_price : '';
         $this->sort_order = $plan->sort_order;
         $this->is_active = $plan->is_active;
 
@@ -35,7 +44,7 @@ new #[Layout('components.layouts.admin')] class extends Component {
         }
     }
 
-    public function save(): void
+    public function save(StripePlanPricing $pricing): void
     {
         $this->validate();
 
@@ -45,11 +54,24 @@ new #[Layout('components.layouts.admin')] class extends Component {
             return;
         }
 
-        $this->plan->update([
+        $this->plan->fill([
             'name' => $this->name,
+            'price' => $this->price,
+            'old_price' => $this->old_price !== '' ? $this->old_price : null,
             'sort_order' => $this->sort_order,
             'is_active' => $this->is_active,
         ]);
+
+        try {
+            $this->plan->stripe_price_id = $pricing->sync($this->plan);
+        } catch (Throwable $e) {
+            report($e);
+            $this->addError('price', 'No se pudo crear el precio en Stripe: '.$e->getMessage());
+
+            return;
+        }
+
+        $this->plan->save();
 
         $this->redirectRoute('admin.plans.index', navigate: true);
     }
@@ -133,6 +155,26 @@ new #[Layout('components.layouts.admin')] class extends Component {
                     <flux:input value="{{ $plan->slug }}" readonly disabled />
                     <flux:description>El slug no se puede editar: es la clave que usa el registro y Stripe.</flux:description>
                 </flux:field>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <flux:field>
+                        <flux:label>Precio mensual (USD)</flux:label>
+                        <flux:input wire:model="price" type="number" step="0.01" min="0" icon="currency-dollar" />
+                        <flux:error name="price" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Precio anterior (tachado)</flux:label>
+                        <flux:input wire:model="old_price" type="number" step="0.01" min="0" icon="currency-dollar" placeholder="Opcional" />
+                        <flux:error name="old_price" />
+                    </flux:field>
+                </div>
+                <flux:text class="-mt-3 text-sm text-zinc-500">
+                    Con precio 0 el plan es gratis y no pasa por Stripe (ideal para promociones). Al cambiar el precio se crea uno nuevo en Stripe para los registros nuevos; quienes ya están suscritos siguen pagando su precio actual.
+                    @if ($plan->stripe_price_id)
+                        <span class="block font-mono text-xs text-zinc-400">Stripe: {{ $plan->stripe_price_id }}</span>
+                    @endif
+                </flux:text>
 
                 <flux:field>
                     <flux:label>Orden</flux:label>

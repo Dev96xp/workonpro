@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Plan;
+use App\Services\StripePlanPricing;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
@@ -10,12 +11,18 @@ new #[Layout('components.layouts.admin')] class extends Component {
     #[Validate('required|string|max:255')]
     public string $name = '';
 
+    #[Validate('required|numeric|min:0|max:9999')]
+    public string $price = '0';
+
+    #[Validate('nullable|numeric|min:0|max:9999')]
+    public string $old_price = '';
+
     #[Validate('integer|min:0')]
     public int $sort_order = 0;
 
     public bool $is_active = false;
 
-    public function save(): void
+    public function save(StripePlanPricing $pricing): void
     {
         $this->validate();
 
@@ -25,12 +32,25 @@ new #[Layout('components.layouts.admin')] class extends Component {
             return;
         }
 
-        $plan = Plan::create([
+        $plan = new Plan([
             'name' => $this->name,
             'slug' => $this->uniqueSlug(),
+            'price' => $this->price,
+            'old_price' => $this->old_price !== '' ? $this->old_price : null,
             'sort_order' => $this->sort_order,
             'is_active' => $this->is_active,
         ]);
+
+        try {
+            $plan->stripe_price_id = $pricing->sync($plan);
+        } catch (Throwable $e) {
+            report($e);
+            $this->addError('price', 'No se pudo crear el precio en Stripe: '.$e->getMessage());
+
+            return;
+        }
+
+        $plan->save();
 
         $this->redirectRoute('admin.plans.edit', $plan, navigate: true);
     }
@@ -59,6 +79,21 @@ new #[Layout('components.layouts.admin')] class extends Component {
     <flux:card class="max-w-lg">
         <form wire:submit="save" class="flex flex-col gap-6">
             <flux:input wire:model="name" label="Nombre" placeholder="Ej: Ultra" required />
+
+            <div class="grid grid-cols-2 gap-4">
+                <flux:field>
+                    <flux:label>Precio mensual (USD)</flux:label>
+                    <flux:input wire:model="price" type="number" step="0.01" min="0" icon="currency-dollar" />
+                    <flux:description>0 = gratis.</flux:description>
+                    <flux:error name="price" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>Precio anterior (tachado)</flux:label>
+                    <flux:input wire:model="old_price" type="number" step="0.01" min="0" icon="currency-dollar" placeholder="Opcional" />
+                    <flux:error name="old_price" />
+                </flux:field>
+            </div>
 
             <flux:field>
                 <flux:label>Orden</flux:label>

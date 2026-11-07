@@ -2,6 +2,7 @@
 
 use App\Models\Category;
 use App\Models\ServiceListing;
+use App\Models\Subcategory;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
@@ -26,7 +27,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                 ->with('tenant.domains')
                 ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%")
                     ->orWhere('description', 'like', "%{$this->search}%"))
-                ->when($this->category, fn ($q) => $q->where('category', $this->category))
+                ->when($this->category, fn ($q) => $q->where(fn ($q) => $q->where('category', $this->category)->orWhere('subcategory', $this->category)))
                 ->when($this->city, fn ($q) => $q->where('city', $this->city))
                 ->orderBy('name')
                 ->paginate(12),
@@ -36,8 +37,13 @@ new #[Layout('components.layouts.guest')] class extends Component {
                 ->distinct()
                 ->orderBy('city')
                 ->pluck('city'),
-            'categoryOptions' => Category::query()->where('is_active', true)->orderBy('sort_order')->get(),
-            'categoryLabels' => Category::query()->pluck('name', 'slug'),
+            'categoryOptions' => Category::query()
+                ->where('is_active', true)
+                ->with(['subcategories' => fn ($query) => $query->where('is_active', true)])
+                ->orderBy('sort_order')
+                ->get(),
+            'categoryLabels' => Category::query()->get()->mapWithKeys(fn (Category $category) => [$category->slug => $category->label()]),
+            'subcategoryLabels' => Subcategory::query()->get()->mapWithKeys(fn (Subcategory $subcategory) => [$subcategory->slug => $subcategory->label()]),
         ];
     }
 
@@ -131,7 +137,12 @@ new #[Layout('components.layouts.guest')] class extends Component {
                     <flux:select wire:model.live="category" class="sm:w-48">
                         <flux:select.option value="">{{ __('search.category_placeholder') }}</flux:select.option>
                         @foreach ($categoryOptions as $option)
-                            <flux:select.option value="{{ $option->slug }}">{{ $option->name }}</flux:select.option>
+                            <optgroup label="{{ $option->label() }}">
+                                <flux:select.option value="{{ $option->slug }}">{{ __('search.all_in_category', ['category' => $option->label()]) }}</flux:select.option>
+                                @foreach ($option->subcategories as $suboption)
+                                    <flux:select.option value="{{ $suboption->slug }}">{{ $suboption->label() }}</flux:select.option>
+                                @endforeach
+                            </optgroup>
                         @endforeach
                     </flux:select>
 
@@ -208,8 +219,8 @@ new #[Layout('components.layouts.guest')] class extends Component {
                                     <img src="{{ $featuredImage }}" alt="" class="size-8 shrink-0 rounded-sm object-cover" />
                                 @endif
                                 <div>
-                                    @if ($listing->category)
-                                        <span class="text-xs font-medium tracking-wide text-yellow-400/90 uppercase">{{ $categoryLabels[$listing->category] ?? $listing->category }}</span>
+                                    @if ($listing->subcategory || $listing->category)
+                                        <span class="text-xs font-medium tracking-wide text-yellow-400/90 uppercase">{{ $subcategoryLabels[$listing->subcategory] ?? $categoryLabels[$listing->category] ?? $listing->subcategory ?? $listing->category }}</span>
                                     @endif
                                     <flux:heading size="lg" class="mt-1 text-white">{{ $listing->name }}</flux:heading>
                                 </div>

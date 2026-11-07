@@ -7,6 +7,7 @@ return [
     'subtitle' => 'Encuentra el negocio que necesitas entre todos los que ya confían en Workon',
     'search_placeholder' => '¿Qué servicio buscas?',
     'category_placeholder' => 'Categoría',
+    'all_in_category' => 'Todo en :category',
     'city_placeholder' => 'Ciudad',
     'view_business' => 'Ver negocio →',
     'no_results' => 'No se encontraron servicios con esos filtros.',

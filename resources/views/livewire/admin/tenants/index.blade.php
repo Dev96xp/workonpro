@@ -98,7 +98,7 @@ new #[Layout('components.layouts.admin')] class extends Component {
             <flux:table.column>Base de datos</flux:table.column>
             <flux:table.column>Plan</flux:table.column>
             <flux:table.column>Tipo de cuenta</flux:table.column>
-            <flux:table.column>Ciudad de registro</flux:table.column>
+            <flux:table.column>Ciudad</flux:table.column>
             <flux:table.column>Registrado</flux:table.column>
             <flux:table.column></flux:table.column>
         </flux:table.columns>
@@ -131,7 +131,12 @@ new #[Layout('components.layouts.admin')] class extends Component {
                             <flux:badge size="sm" color="zinc" icon="building-office">{{ AccountType::Business->label() }}</flux:badge>
                         @endif
                     </flux:table.cell>
-                    <flux:table.cell>{{ $tenant->signup_city ?? '—' }}</flux:table.cell>
+                    <flux:table.cell>
+                        <div>{{ collect([$tenant->city, $tenant->state])->filter()->implode(', ') ?: '—' }}</div>
+                        @if ($tenant->signup_city && $tenant->signup_city !== $tenant->city)
+                            <div class="text-xs text-zinc-400">IP: {{ $tenant->signup_city }}</div>
+                        @endif
+                    </flux:table.cell>
                     <flux:table.cell>{{ $tenant->created_at->format('d/m/Y') }}</flux:table.cell>
                     <flux:table.cell>
                         <div class="flex items-center gap-2">

@@ -4,6 +4,10 @@ use App\Models\Tenant;
 use App\Services\IpGeolocationService;
 use Livewire\Volt\Volt;
 
+beforeEach(function () {
+    seedSignupPlans();
+});
+
 afterEach(function () {
     if (tenancy()->initialized) {
         tenancy()->end();

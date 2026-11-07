@@ -3,6 +3,10 @@
 use App\Models\Tenant;
 use Livewire\Volt\Volt;
 
+beforeEach(function () {
+    seedSignupPlans();
+});
+
 afterEach(function () {
     Tenant::query()->where('id', 'termscheck')->get()->each->delete();
 });
