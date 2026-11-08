@@ -14,6 +14,7 @@ return [
 
     'hero' => [
         'badge' => 'Made for businesses on the move',
+        'tagline' => 'The place where builders find work, workers find jobs, and homeowners find help.',
         'subtitle' => 'Your business with its own page, appointments, coupons and digital card. All in one place.',
         'visitor_city' => 'Hello, :city',
         'counter_label' => 'businesses are already on Workon',

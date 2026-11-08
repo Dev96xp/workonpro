@@ -14,6 +14,7 @@ return [
 
     'hero' => [
         'badge' => 'Hecho para negocios que se mueven',
+        'tagline' => 'El lugar donde los constructores encuentran trabajo, los trabajadores encuentran empleo y los dueños de casa encuentran ayuda.',
         'subtitle' => 'Tu negocio con su propia página, citas, cupones y tarjeta digital. Todo en un solo lugar.',
         'visitor_city' => 'Hola, :city',
         'counter_label' => 'negocios ya están en Workon',

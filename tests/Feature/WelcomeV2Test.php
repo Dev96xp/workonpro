@@ -166,3 +166,19 @@ it('shows tenants with a featured image in the stories row', function () {
 
     $this->get('/')->assertSee('https://example.com/photo.webp');
 });
+
+it('falls back to the initial when a round story photo fails to load', function () {
+    createDirectoryTenant('photo', 'Photo Studio', ['featured_image_url' => 'https://example.com/missing.webp']);
+
+    $this->get('/')
+        ->assertSee('x-on:error="broken = true"', false)
+        ->assertSeeInOrder(['https://example.com/missing.webp', 'x-show="broken"', '>P</span>'], false);
+});
+
+it('invites builders, workers and homeowners in the hero', function () {
+    $this->get('/')->assertSee('The place where builders find work, workers find jobs, and homeowners find help.');
+
+    $this->withCookie('locale', 'es')
+        ->get('/')
+        ->assertSee('El lugar donde los constructores encuentran trabajo, los trabajadores encuentran empleo y los dueños de casa encuentran ayuda.');
+});

@@ -3,6 +3,7 @@
 use App\Models\Plan;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /*
@@ -19,6 +20,10 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->beforeEach(function () {
+        // Deleting a test tenant wipes storage/app/public/tenants/{id}; faking the disk keeps
+        // tests that reuse real tenant ids (e.g. the demo seeder) away from local uploads.
+        Storage::fake('public');
+
         // RefreshDatabase rolls back tenant rows without firing their delete events, so the
         // SQLite file each test tenant gets in database/ would survive and break the next run.
         foreach (glob(database_path('tenant*')) ?: [] as $leftoverTenantDatabase) {

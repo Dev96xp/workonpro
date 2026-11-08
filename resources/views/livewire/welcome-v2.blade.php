@@ -348,7 +348,9 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
                 </div>
             </div>
 
-            <p class="mt-10 max-w-lg text-lg text-zinc-400 sm:text-xl">{{ __('welcome_v2.hero.subtitle') }}</p>
+            <p class="mt-10 max-w-2xl text-xl font-medium text-white sm:text-2xl">{{ __('welcome_v2.hero.tagline') }}</p>
+
+            <p class="mt-4 max-w-lg text-lg text-zinc-400 sm:text-xl">{{ __('welcome_v2.hero.subtitle') }}</p>
 
             <div class="mt-8 flex flex-col gap-3 sm:flex-row">
                 <a href="#directory" class="group inline-flex items-center justify-center gap-2 rounded-full bg-yellow-400 px-8 py-4 font-extrabold text-zinc-950 transition hover:scale-105 hover:bg-yellow-300">
@@ -421,8 +423,11 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
                 <div x-ref="track" class="flex w-max gap-6 px-3 sm:gap-8">
                     @foreach ([...$spotlight, ...$spotlight] as $tenant)
                         <a href="{{ $tenant['url'] ?? '#' }}" target="_blank" draggable="false" x-on:click="if (moved) $event.preventDefault()" class="group flex w-24 shrink-0 flex-col items-center gap-2 sm:w-28">
-                            <span class="relative rounded-full bg-gradient-to-tr from-yellow-500 via-yellow-300 to-amber-500 p-[3px] transition duration-300 group-hover:rotate-6 group-hover:scale-110">
-                                <img src="{{ $tenant['image'] }}" alt="{{ $tenant['name'] }}" loading="lazy" draggable="false" class="size-20 rounded-full border-4 border-zinc-900 object-cover sm:size-24">
+                            <span x-data="{ broken: {{ $tenant['image'] ? 'false' : 'true' }} }" class="relative rounded-full bg-gradient-to-tr from-yellow-500 via-yellow-300 to-amber-500 p-[3px] transition duration-300 group-hover:rotate-6 group-hover:scale-110">
+                                @if ($tenant['image'])
+                                    <img x-show="! broken" x-on:error="broken = true" src="{{ $tenant['image'] }}" alt="{{ $tenant['name'] }}" loading="lazy" draggable="false" class="size-20 rounded-full border-4 border-zinc-900 object-cover sm:size-24">
+                                @endif
+                                <span x-show="broken" @if ($tenant['image']) x-cloak @endif class="flex size-20 items-center justify-center rounded-full border-4 border-zinc-900 bg-zinc-800 text-3xl font-extrabold text-yellow-400 sm:size-24">{{ $tenant['initial'] }}</span>
                                 @if ($tenant['availableNow'])
                                     <span class="absolute bottom-1 right-1 size-5 rounded-full border-[3px] border-zinc-900 bg-green-500" title="{{ __('availability.available_now_badge') }}" data-available-now></span>
                                 @endif
