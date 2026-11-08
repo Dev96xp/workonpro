@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PwaManifestController;
 use App\Http\Middleware\SetLocale;
 use App\Models\Plan;
 use Illuminate\Support\Facades\Cookie;
@@ -10,6 +11,8 @@ $centralDomain = parse_url(config('app.url'), PHP_URL_HOST);
 
 Route::domain($centralDomain)->middleware(SetLocale::class)->group(function () {
     Volt::route('/', 'welcome-v2')->name('home');
+
+    Route::get('/manifest.webmanifest', PwaManifestController::class)->name('pwa.manifest');
 
     Route::redirect('/welcome-v2', '/', 301)->name('welcome.v2');
 

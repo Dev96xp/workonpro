@@ -11,6 +11,7 @@
     @else
         <link rel="icon" href="{{ asset('favicon.ico') }}">
     @endif
+    @include('partials.pwa')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @fluxAppearance
     @livewireStyles

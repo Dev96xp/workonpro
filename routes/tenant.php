@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\PwaManifestController;
 use App\Http\Controllers\Tenant\ImageController;
 use App\Http\Middleware\SetLocale;
 use App\Models\Attendance;
@@ -36,6 +37,8 @@ Route::middleware([
 ])->group(function () {
     // Public welcome page
     Volt::route('/', 'tenant.welcome')->name('tenant.welcome');
+
+    Route::get('/manifest.webmanifest', PwaManifestController::class)->name('tenant.pwa.manifest');
 
     // Tarjeta de presentación digital del negocio
     Route::get('/card', function () {
