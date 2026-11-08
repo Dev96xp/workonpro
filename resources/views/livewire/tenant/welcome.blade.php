@@ -813,6 +813,6 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
     {{-- Footer --}}
     <div class="bg-zinc-950 py-4 text-center text-zinc-600 text-sm">
-        {{ $businessName }} &mdash; {{ __('tenant.businesscard.powered_by') }} <span class="text-yellow-400 font-semibold">Workon</span>
+        {{ $businessName }} &mdash; {{ __('tenant.businesscard.powered_by') }} <a href="{{ config('app.url') }}" target="_blank" rel="noopener" class="text-base text-yellow-400 font-bold hover:text-yellow-300 hover:underline" data-platform-link>Workon</a>
     </div>
 </div>

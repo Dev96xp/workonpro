@@ -102,7 +102,7 @@
         </div>
 
         <p class="mt-6 text-center text-xs text-zinc-500">
-            {{ __('tenant.businesscard.powered_by') }} <a href="{{ route('home') }}" class="hover:text-yellow-400">Workon</a>
+            {{ __('tenant.businesscard.powered_by') }} <a href="{{ route('home') }}" target="_blank" rel="noopener" class="text-sm font-bold text-yellow-400 hover:text-yellow-300 hover:underline">Workon</a>
         </p>
     </div>
 

@@ -142,6 +142,23 @@ it('translates the public tenant page labels to the current locale', function ()
         ->assertSee(['Con licencia', 'Con seguro', 'Pronto habrá fotos aquí']);
 });
 
+it('links the powered by footer of the tenant page to the main platform', function () {
+    $tenant = Tenant::create([
+        'id' => 'locationtenant',
+        'name' => 'Location Co',
+        'email' => 'locationtenant@example.com',
+        'status' => 'active',
+        'plan' => 'basic',
+    ]);
+    $tenant->domains()->create(['domain' => 'locationtenant']);
+
+    tenancy()->initialize($tenant);
+
+    Volt::test('tenant.welcome')
+        ->assertSeeHtml('href="'.config('app.url').'" target="_blank" rel="noopener"')
+        ->assertSeeHtml('data-platform-link>Workon</a>');
+});
+
 it('shows tenants from the visitor city first on the landing page', function () {
     Http::fake();
     Category::updateOrCreate(['slug' => 'cleaning'], ['name' => 'Cleaning', 'sort_order' => 1, 'is_active' => true]);

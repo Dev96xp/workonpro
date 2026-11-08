@@ -59,7 +59,8 @@ it('shows the tenant business card page with the profile data', function () {
         ->assertOk()
         ->assertSee('Barberia El Corte')
         ->assertSee('(555) 123-4567')
-        ->assertSee('Monterrey');
+        ->assertSee('Monterrey')
+        ->assertSee('target="_blank" rel="noopener" class="text-sm font-bold text-yellow-400', false);
 });
 
 it('falls back to the tenant name and hides contact buttons when the profile has no data', function () {
