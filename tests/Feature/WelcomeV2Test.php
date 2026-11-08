@@ -61,7 +61,7 @@ it('greets the visitor with the city cloudflare resolved', function () {
 
     $this->withHeader('CF-IPCity', 'Atlanta')
         ->get('/')
-        ->assertSee('Hola, Atlanta');
+        ->assertSee('Hello, Atlanta');
 
     Http::assertNothingSent();
 });
@@ -72,7 +72,7 @@ it('looks up the city from the real visitor ip behind cloudflare', function () {
 
     $this->withHeader('CF-Connecting-IP', '8.8.8.8')
         ->get('/')
-        ->assertSee('Hola, Omaha');
+        ->assertSee('Hello, Omaha');
 });
 
 it('hides the city greeting when the location is unknown', function () {
