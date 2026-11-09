@@ -32,11 +32,6 @@ new #[Layout('components.layouts.guest')] class extends Component {
         <div class="mt-10 grid grid-cols-1 gap-px bg-zinc-700 sm:mt-16 md:grid-cols-3">
             {{-- Básico --}}
             <div class="group relative flex flex-col bg-zinc-900 p-6 transition hover:bg-zinc-800 sm:p-10">
-                @if ($plans->get('basic')?->isFree())
-                    <div class="absolute right-4 top-4 rotate-12 bg-yellow-400 px-3 py-1 text-xs font-black uppercase tracking-wider text-zinc-900 sm:right-6 sm:top-6">
-                        {{ __('register.plans.basic_badge') }}
-                    </div>
-                @endif
                 <p class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-500">{{ __('register.plans.basic_name') }}</p>
                 @include('livewire.register.partials.plan-price', ['plan' => $plans->get('basic')])
                 <div class="mt-6 h-px bg-zinc-700 transition group-hover:bg-yellow-400/50 sm:mt-8"></div>

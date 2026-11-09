@@ -84,7 +84,7 @@ it('shows the prices from the database on the plans and landing pages', function
 it('promotes a plan as free when its price is zero', function () {
     Plan::where('slug', 'basic')->update(['price' => 0]);
 
-    $this->get('/signup')->assertSee(__('register.plans.free'))->assertSee(__('register.plans.basic_badge'));
+    $this->get('/signup')->assertSee(__('register.plans.free'))->assertDontSee(__('register.plans.basic_badge'));
 
     Volt::test('register.create', ['plan' => 'basic'])
         ->set('plan', 'basic')
