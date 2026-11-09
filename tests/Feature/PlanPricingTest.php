@@ -128,7 +128,8 @@ it('shows the signup plans with the landing pricing design and lets a plan be pi
         ->assertOk()
         ->assertSee('bg-yellow-400', false)
         ->assertSee(__('register.plans.cta_start_pro'))
-        ->assertSee(__('register.plans.item_businesscard'));
+        ->assertSee(__('register.plans.item_businesscard'))
+        ->assertSee('wire:click="selectPlan(\'basic\')" class="mt-8 block w-full cursor-pointer border border-zinc-700 py-4 text-center text-sm font-bold text-yellow-400', false);
 
     Volt::test('register.plans')
         ->call('selectPlan', 'pro')

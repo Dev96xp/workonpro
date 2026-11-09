@@ -42,7 +42,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                     <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> {{ __('register.plans.item_coupons') }}</li>
                     <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> {{ __('register.plans.item_subdomain') }}</li>
                 </ul>
-                <button type="button" wire:click="selectPlan('basic')" class="mt-8 block w-full cursor-pointer border border-zinc-700 py-4 text-center text-sm font-bold text-zinc-400 transition hover:border-yellow-400 hover:text-yellow-400">
+                <button type="button" wire:click="selectPlan('basic')" class="mt-8 block w-full cursor-pointer border border-zinc-700 py-4 text-center text-sm font-bold text-yellow-400 transition hover:border-yellow-400 hover:text-yellow-300">
                     {{ __('register.plans.cta_start') }}
                 </button>
             </div>
