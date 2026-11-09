@@ -33,16 +33,15 @@ it('prefills the signup location from the visitor ip', function () {
         ->assertSet('country', 'United States');
 });
 
-it('requires city, state and country at signup but not the street', function () {
+it('requires city, state and country at signup and does not ask for the street', function () {
     Volt::test('register.create')
+        ->assertDontSee(__('register.create.street_label'))
         ->set('plan', 'basic')
         ->set('city', '')
         ->set('state', '')
         ->set('country', '')
-        ->set('street_address', '')
         ->call('checkout')
-        ->assertHasErrors(['city' => 'required', 'state' => 'required', 'country' => 'required'])
-        ->assertHasNoErrors('street_address');
+        ->assertHasErrors(['city' => 'required', 'state' => 'required', 'country' => 'required']);
 });
 
 it('stores the full location when a tenant registers', function () {
@@ -51,7 +50,6 @@ it('stores the full location when a tenant registers', function () {
         ->set('business_name', 'Location Co')
         ->set('subdomain', 'locationsignup')
         ->set('email', 'locationsignup@example.com')
-        ->set('street_address', '123 Main St')
         ->set('city', 'Omaha')
         ->set('state', 'Nebraska')
         ->set('country', 'United States')
@@ -64,7 +62,7 @@ it('stores the full location when a tenant registers', function () {
     $tenant = Tenant::find('locationsignup');
 
     expect($tenant->only(['street_address', 'city', 'state', 'country']))->toBe([
-        'street_address' => '123 Main St',
+        'street_address' => null,
         'city' => 'Omaha',
         'state' => 'Nebraska',
         'country' => 'United States',

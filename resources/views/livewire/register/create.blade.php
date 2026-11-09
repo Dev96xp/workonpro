@@ -27,9 +27,6 @@ new #[Layout('components.layouts.auth')] class extends Component {
     #[Validate('required|string|max:100')]
     public string $country = '';
 
-    #[Validate('nullable|string|max:255')]
-    public string $street_address = '';
-
     #[Validate('required|email|unique:tenants,email')]
     public string $email = '';
 
@@ -134,12 +131,11 @@ new #[Layout('components.layouts.auth')] class extends Component {
     }
 
     /**
-     * @return array{street_address: ?string, city: string, state: string, country: string}
+     * @return array{city: string, state: string, country: string}
      */
     protected function locationAttributes(): array
     {
         return [
-            'street_address' => $this->street_address ?: null,
             'city' => $this->city,
             'state' => $this->state,
             'country' => $this->country,
@@ -251,12 +247,6 @@ new #[Layout('components.layouts.auth')] class extends Component {
             </flux:field>
         </div>
 
-        <flux:field>
-            <flux:label>{{ __('register.create.street_label') }}</flux:label>
-            <flux:input wire:model="street_address" placeholder="{{ __('register.create.street_placeholder') }}" />
-            <flux:description>{{ $account_type === 'personal' ? __('register.create.street_hint_personal') : __('register.create.street_hint') }}</flux:description>
-            <flux:error name="street_address" />
-        </flux:field>
 
         <flux:field>
             <flux:label>{{ __('register.create.email_label') }}</flux:label>
