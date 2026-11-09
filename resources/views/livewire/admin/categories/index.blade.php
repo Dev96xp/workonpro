@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Category;
+use App\Models\Project;
 use App\Models\ServiceListing;
 use App\Models\Subcategory;
 use Livewire\Attributes\Layout;
@@ -34,7 +35,7 @@ new #[Layout('components.layouts.admin')] class extends Component {
     {
         $subcategory = Subcategory::findOrFail($subcategoryId);
 
-        if (ServiceListing::where('subcategory', $subcategory->slug)->exists()) {
+        if (ServiceListing::where('subcategory', $subcategory->slug)->exists() || Project::where('subcategory_id', $subcategory->id)->exists()) {
             return;
         }
 
@@ -45,7 +46,8 @@ new #[Layout('components.layouts.admin')] class extends Component {
     {
         return [
             'categories' => Category::query()->with('subcategories')->orderBy('sort_order')->get(),
-            'usedSubcategorySlugs' => ServiceListing::query()->whereNotNull('subcategory')->distinct()->pluck('subcategory'),
+            'usedSubcategorySlugs' => ServiceListing::query()->whereNotNull('subcategory')->distinct()->pluck('subcategory')
+                ->merge(Subcategory::query()->whereHas('projects')->pluck('slug')),
         ];
     }
 }; ?>

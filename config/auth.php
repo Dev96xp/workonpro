@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Employee;
+use App\Models\Homeowner;
 use App\Models\SuperAdmin;
 use App\Models\User;
 
@@ -52,6 +53,10 @@ return [
             'driver' => 'session',
             'provider' => 'employees',
         ],
+        'homeowner' => [
+            'driver' => 'session',
+            'provider' => 'homeowners',
+        ],
     ],
 
     /*
@@ -83,6 +88,10 @@ return [
         'employees' => [
             'driver' => 'eloquent',
             'model' => Employee::class,
+        ],
+        'homeowners' => [
+            'driver' => 'eloquent',
+            'model' => Homeowner::class,
         ],
 
         // 'users' => [

@@ -7,6 +7,7 @@ return [
     'nav' => [
         'dashboard' => 'Dashboard',
         'clients' => 'Clientes',
+        'projects' => 'Proyectos',
         'services' => 'Servicios',
         'coupons' => 'Cupones',
         'images' => 'Imágenes',

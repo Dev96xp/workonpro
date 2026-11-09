@@ -70,6 +70,26 @@ Route::domain($centralDomain)->middleware(SetLocale::class)->group(function () {
 
     Volt::route('/buscar', 'search.index')->name('search');
 
+    Route::prefix('homeowners')->name('homeowner.')->group(function () {
+        Volt::route('register', 'homeowner.register')->name('register');
+        Volt::route('login', 'homeowner.login')->name('login');
+
+        Route::post('logout', function () {
+            auth('homeowner')->logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+
+            return redirect()->route('home');
+        })->name('logout');
+
+        Route::middleware('auth:homeowner')->group(function () {
+            Volt::route('dashboard', 'homeowner.dashboard')->name('dashboard');
+            Volt::route('projects/create', 'homeowner.projects.form')->name('projects.create');
+            Volt::route('projects/{project}', 'homeowner.projects.show')->name('projects.show');
+            Volt::route('projects/{project}/edit', 'homeowner.projects.form')->name('projects.edit');
+        });
+    });
+
     Route::middleware(['auth'])->group(function () {
         Route::redirect('settings', 'settings/profile');
 

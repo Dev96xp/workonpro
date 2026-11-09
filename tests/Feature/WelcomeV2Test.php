@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Category;
+use App\Models\Homeowner;
 use App\Models\ServiceListing;
 use App\Models\SuperAdmin;
 use App\Models\Tenant;
@@ -25,9 +26,19 @@ it('serves the new landing page to everyone at the home route', function () {
     $this->get('/')
         ->assertOk()
         ->assertSee(__('welcome.nav.login'))
-        ->assertSee(url('/admin/login'), false);
+        ->assertSee('data-login-menu', false)
+        ->assertSee(route('homeowner.login'), false)
+        ->assertSee(__('welcome_v2.login_menu.business'))
+        ->assertDontSee(url('/admin/login'), false);
 
     $this->get('/welcome-v2')->assertRedirect('/');
+});
+
+it('links a logged in homeowner to their projects instead of the login menu', function () {
+    $this->actingAs(Homeowner::factory()->create(), 'homeowner')
+        ->get('/')
+        ->assertSee(route('homeowner.dashboard'), false)
+        ->assertDontSee('data-login-menu', false);
 });
 
 it('shows the super admin menu instead of the login link', function () {

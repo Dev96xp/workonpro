@@ -18,9 +18,12 @@
         <flux:dropdown>
             <flux:profile name="{{ auth()->user()->name }}" />
             <flux:menu>
-                <flux:menu.item wire:click="logout" icon="arrow-right-start-on-rectangle">
-                    {{ __('tenant.nav.logout') }}
-                </flux:menu.item>
+                <form method="POST" action="{{ url('/logout') }}" class="w-full">
+                    @csrf
+                    <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
+                        {{ __('tenant.nav.logout') }}
+                    </flux:menu.item>
+                </form>
             </flux:menu>
         </flux:dropdown>
     </flux:navbar>

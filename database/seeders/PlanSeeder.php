@@ -30,7 +30,7 @@ class PlanSeeder extends Seeder
                 'old_price' => 79,
                 'sort_order' => 2,
                 'is_active' => true,
-                'items' => ['images' => 100, 'services' => null, 'coupons' => null],
+                'items' => ['images' => 100, 'services' => null, 'coupons' => null, 'projects' => null],
             ],
             [
                 'name' => 'Enterprise',
@@ -39,7 +39,7 @@ class PlanSeeder extends Seeder
                 'old_price' => 129,
                 'sort_order' => 3,
                 'is_active' => true,
-                'items' => ['images' => null, 'services' => null, 'coupons' => null],
+                'items' => ['images' => null, 'services' => null, 'coupons' => null, 'projects' => null],
             ],
         ];
 

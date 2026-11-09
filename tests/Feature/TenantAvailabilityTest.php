@@ -101,6 +101,16 @@ it('starts with availability switched on the first time', function () {
     Volt::test('tenant.availability')->assertSet('is_active', true);
 });
 
+it('logs out from the panel navbar with a form instead of a component method', function () {
+    $tenant = createAvailabilityTenant();
+    tenancy()->initialize($tenant);
+    $this->actingAs(User::factory()->create());
+
+    Volt::test('tenant.availability')
+        ->assertSeeHtml('action="'.url('/logout').'"')
+        ->assertDontSeeHtml('wire:click="logout"');
+});
+
 it('rejects a slot that ends before it starts', function () {
     $tenant = createAvailabilityTenant();
     tenancy()->initialize($tenant);

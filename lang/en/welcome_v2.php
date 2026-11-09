@@ -12,6 +12,15 @@ return [
         'previous_version' => 'View previous page',
     ],
 
+    'login_menu' => [
+        'homeowner' => 'Homeowner',
+        'homeowner_hint' => 'See and post your projects',
+        'business' => 'Business',
+        'business_hint' => 'Type your subdomain to go to your panel',
+        'business_placeholder' => 'yourbusiness',
+        'business_go' => 'Go to my panel',
+    ],
+
     'hero' => [
         'badge' => 'Made for businesses on the move',
         'tagline' => 'The place where builders find work, workers find jobs, and homeowners find help.',
@@ -21,6 +30,7 @@ return [
         'counter_tag' => 'and counting',
         'cta_explore' => 'Explore businesses',
         'cta_join' => 'Join',
+        'cta_homeowner' => 'Need help at home? Post your project for free',
     ],
 
     'available' => [

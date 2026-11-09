@@ -285,8 +285,40 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
                             </form>
                         </div>
                     </details>
+                @elseauth('homeowner')
+                    <a href="{{ route('homeowner.dashboard') }}" class="rounded-full px-3 py-2 text-sm font-medium text-zinc-300 transition hover:bg-white/10 hover:text-yellow-400">{{ __('homeowner.nav.my_projects') }}</a>
                 @else
-                    <a href="{{ url('/admin/login') }}" class="rounded-full px-3 py-2 text-sm font-medium text-zinc-300 transition hover:bg-white/10 hover:text-yellow-400">{{ __('welcome.nav.login') }}</a>
+                    <details class="group relative" data-login-menu>
+                        <summary class="flex cursor-pointer list-none items-center gap-1 rounded-full px-3 py-2 text-sm font-medium text-zinc-300 transition hover:bg-white/10 hover:text-yellow-400">
+                            {{ __('welcome.nav.login') }}
+                            <svg class="size-3 transition group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </summary>
+
+                        <div class="absolute right-0 z-10 mt-3 w-72 overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/95 p-2 shadow-xl backdrop-blur-xl">
+                            <a href="{{ route('homeowner.login') }}" class="block rounded-xl px-3 py-2.5 transition hover:bg-white/5">
+                                <p class="text-sm font-semibold text-white">🏠 {{ __('welcome_v2.login_menu.homeowner') }}</p>
+                                <p class="text-xs text-zinc-500">{{ __('welcome_v2.login_menu.homeowner_hint') }}</p>
+                            </a>
+
+                            <div class="my-1 h-px bg-white/10"></div>
+
+                            <form
+                                x-data="{ subdomain: '' }"
+                                x-on:submit.prevent="if (subdomain.trim()) window.location = '{{ request()->getScheme() }}://' + subdomain.trim().toLowerCase() + '.{{ parse_url(config('app.url'), PHP_URL_HOST) }}/login'"
+                                class="px-3 py-2.5"
+                            >
+                                <p class="text-sm font-semibold text-white">💼 {{ __('welcome_v2.login_menu.business') }}</p>
+                                <p class="text-xs text-zinc-500">{{ __('welcome_v2.login_menu.business_hint') }}</p>
+                                <div class="mt-2 flex items-center overflow-hidden rounded-lg border border-white/15 focus-within:border-yellow-400">
+                                    <input x-model="subdomain" type="text" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="{{ __('welcome_v2.login_menu.business_placeholder') }}" class="min-w-0 flex-1 bg-transparent px-2 py-1.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none">
+                                    <span class="shrink-0 pr-2 text-xs text-zinc-500">.{{ parse_url(config('app.url'), PHP_URL_HOST) }}</span>
+                                </div>
+                                <button type="submit" class="mt-2 w-full rounded-lg bg-yellow-400 py-1.5 text-sm font-extrabold text-zinc-950 transition hover:bg-yellow-300">{{ __('welcome_v2.login_menu.business_go') }}</button>
+                            </form>
+                        </div>
+                    </details>
                 @endauth
 
                 <a href="{{ route('register.plans') }}" class="rounded-full bg-yellow-400 px-5 py-2 text-sm font-extrabold text-zinc-950 transition hover:scale-105 hover:bg-yellow-300">
@@ -363,6 +395,10 @@ new #[Layout('components.layouts.guest')] #[Title('Workon')] class extends Compo
                     {{ __('welcome_v2.hero.cta_join') }} ✨
                 </a>
             </div>
+
+            <a href="{{ auth('homeowner')->check() ? route('homeowner.dashboard') : route('homeowner.register') }}" class="mt-6 text-sm font-semibold text-zinc-300 underline-offset-4 transition hover:text-yellow-400 hover:underline" data-homeowner-cta>
+                🏠 {{ __('welcome_v2.hero.cta_homeowner') }} →
+            </a>
         </div>
     </section>
 

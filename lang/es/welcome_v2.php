@@ -12,6 +12,15 @@ return [
         'previous_version' => 'Ver página anterior',
     ],
 
+    'login_menu' => [
+        'homeowner' => 'Dueño de casa',
+        'homeowner_hint' => 'Ver y publicar tus proyectos',
+        'business' => 'Negocio',
+        'business_hint' => 'Escribe tu subdominio para entrar a tu panel',
+        'business_placeholder' => 'tunegocio',
+        'business_go' => 'Ir a mi panel',
+    ],
+
     'hero' => [
         'badge' => 'Hecho para negocios que se mueven',
         'tagline' => 'El lugar donde los constructores encuentran trabajo, los trabajadores encuentran empleo y los dueños de casa encuentran ayuda.',
@@ -21,6 +30,7 @@ return [
         'counter_tag' => 'y contando',
         'cta_explore' => 'Explorar negocios',
         'cta_join' => 'Súmate',
+        'cta_homeowner' => '¿Necesitas ayuda en casa? Publica tu proyecto gratis',
     ],
 
     'available' => [

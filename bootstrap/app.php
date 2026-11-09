@@ -25,6 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 return route('admin.login');
             }
 
+            if ($request->is('homeowners/*')) {
+                return route('homeowner.login');
+            }
+
             if ($request->is('clock-in*')) {
                 $loginUrl = $request->getSchemeAndHttpHost().'/clock-in/login';
 
