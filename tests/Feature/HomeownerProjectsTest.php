@@ -280,3 +280,56 @@ it('shows each homeowner projects in the admin list and lets the admin hide one'
 
     expect($project->fresh()->is_hidden)->toBeFalse();
 });
+
+it('lists every project in the admin projects module with filters and counters', function () {
+    $roof = Project::factory()->create(['title' => 'Replace my roof', 'city' => 'Omaha']);
+    Project::factory()->closed()->create(['title' => 'Build a fence', 'city' => 'Lincoln']);
+    ProjectInterest::factory()->for($roof)->create(['message' => 'I can start on Monday.']);
+
+    $this->actingAs(SuperAdmin::factory()->create(), 'super_admin');
+
+    $this->get(route('admin.projects.index'))
+        ->assertOk()
+        ->assertSee('Replace my roof')
+        ->assertSee('Build a fence')
+        ->assertSee($roof->homeowner->name)
+        ->assertSee('I can start on Monday.')
+        ->assertSee('href="'.route('admin.projects.index').'"', false);
+
+    Volt::test('admin.projects.index')
+        ->set('status', ProjectStatus::Closed->value)
+        ->assertSee('Build a fence')
+        ->assertDontSee('Replace my roof')
+        ->set('status', '')
+        ->set('search', 'Omaha')
+        ->assertSee('Replace my roof')
+        ->assertDontSee('Build a fence');
+});
+
+it('lets the admin hide and delete a project from the projects module', function () {
+    $project = Project::factory()->create();
+    $this->actingAs(SuperAdmin::factory()->create(), 'super_admin');
+
+    Volt::test('admin.projects.index')->call('toggleProjectHidden', $project->id);
+    expect($project->fresh()->is_hidden)->toBeTrue();
+
+    Volt::test('admin.projects.index')->call('deleteProject', $project->id);
+    expect(Project::find($project->id))->toBeNull();
+});
+
+it('keeps guests out of the admin projects module', function () {
+    $this->get(route('admin.projects.index'))->assertRedirect(route('admin.login'));
+});
+
+it('links every admin dashboard card to its module', function () {
+    Project::factory()->create();
+    $this->actingAs(SuperAdmin::factory()->create(), 'super_admin');
+
+    $response = $this->get(route('admin.dashboard'))->assertOk();
+
+    foreach (['admin.tenants.index', 'admin.homeowners.index', 'admin.projects.index', 'admin.categories.index', 'admin.plans.index', 'admin.settings.index'] as $routeName) {
+        $response->assertSee('href="'.route($routeName).'"', false);
+    }
+
+    $response->assertSee('Dueños de casa')->assertSee('1 abiertos');
+});

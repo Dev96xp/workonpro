@@ -360,7 +360,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         @include('livewire.tenant.partials.sidebar')
 
         <flux:main>
-            <div class="p-6">
+            <div class="sm:p-6">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <flux:heading size="xl">{{ __('tenant.invoices.heading') }}</flux:heading>

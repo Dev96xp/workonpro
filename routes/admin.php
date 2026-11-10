@@ -24,6 +24,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         Volt::route('homeowners', 'admin.homeowners.index')->name('homeowners.index');
+        Volt::route('projects', 'admin.projects.index')->name('projects.index');
 
         Route::prefix('categories')->name('categories.')->group(function () {
             Volt::route('/', 'admin.categories.index')->name('index');

@@ -109,7 +109,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         @include('livewire.tenant.partials.sidebar')
 
         <flux:main>
-            <div class="p-6">
+            <div class="sm:p-6">
             <div class="mb-6">
                 <flux:heading size="xl">{{ __('projects.heading') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('projects.subheading') }}</flux:text>

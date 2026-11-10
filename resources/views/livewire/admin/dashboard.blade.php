@@ -1,57 +1,54 @@
 <?php
 
+use App\Models\Category;
+use App\Models\Homeowner;
+use App\Models\Plan;
+use App\Models\Project;
 use App\Models\Tenant;
+use App\ProjectStatus;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.admin')] class extends Component {
-    public int $totalTenants = 0;
-    public int $tenantsThisMonth = 0;
-    public int $totalDomains = 0;
-
-    public function mount(): void
+    /**
+     * @return array{cards: list<array{route: string, icon: string, value: ?int, label: string, hint: string}>}
+     */
+    public function with(): array
     {
-        $this->totalTenants = Tenant::count();
-        $this->tenantsThisMonth = Tenant::whereMonth('created_at', now()->month)
+        $tenantsThisMonth = Tenant::whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->count();
-        $this->totalDomains = \Stancl\Tenancy\Database\Models\Domain::count();
+
+        return [
+            'cards' => [
+                ['route' => 'admin.tenants.index', 'icon' => 'building-office-2', 'value' => Tenant::count(), 'label' => 'Negocios', 'hint' => $tenantsThisMonth.' nuevos este mes'],
+                ['route' => 'admin.homeowners.index', 'icon' => 'home-modern', 'value' => Homeowner::count(), 'label' => 'Dueños de casa', 'hint' => Homeowner::where('created_at', '>=', now()->startOfMonth())->count().' nuevos este mes'],
+                ['route' => 'admin.projects.index', 'icon' => 'briefcase', 'value' => Project::count(), 'label' => 'Proyectos', 'hint' => Project::where('status', ProjectStatus::Open)->count().' abiertos'],
+                ['route' => 'admin.categories.index', 'icon' => 'tag', 'value' => Category::count(), 'label' => 'Categorías', 'hint' => 'Categorías y subcategorías'],
+                ['route' => 'admin.plans.index', 'icon' => 'credit-card', 'value' => Plan::count(), 'label' => 'Planes', 'hint' => 'Precios y recursos'],
+                ['route' => 'admin.settings.index', 'icon' => 'cog-6-tooth', 'value' => null, 'label' => 'Configuraciones', 'hint' => 'Ajustes y notificaciones'],
+            ],
+        ];
     }
 }; ?>
 
 <div>
     <flux:heading size="xl" class="mb-6">Dashboard</flux:heading>
 
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <flux:card>
-            <div class="flex items-center gap-4">
-                <flux:icon name="building-office-2" class="size-8 text-zinc-400" />
-                <div>
-                    <flux:heading size="lg">{{ $totalTenants }}</flux:heading>
-                    <flux:subheading>Total Negocios</flux:subheading>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        @foreach ($cards as $card)
+            <a href="{{ route($card['route']) }}" wire:navigate data-dashboard-card class="group flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-6 transition hover:border-yellow-400 dark:border-zinc-700 dark:bg-zinc-800">
+                <flux:icon :name="$card['icon']" class="size-8 text-zinc-400 transition group-hover:text-yellow-500" />
+                <div class="min-w-0 flex-1">
+                    @if ($card['value'] !== null)
+                        <flux:heading size="lg">{{ $card['value'] }}</flux:heading>
+                    @endif
+                    <flux:subheading>{{ $card['label'] }}</flux:subheading>
+                    <flux:text class="text-xs">{{ $card['hint'] }}</flux:text>
                 </div>
-            </div>
-        </flux:card>
-
-        <flux:card>
-            <div class="flex items-center gap-4">
-                <flux:icon name="calendar" class="size-8 text-zinc-400" />
-                <div>
-                    <flux:heading size="lg">{{ $tenantsThisMonth }}</flux:heading>
-                    <flux:subheading>Nuevos este mes</flux:subheading>
-                </div>
-            </div>
-        </flux:card>
-
-        <flux:card>
-            <div class="flex items-center gap-4">
-                <flux:icon name="globe-alt" class="size-8 text-zinc-400" />
-                <div>
-                    <flux:heading size="lg">{{ $totalDomains }}</flux:heading>
-                    <flux:subheading>Dominios activos</flux:subheading>
-                </div>
-            </div>
-        </flux:card>
+                <flux:icon.chevron-right class="size-5 text-zinc-300 transition group-hover:translate-x-1 group-hover:text-yellow-500" />
+            </a>
+        @endforeach
     </div>
 
     <div class="mt-8">

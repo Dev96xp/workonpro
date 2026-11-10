@@ -98,7 +98,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         @include('livewire.tenant.partials.sidebar')
 
         <flux:main>
-            <div class="space-y-8 p-6">
+            <div class="space-y-8 sm:p-6">
 
                 {{-- Hero header --}}
                 <div class="relative overflow-hidden rounded-2xl bg-zinc-900 p-6 shadow-xl sm:p-8 dark:bg-zinc-800">
@@ -118,7 +118,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                             {{ __('tenant.dashboard.plan') }} {{ $plan }}
                         </div>
                         <div
-                            class="mt-4 flex w-fit items-center gap-2 rounded-full border border-zinc-700 bg-zinc-800/60 py-2 pl-5 pr-2 font-mono text-xl text-zinc-300 sm:absolute sm:top-0 sm:right-0 sm:mt-0"
+                            class="mt-4 flex w-fit items-center gap-2 rounded-full border border-zinc-700 bg-zinc-800/60 py-2 pl-5 pr-2 font-mono text-base text-zinc-300 sm:text-lg sm:absolute sm:top-0 sm:right-0 sm:mt-0"
                             x-data="{
                                 copied: false,
                                 copy() {
