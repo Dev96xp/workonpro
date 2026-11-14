@@ -105,9 +105,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public string $profileSaved = '';
     public string $passwordSaved = '';
 
+    public bool $showOnboardingGuide = false;
+
     public function mount(): void
     {
         $this->account_type = tenant()->account_type?->value ?? AccountType::Business->value;
+        $this->showOnboardingGuide = tenant()->showsOnboardingGuide();
 
         $profile = BusinessProfile::first();
 
@@ -193,6 +196,16 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         ]);
 
         $this->profileSaved = __('tenant.settings.profile_saved');
+    }
+
+    public function updatedShowOnboardingGuide(bool $value): void
+    {
+        if ($value) {
+            tenant()->restartOnboardingGuide();
+            session()->forget('onboarding_guide_seen');
+        } else {
+            tenant()->hideOnboardingGuide();
+        }
     }
 
     public function savePassword(): void
@@ -461,6 +474,16 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 </flux:button>
                             </div>
                         </form>
+                    </div>
+
+                    {{-- Guía de inicio --}}
+                    <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
+                        <flux:heading size="lg">{{ __('onboarding.settings.heading') }}</flux:heading>
+                        <flux:text class="mt-1 text-sm text-zinc-500">{{ __('onboarding.settings.sub') }}</flux:text>
+
+                        <div class="mt-5">
+                            <flux:switch wire:model.live="showOnboardingGuide" label="{{ __('onboarding.settings.switch') }}" />
+                        </div>
                     </div>
 
                     {{-- Cambiar contraseña --}}

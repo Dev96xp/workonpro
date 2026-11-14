@@ -137,6 +137,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     </div>
                 </div>
 
+                {{-- Getting started guide --}}
+                <livewire:tenant.onboarding-guide />
+
                 {{-- Modules --}}
                 <div>
                     <flux:heading size="lg">{{ __('tenant.dashboard.modules_heading') }}</flux:heading>

@@ -51,6 +51,27 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         return $this->hasOne(TenantAvailability::class);
     }
 
+    /**
+     * How many logins the getting started guide keeps showing up for.
+     */
+    public const ONBOARDING_GUIDE_LOGINS = 5;
+
+    public function showsOnboardingGuide(): bool
+    {
+        return ! $this->onboarding_hidden
+            && (int) $this->onboarding_logins <= self::ONBOARDING_GUIDE_LOGINS;
+    }
+
+    public function restartOnboardingGuide(): void
+    {
+        $this->update(['onboarding_hidden' => false, 'onboarding_logins' => 0]);
+    }
+
+    public function hideOnboardingGuide(): void
+    {
+        $this->update(['onboarding_hidden' => true]);
+    }
+
     public function isPersonal(): bool
     {
         return $this->account_type === AccountType::Personal;
