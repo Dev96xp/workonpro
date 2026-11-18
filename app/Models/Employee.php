@@ -3,10 +3,14 @@
 namespace App\Models;
 
 use Database\Factories\EmployeeFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class Employee extends Authenticatable
 {
@@ -110,14 +114,78 @@ class Employee extends Authenticatable
         return $slug;
     }
 
+    /**
+     * A card is public when it is on, the person is active and it fits in the plan's limit.
+     * If the tenant moves to a smaller plan, the oldest cards keep working.
+     */
     public function hasPublicCard(): bool
     {
-        return $this->card_enabled && $this->card_slug !== null && $this->isActive();
+        if (! $this->card_enabled || $this->card_slug === null || ! $this->isActive()) {
+            return false;
+        }
+
+        $limit = Tenant::teamCardLimit(tenant('plan'));
+
+        return $limit === null
+            || self::query()->cardCandidates()->orderBy('id')->limit($limit)->pluck('id')->contains($this->id);
+    }
+
+    /**
+     * How many more cards the plan allows. Null means unlimited.
+     */
+    public static function cardSlotsLeft(): ?int
+    {
+        $limit = Tenant::teamCardLimit(tenant('plan'));
+
+        return $limit === null ? null : max(0, $limit - self::query()->cardCandidates()->count());
+    }
+
+    /**
+     * @param  Builder<Employee>  $query
+     */
+    public function scopeCardCandidates(Builder $query): void
+    {
+        $query->where('card_enabled', true)
+            ->whereNotNull('card_slug')
+            ->where('status', self::STATUS_ACTIVE);
     }
 
     public function cardUrl(): ?string
     {
         return $this->card_slug ? url('/card/'.$this->card_slug) : null;
+    }
+
+    /**
+     * Replaces the card photo with a compressed 600px square WebP, or removes it when null.
+     * Files live next to the other tenant images (outside the tenant-suffixed disk).
+     */
+    public function replacePhoto(?UploadedFile $file): void
+    {
+        if ($this->photo_path && file_exists($oldPath = base_path("storage/app/public/{$this->photo_path}"))) {
+            unlink($oldPath);
+        }
+
+        $path = null;
+
+        if ($file) {
+            $tenantId = tenant('id');
+            $filename = Str::random(16).'.webp';
+            $directory = base_path("storage/app/public/tenants/{$tenantId}/employees");
+
+            if (! is_dir($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
+            ImageManager::withDriver(new Driver)
+                ->read($file->getRealPath())
+                ->cover(600, 600)
+                ->toWebp(85)
+                ->save("{$directory}/{$filename}");
+
+            $path = "tenants/{$tenantId}/employees/{$filename}";
+        }
+
+        $this->update(['photo_path' => $path]);
     }
 
     public function photoUrl(): ?string

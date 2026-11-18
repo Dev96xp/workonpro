@@ -77,7 +77,7 @@ class BusinessCardController extends Controller
     private function findEmployee(string $slug): Employee
     {
         $this->ensurePlanHasCards();
-        abort_unless(Tenant::hasFeature(tenant('plan'), 'employees'), 404);
+        abort_unless(Tenant::hasTeamCards(tenant('plan')), 404);
 
         $employee = Employee::query()->where('card_slug', $slug)->firstOrFail();
 

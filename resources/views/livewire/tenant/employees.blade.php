@@ -4,8 +4,6 @@ use App\Models\Employee;
 use App\Models\Tenant;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Intervention\Image\Drivers\Gd\Driver;
-use Intervention\Image\ImageManager;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Volt\Component;
@@ -56,7 +54,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     {
         abort_unless(Tenant::hasFeature(tenant('plan'), 'employees'), 403);
 
-        $this->hasCards = Tenant::hasFeature(tenant('plan'), 'businesscard');
+        $this->hasCards = Tenant::hasTeamCards(tenant('plan')) && Tenant::hasFeature(tenant('plan'), 'businesscard');
     }
 
     public function with(): array
@@ -110,6 +108,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             'photo' => 'nullable|image|max:10240',
         ]);
 
+        if ($this->hasCards && $this->card_enabled && ! $this->cardFitsInPlan()) {
+            $this->addError('card_enabled', __('team.limit_reached'));
+
+            return;
+        }
+
         $data = [
             'name' => $this->name,
             'email' => $this->email,
@@ -134,8 +138,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         }
 
         if ($this->photo || $this->removePhoto) {
-            $this->deletePhotoFile($employee->photo_path);
-            $employee->update(['photo_path' => $this->photo ? $this->storePhoto($this->photo) : null]);
+            $employee->replacePhoto($this->photo);
         }
 
         if ($employee->card_enabled) {
@@ -156,7 +159,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     {
         if ($this->deletingId) {
             $employee = Employee::findOrFail($this->deletingId);
-            $this->deletePhotoFile($employee->photo_path);
+            $employee->replacePhoto(null);
             $employee->delete();
         }
 
@@ -185,32 +188,14 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     }
 
     /**
-     * Saves the photo compressed to a 600px square WebP next to the other tenant images.
+     * Turning a card on needs a free slot, unless this person already had one.
      */
-    private function storePhoto($file): string
+    private function cardFitsInPlan(): bool
     {
-        $tenantId = tenant('id');
-        $filename = Str::random(16).'.webp';
-        $directory = base_path("storage/app/public/tenants/{$tenantId}/employees");
+        $alreadyHasCard = $this->editingId
+            && Employee::query()->cardCandidates()->whereKey($this->editingId)->exists();
 
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        ImageManager::withDriver(new Driver)
-            ->read($file->getRealPath())
-            ->cover(600, 600)
-            ->toWebp(85)
-            ->save("{$directory}/{$filename}");
-
-        return "tenants/{$tenantId}/employees/{$filename}";
-    }
-
-    private function deletePhotoFile(?string $path): void
-    {
-        if ($path && file_exists($fullPath = base_path("storage/app/public/{$path}"))) {
-            unlink($fullPath);
-        }
+        return $alreadyHasCard || Employee::cardSlotsLeft() !== 0;
     }
 
     private function resetForm(): void
@@ -481,6 +466,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 <div class="rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
                     <flux:switch wire:model="card_enabled" label="{{ __('tenant.employees.card_switch') }}" />
                     <flux:text class="mt-1 text-xs">{{ __('tenant.employees.card_hint') }}</flux:text>
+                    <flux:error name="card_enabled" />
                 </div>
             @endif
 

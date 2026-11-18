@@ -72,6 +72,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             $hasEmployees ? ['url' => url('/attendance/payroll'), 'icon' => 'banknotes', 'label' => __('tenant.nav.payroll')] : null,
             Tenant::hasFeature(tenant('plan'), 'businesscard') ? ['url' => url('/card'), 'icon' => 'identification', 'label' => __('tenant.dashboard.business_card'), 'external' => true] : null,
             ['url' => url('/'), 'icon' => 'globe-alt', 'label' => __('tenant.dashboard.public_page'), 'external' => true],
+            ['url' => url('/team'), 'icon' => 'identification', 'label' => __('team.nav')],
             ['url' => url('/plan'), 'icon' => 'credit-card', 'label' => __('billing.nav')],
             ['url' => url('/settings'), 'icon' => 'cog-6-tooth', 'label' => __('tenant.nav.settings')],
         ]));

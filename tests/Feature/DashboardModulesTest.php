@@ -40,8 +40,8 @@ function visitDashboardModules(string $plan): array
 it('links every module included in the basic plan', function () {
     $paths = visitDashboardModules('basic');
 
-    expect($paths)->toContain('/clients', '/services', '/coupons', '/availability', '/images', '/settings', '/')
-        ->not->toContain('/invoices', '/employees', '/appointments', '/card');
+    expect($paths)->toContain('/clients', '/services', '/coupons', '/availability', '/images', '/settings', '/', '/card', '/team', '/plan')
+        ->not->toContain('/invoices', '/employees', '/appointments');
 });
 
 it('shows the totals on the module tiles instead of separate stat cards', function () {
@@ -61,7 +61,7 @@ it('shows the totals on the module tiles instead of separate stat cards', functi
 it('adds the modules unlocked by the plan features', function () {
     $pro = Plan::where('slug', 'pro')->first();
     foreach (['invoices', 'employees', 'appointments', 'businesscard'] as $feature) {
-        $pro->items()->create(['name' => $feature, 'quantity' => null]);
+        $pro->items()->firstOrCreate(['name' => $feature], ['quantity' => null]);
     }
 
     $paths = visitDashboardModules('pro');

@@ -21,7 +21,7 @@ class PlanSeeder extends Seeder
                 'old_price' => 29,
                 'sort_order' => 1,
                 'is_active' => true,
-                'items' => ['images' => 20, 'services' => 3, 'coupons' => 2],
+                'items' => ['images' => 20, 'services' => 3, 'coupons' => 2, 'businesscard' => null, 'team_cards' => 2],
             ],
             [
                 'name' => 'Pro',
@@ -30,7 +30,7 @@ class PlanSeeder extends Seeder
                 'old_price' => 79,
                 'sort_order' => 2,
                 'is_active' => true,
-                'items' => ['images' => 100, 'services' => null, 'coupons' => null, 'projects' => null],
+                'items' => ['images' => 100, 'services' => null, 'coupons' => null, 'projects' => null, 'businesscard' => null, 'team_cards' => 5],
             ],
             [
                 'name' => 'Enterprise',
@@ -39,7 +39,7 @@ class PlanSeeder extends Seeder
                 'old_price' => 129,
                 'sort_order' => 3,
                 'is_active' => true,
-                'items' => ['images' => null, 'services' => null, 'coupons' => null, 'projects' => null],
+                'items' => ['images' => null, 'services' => null, 'coupons' => null, 'projects' => null, 'businesscard' => null, 'team_cards' => null],
             ],
         ];
 

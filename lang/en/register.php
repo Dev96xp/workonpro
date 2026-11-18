@@ -24,6 +24,9 @@ return [
         'basic_name' => 'Basic',
         'basic_item_images' => '20 images',
         'basic_item_services' => '3 services',
+        'basic_item_team_cards' => 'Digital cards for 2 people on your team',
+        'pro_item_team_cards' => 'Digital cards for 5 people on your team',
+        'enterprise_item_team_cards' => 'Digital cards for your whole team',
 
         'pro_badge' => 'Most popular',
         'pro_name' => 'Pro',

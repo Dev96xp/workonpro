@@ -18,7 +18,7 @@ afterEach(function () {
 beforeEach(function () {
     (new PlanSeeder)->run();
 
-    Plan::where('slug', 'pro')->first()->items()->create(['name' => 'businesscard', 'quantity' => null]);
+    Plan::where('slug', 'pro')->first()->items()->firstOrCreate(['name' => 'businesscard'], ['quantity' => null]);
 });
 
 afterEach(function () {
@@ -96,6 +96,7 @@ it('downloads a vcard with the business contact info', function () {
 });
 
 it('blocks the business card and vcard on plans without the feature', function () {
+    Plan::where('slug', 'basic')->first()->items()->where('name', 'businesscard')->delete();
     $tenant = makeBusinessCardTestTenant('cardtenantbasic', 'basic');
     tenancy()->initialize($tenant);
 

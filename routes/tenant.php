@@ -173,5 +173,6 @@ Route::middleware([
         })->name('tenant.invoices.print');
         Volt::route('/settings', 'tenant.settings')->name('tenant.settings');
         Volt::route('/plan', 'tenant.plan')->name('tenant.plan');
+        Volt::route('/team', 'tenant.team')->name('tenant.team');
     });
 });

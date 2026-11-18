@@ -41,6 +41,8 @@ new #[Layout('components.layouts.guest')] class extends Component {
                     <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> {{ __('register.plans.item_unlimited_clients') }}</li>
                     <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> {{ __('register.plans.item_coupons') }}</li>
                     <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> {{ __('register.plans.item_subdomain') }}</li>
+                    <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> <span class="font-bold">{{ __('register.plans.item_businesscard') }}</span></li>
+                    <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> {{ __('register.plans.basic_item_team_cards') }}</li>
                 </ul>
                 <button type="button" wire:click="selectPlan('basic')" class="mt-8 block w-full cursor-pointer border border-zinc-700 py-4 text-center text-sm font-bold text-yellow-400 transition hover:border-yellow-400 hover:text-yellow-300">
                     {{ __('register.plans.cta_start') }}
@@ -63,6 +65,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                     <li class="flex items-center gap-3"><span class="font-black text-zinc-900">—</span> <span class="font-bold">{{ __('register.plans.item_billing') }}</span></li>
                     <li class="flex items-center gap-3"><span class="font-black text-zinc-900">—</span> <span class="font-bold">{{ __('register.plans.item_appointments') }}</span></li>
                     <li class="flex items-center gap-3"><span class="font-black text-zinc-900">—</span> <span class="font-bold">{{ __('register.plans.item_businesscard') }}</span></li>
+                    <li class="flex items-center gap-3"><span class="font-black text-zinc-900">—</span> {{ __('register.plans.pro_item_team_cards') }}</li>
                     <li class="flex items-center gap-3"><span class="font-black text-zinc-900">—</span> {{ __('register.plans.pro_item_support') }}</li>
                 </ul>
                 <button type="button" wire:click="selectPlan('pro')" class="mt-8 block w-full cursor-pointer bg-zinc-900 py-4 text-center text-sm font-black text-yellow-400 transition hover:bg-zinc-800">
@@ -84,6 +87,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                     <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> <span class="font-bold">{{ __('register.plans.item_appointments') }}</span></li>
                     <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> <span class="font-bold">{{ __('register.plans.item_employees') }}</span></li>
                     <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> <span class="font-bold">{{ __('register.plans.item_businesscard') }}</span></li>
+                    <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> {{ __('register.plans.enterprise_item_team_cards') }}</li>
                     <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> {{ __('register.plans.enterprise_item_support') }}</li>
                     <li class="flex items-center gap-3"><span class="font-bold text-yellow-400">—</span> {{ __('register.plans.enterprise_item_integrations') }}</li>
                 </ul>

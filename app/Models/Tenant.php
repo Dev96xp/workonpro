@@ -72,6 +72,27 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         $this->update(['onboarding_hidden' => true]);
     }
 
+    /**
+     * Whether the plan gives cards to team members: through "Tarjetas del equipo", or through
+     * the full employees module (which always included cards).
+     */
+    public static function hasTeamCards(?string $plan): bool
+    {
+        return self::hasFeature($plan, 'team_cards') || self::hasFeature($plan, 'employees');
+    }
+
+    /**
+     * How many team members can have a public card. Null means unlimited.
+     */
+    public static function teamCardLimit(?string $plan): ?int
+    {
+        if (self::hasFeature($plan, 'team_cards')) {
+            return self::planLimit($plan, 'team_cards');
+        }
+
+        return self::hasFeature($plan, 'employees') ? null : 0;
+    }
+
     public function isPersonal(): bool
     {
         return $this->account_type === AccountType::Personal;

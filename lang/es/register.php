@@ -24,6 +24,9 @@ return [
         'basic_name' => 'Básico',
         'basic_item_images' => '20 imágenes',
         'basic_item_services' => '3 servicios',
+        'basic_item_team_cards' => 'Tarjetas digitales para 2 personas de tu equipo',
+        'pro_item_team_cards' => 'Tarjetas digitales para 5 personas de tu equipo',
+        'enterprise_item_team_cards' => 'Tarjetas digitales para todo tu equipo',
 
         'pro_badge' => 'Más popular',
         'pro_name' => 'Pro',

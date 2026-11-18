@@ -14,9 +14,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
      * @var array<string, list<string>>
      */
     private const FEATURES = [
-        'basic' => ['basic_item_images', 'basic_item_services', 'item_unlimited_clients', 'item_coupons', 'item_subdomain'],
-        'pro' => ['pro_item_images', 'item_unlimited_clients', 'item_coupons', 'item_subdomain', 'item_billing', 'item_appointments', 'item_businesscard', 'pro_item_support'],
-        'enterprise' => ['enterprise_item_images', 'item_unlimited_clients', 'item_coupons', 'item_subdomain', 'item_billing', 'item_appointments', 'item_employees', 'item_businesscard', 'enterprise_item_support', 'enterprise_item_integrations'],
+        'basic' => ['basic_item_images', 'basic_item_services', 'item_unlimited_clients', 'item_coupons', 'item_subdomain', 'item_businesscard', 'basic_item_team_cards'],
+        'pro' => ['pro_item_images', 'item_unlimited_clients', 'item_coupons', 'item_subdomain', 'item_billing', 'item_appointments', 'item_businesscard', 'pro_item_team_cards', 'pro_item_support'],
+        'enterprise' => ['enterprise_item_images', 'item_unlimited_clients', 'item_coupons', 'item_subdomain', 'item_billing', 'item_appointments', 'item_employees', 'item_businesscard', 'enterprise_item_team_cards', 'enterprise_item_support', 'enterprise_item_integrations'],
     ];
 
     #[Url(as: 'session_id', except: null)]

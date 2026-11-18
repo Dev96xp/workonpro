@@ -27,6 +27,7 @@ afterEach(function () {
     }
 
     File::deleteDirectory(base_path('storage/app/public/tenants/employeecard'));
+    File::deleteDirectory(base_path('storage/tenantemployeecard'));
     Tenant::query()->where('id', 'employeecard')->get()->each->delete();
 });
 
@@ -118,10 +119,16 @@ it('hides the card when it is turned off or the employee is not active', functio
     visitTenantUrl('tenant.employee-card', ['slug' => 'nobody'])->assertNotFound();
 });
 
-it('only works on plans with employees and digital cards', function () {
+it('only works on plans with digital cards and team cards', function () {
     makeEmployeeCardTenant('pro');
     makeCardEmployee();
 
+    visitTenantUrl('tenant.employee-card', ['slug' => 'erika-mendoza'])->assertOk();
+
+    Plan::where('slug', 'pro')->first()->items()->where('name', 'team_cards')->delete();
+    visitTenantUrl('tenant.employee-card', ['slug' => 'erika-mendoza'])->assertNotFound();
+
+    Plan::where('slug', 'pro')->first()->items()->where('name', 'businesscard')->delete();
     visitTenantUrl('tenant.employee-card', ['slug' => 'erika-mendoza'])->assertStatus(403);
 });
 
