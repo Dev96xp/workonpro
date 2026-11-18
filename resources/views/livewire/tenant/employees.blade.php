@@ -159,7 +159,6 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     {
         if ($this->deletingId) {
             $employee = Employee::findOrFail($this->deletingId);
-            $employee->replacePhoto(null);
             $employee->delete();
         }
 

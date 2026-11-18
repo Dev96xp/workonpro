@@ -194,3 +194,21 @@ it('does not offer cards when the plan has no digital card', function () {
         ->assertSet('hasCards', false)
         ->assertDontSee('Digital card');
 });
+
+it('deletes the photo file when the photo is replaced or the employee is deleted from anywhere', function () {
+    makeEmployeeCardTenant();
+    $employee = makeCardEmployee();
+
+    $employee->replacePhoto(UploadedFile::fake()->image('first.jpg', 800, 800));
+    $firstPhoto = base_path('storage/app/public/'.$employee->photo_path);
+
+    $employee->replacePhoto(UploadedFile::fake()->image('second.jpg', 800, 800));
+    $secondPhoto = base_path('storage/app/public/'.$employee->photo_path);
+
+    expect($firstPhoto)->not->toBeFile()
+        ->and($secondPhoto)->toBeFile();
+
+    $employee->delete();
+
+    expect($secondPhoto)->not->toBeFile();
+});

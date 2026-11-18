@@ -85,6 +85,10 @@ class Employee extends Authenticatable
         static::created(function (Employee $employee) {
             $employee->forceFill(['employee_code' => $employee->generateEmployeeCode()])->saveQuietly();
         });
+
+        static::deleted(function (Employee $employee) {
+            $employee->deletePhotoFile();
+        });
     }
 
     public function attendances(): HasMany
@@ -161,9 +165,7 @@ class Employee extends Authenticatable
      */
     public function replacePhoto(?UploadedFile $file): void
     {
-        if ($this->photo_path && file_exists($oldPath = base_path("storage/app/public/{$this->photo_path}"))) {
-            unlink($oldPath);
-        }
+        $this->deletePhotoFile();
 
         $path = null;
 
@@ -186,6 +188,13 @@ class Employee extends Authenticatable
         }
 
         $this->update(['photo_path' => $path]);
+    }
+
+    public function deletePhotoFile(): void
+    {
+        if ($this->photo_path && file_exists($path = base_path("storage/app/public/{$this->photo_path}"))) {
+            unlink($path);
+        }
     }
 
     public function photoUrl(): ?string

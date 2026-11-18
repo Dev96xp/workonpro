@@ -139,7 +139,6 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         abort_if($this->hasEmployeesModule, 403);
 
         $employee = Employee::findOrFail($id);
-        $employee->replacePhoto(null);
         $employee->delete();
     }
 
