@@ -2,14 +2,18 @@
 
 use App\Models\Employee;
 use App\Models\Tenant;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Volt\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 new #[Layout('components.layouts.tenant')] class extends Component {
-    use WithPagination;
+    use WithFileUploads, WithPagination;
 
     public string $search = '';
 
@@ -34,9 +38,25 @@ new #[Layout('components.layouts.tenant')] class extends Component {
 
     public string $status = Employee::STATUS_ACTIVE;
 
+    public string $phone = '';
+
+    public string $whatsapp = '';
+
+    public $photo = null;
+
+    public ?string $existingPhotoUrl = null;
+
+    public bool $removePhoto = false;
+
+    public bool $card_enabled = false;
+
+    public bool $hasCards = false;
+
     public function mount(): void
     {
         abort_unless(Tenant::hasFeature(tenant('plan'), 'employees'), 403);
+
+        $this->hasCards = Tenant::hasFeature(tenant('plan'), 'businesscard');
     }
 
     public function with(): array
@@ -68,6 +88,10 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $this->salary = $employee->salary !== null ? (string) $employee->salary : '';
         $this->salary_period = $employee->salary_period ?? Employee::PERIOD_MONTHLY;
         $this->status = $employee->status;
+        $this->phone = $employee->phone ?? '';
+        $this->whatsapp = $employee->whatsapp ?? '';
+        $this->existingPhotoUrl = $employee->photoUrl();
+        $this->card_enabled = $employee->card_enabled;
         $this->showModal = true;
     }
 
@@ -81,6 +105,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             'salary' => 'nullable|numeric|min:0',
             'salary_period' => 'nullable|in:'.implode(',', Employee::SALARY_PERIODS),
             'status' => 'required|in:'.implode(',', Employee::STATUSES),
+            'phone' => 'nullable|string|max:30',
+            'whatsapp' => 'nullable|string|max:30',
+            'photo' => 'nullable|image|max:10240',
         ]);
 
         $data = [
@@ -90,6 +117,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             'salary' => $this->salary !== '' ? $this->salary : null,
             'salary_period' => $this->salary !== '' ? $this->salary_period : null,
             'status' => $this->status,
+            'phone' => $this->phone !== '' ? $this->phone : null,
+            'whatsapp' => $this->whatsapp !== '' ? $this->whatsapp : null,
+            'card_enabled' => $this->hasCards && $this->card_enabled,
         ];
 
         if ($this->password !== '') {
@@ -97,9 +127,19 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         }
 
         if ($this->editingId) {
-            Employee::findOrFail($this->editingId)->update($data);
+            $employee = Employee::findOrFail($this->editingId);
+            $employee->update($data);
         } else {
-            Employee::create($data);
+            $employee = Employee::create($data);
+        }
+
+        if ($this->photo || $this->removePhoto) {
+            $this->deletePhotoFile($employee->photo_path);
+            $employee->update(['photo_path' => $this->photo ? $this->storePhoto($this->photo) : null]);
+        }
+
+        if ($employee->card_enabled) {
+            $employee->ensureCardSlug();
         }
 
         $this->showModal = false;
@@ -115,7 +155,9 @@ new #[Layout('components.layouts.tenant')] class extends Component {
     public function delete(): void
     {
         if ($this->deletingId) {
-            Employee::findOrFail($this->deletingId)->delete();
+            $employee = Employee::findOrFail($this->deletingId);
+            $this->deletePhotoFile($employee->photo_path);
+            $employee->delete();
         }
 
         $this->showDeleteModal = false;
@@ -135,6 +177,42 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $this->redirect(url('/'));
     }
 
+    public function clearPhoto(): void
+    {
+        $this->photo = null;
+        $this->existingPhotoUrl = null;
+        $this->removePhoto = true;
+    }
+
+    /**
+     * Saves the photo compressed to a 600px square WebP next to the other tenant images.
+     */
+    private function storePhoto($file): string
+    {
+        $tenantId = tenant('id');
+        $filename = Str::random(16).'.webp';
+        $directory = base_path("storage/app/public/tenants/{$tenantId}/employees");
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        ImageManager::withDriver(new Driver)
+            ->read($file->getRealPath())
+            ->cover(600, 600)
+            ->toWebp(85)
+            ->save("{$directory}/{$filename}");
+
+        return "tenants/{$tenantId}/employees/{$filename}";
+    }
+
+    private function deletePhotoFile(?string $path): void
+    {
+        if ($path && file_exists($fullPath = base_path("storage/app/public/{$path}"))) {
+            unlink($fullPath);
+        }
+    }
+
     private function resetForm(): void
     {
         $this->name = '';
@@ -144,6 +222,12 @@ new #[Layout('components.layouts.tenant')] class extends Component {
         $this->salary = '';
         $this->salary_period = Employee::PERIOD_MONTHLY;
         $this->status = Employee::STATUS_ACTIVE;
+        $this->phone = '';
+        $this->whatsapp = '';
+        $this->photo = null;
+        $this->existingPhotoUrl = null;
+        $this->removePhoto = false;
+        $this->card_enabled = false;
         $this->resetValidation();
     }
 }; ?>
@@ -180,13 +264,25 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.employees.role_label') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.employees.salary_label') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.status') }}</th>
+                                @if ($hasCards)
+                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.employees.card_column') }}</th>
+                                @endif
                                 <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('tenant.common.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
                             @forelse ($employees as $employee)
                                 <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700/50">
-                                    <td class="px-6 py-4 font-medium">{{ $employee->name }}</td>
+                                    <td class="px-6 py-4 font-medium">
+                                        <div class="flex items-center gap-3">
+                                            @if ($employee->photoUrl())
+                                                <img src="{{ $employee->photoUrl() }}" alt="{{ $employee->name }}" class="size-8 shrink-0 rounded-full object-cover" />
+                                            @else
+                                                <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-xs font-bold text-yellow-400">{{ $employee->initials() }}</span>
+                                            @endif
+                                            {{ $employee->name }}
+                                        </div>
+                                    </td>
                                     <td class="px-6 py-4">
                                         <div
                                             class="flex items-center gap-1"
@@ -233,6 +329,31 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                             {{ __('tenant.employees.status_'.$employee->status) }}
                                         </flux:badge>
                                     </td>
+                                    @if ($hasCards)
+                                        <td class="px-6 py-4" data-employee-card="{{ $employee->id }}">
+                                            @if ($employee->hasPublicCard())
+                                                <div
+                                                    class="flex items-center gap-1"
+                                                    x-data="{
+                                                        copied: false,
+                                                        copy() {
+                                                            navigator.clipboard.writeText(@js($employee->cardUrl()));
+                                                            this.copied = true;
+                                                            setTimeout(() => this.copied = false, 1500);
+                                                        },
+                                                    }"
+                                                >
+                                                    <flux:button href="{{ $employee->cardUrl() }}" target="_blank" size="xs" icon="identification">{{ __('tenant.employees.card_open') }}</flux:button>
+                                                    <flux:button x-on:click="copy()" variant="subtle" size="xs" square aria-label="{{ __('tenant.employees.card_copy') }}">
+                                                        <flux:icon.clipboard-document-check variant="mini" x-show="copied" x-cloak />
+                                                        <flux:icon.clipboard-document variant="mini" x-show="!copied" />
+                                                    </flux:button>
+                                                </div>
+                                            @else
+                                                <span class="text-xs text-zinc-400">{{ $employee->card_enabled ? __('tenant.employees.card_needs_active') : __('tenant.employees.card_off') }}</span>
+                                            @endif
+                                        </td>
+                                    @endif
                                     <td class="px-6 py-4 text-right">
                                         <div class="flex justify-end gap-2">
                                             <flux:button wire:click="openEdit({{ $employee->id }})" size="sm" icon="pencil" />
@@ -242,7 +363,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-6 py-12 text-center text-zinc-500">
+                                    <td colspan="{{ $hasCards ? 8 : 7 }}" class="px-6 py-12 text-center text-zinc-500">
                                         {{ __('tenant.employees.empty') }}
                                     </td>
                                 </tr>
@@ -296,6 +417,40 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                 </flux:field>
 
                 <flux:field>
+                    <flux:label>{{ __('tenant.employees.phone_label') }}</flux:label>
+                    <flux:input wire:model="phone" type="tel" />
+                    <flux:error name="phone" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>{{ __('tenant.employees.whatsapp_label') }}</flux:label>
+                    <flux:input wire:model="whatsapp" type="tel" />
+                    <flux:error name="whatsapp" />
+                </flux:field>
+
+                <flux:field class="sm:col-span-2">
+                    <flux:label>{{ __('tenant.employees.photo_label') }}</flux:label>
+                    <div class="flex items-center gap-4">
+                        @if ($photo && method_exists($photo, 'isPreviewable') && $photo->isPreviewable())
+                            <img src="{{ $photo->temporaryUrl() }}" class="size-16 shrink-0 rounded-full object-cover" alt="" />
+                        @elseif ($existingPhotoUrl)
+                            <img src="{{ $existingPhotoUrl }}" class="size-16 shrink-0 rounded-full object-cover" alt="" />
+                        @else
+                            <span class="flex size-16 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-lg font-bold text-yellow-400">{{ $name ? (new Employee(['name' => $name]))->initials() : '?' }}</span>
+                        @endif
+                        <div class="min-w-0 flex-1 space-y-2">
+                            <input type="file" wire:model="photo" accept="image/*" class="block w-full text-sm text-zinc-500 file:mr-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-700 dark:file:text-zinc-200" />
+                            <div wire:loading wire:target="photo" class="text-xs text-zinc-500">{{ __('tenant.common.saving') }}</div>
+                            @if ($photo || $existingPhotoUrl)
+                                <flux:button type="button" wire:click="clearPhoto" size="xs" variant="ghost" icon="x-mark">{{ __('tenant.employees.remove_photo') }}</flux:button>
+                            @endif
+                        </div>
+                    </div>
+                    <flux:description>{{ __('tenant.employees.photo_hint') }}</flux:description>
+                    <flux:error name="photo" />
+                </flux:field>
+
+                <flux:field>
                     <flux:label>{{ __('tenant.employees.salary_label') }}</flux:label>
                     <flux:input wire:model="salary" type="number" step="0.01" min="0" />
                     <flux:error name="salary" />
@@ -321,6 +476,13 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     <flux:error name="status" />
                 </flux:field>
             </div>
+
+            @if ($hasCards)
+                <div class="rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+                    <flux:switch wire:model="card_enabled" label="{{ __('tenant.employees.card_switch') }}" />
+                    <flux:text class="mt-1 text-xs">{{ __('tenant.employees.card_hint') }}</flux:text>
+                </div>
+            @endif
 
             <div class="flex justify-end gap-3 pt-2">
                 <flux:button type="button" wire:click="$set('showModal', false)">{{ __('tenant.common.cancel') }}</flux:button>

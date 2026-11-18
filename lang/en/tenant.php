@@ -325,6 +325,18 @@ return [
     ],
 
     'employees' => [
+        'phone_label' => 'Phone',
+        'whatsapp_label' => 'WhatsApp',
+        'photo_label' => 'Photo',
+        'photo_hint' => 'Shown on their digital card. If there is no photo, their initials are shown.',
+        'remove_photo' => 'Remove photo',
+        'card_column' => 'Digital card',
+        'card_switch' => 'Digital card',
+        'card_hint' => 'Gives this employee their own digital card with your business logo. You can save the link on an NFC card.',
+        'card_open' => 'Open',
+        'card_copy' => 'Copy link',
+        'card_off' => 'Off',
+        'card_needs_active' => 'Only for active employees',
         'heading' => 'Employees',
         'subheading' => 'Manage your employee accounts',
         'new' => 'New employee',

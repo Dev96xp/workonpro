@@ -127,7 +127,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                     <div class="mt-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
                         {{ __('tenant.images.limit_banner', ['limit' => $limit]) }}
                         @if (tenant('plan') === 'basic')
-                            <a href="#" class="font-semibold underline">{{ __('tenant.common.upgrade_plan') }}</a> {{ __('tenant.images.upgrade_suffix') }}
+                            <a href="{{ url('/plan') }}" wire:navigate class="font-semibold underline">{{ __('tenant.common.upgrade_plan') }}</a> {{ __('tenant.images.upgrade_suffix') }}
                         @endif
                     </div>
                 @endif

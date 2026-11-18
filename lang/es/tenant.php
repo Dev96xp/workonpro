@@ -325,6 +325,18 @@ return [
     ],
 
     'employees' => [
+        'phone_label' => 'Teléfono',
+        'whatsapp_label' => 'WhatsApp',
+        'photo_label' => 'Foto',
+        'photo_hint' => 'Se muestra en su tarjeta digital. Si no tiene foto, se muestran sus iniciales.',
+        'remove_photo' => 'Quitar foto',
+        'card_column' => 'Tarjeta digital',
+        'card_switch' => 'Tarjeta digital',
+        'card_hint' => 'Le da a este empleado su propia tarjeta digital con el logo de tu negocio. Puedes grabar el enlace en una tarjeta NFC.',
+        'card_open' => 'Abrir',
+        'card_copy' => 'Copiar enlace',
+        'card_off' => 'Desactivada',
+        'card_needs_active' => 'Solo para empleados activos',
         'heading' => 'Empleados',
         'subheading' => 'Gestiona las cuentas de tus empleados',
         'new' => 'Nuevo empleado',

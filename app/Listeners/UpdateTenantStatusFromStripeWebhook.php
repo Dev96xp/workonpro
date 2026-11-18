@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Models\Plan;
 use App\Models\Tenant;
 use Laravel\Cashier\Events\WebhookReceived;
 
@@ -36,10 +37,38 @@ class UpdateTenantStatusFromStripeWebhook
         }
 
         $status = $this->resolveStatus($type, $object);
+        $plan = $type === 'customer.subscription.updated' ? $this->resolvePlan($object) : null;
 
-        if ($status !== null && $tenant->status !== $status) {
-            $tenant->update(['status' => $status]);
+        $changes = array_filter([
+            'status' => $status !== null && $tenant->status !== $status ? $status : null,
+            'plan' => $plan !== null && $tenant->plan !== $plan ? $plan : null,
+        ]);
+
+        if ($changes !== []) {
+            $tenant->update($changes);
         }
+    }
+
+    /**
+     * Plan the subscription now charges for, so a plan changed from the tenant panel, the Stripe
+     * portal or the Stripe dashboard always ends up the same in Workon.
+     */
+    private function resolvePlan(array $object): ?string
+    {
+        $slug = $object['metadata']['plan'] ?? null;
+
+        if ($slug !== null && Plan::query()->where('slug', $slug)->exists()) {
+            return $slug;
+        }
+
+        $priceId = $object['items']['data'][0]['price']['id'] ?? null;
+
+        if ($priceId === null) {
+            return null;
+        }
+
+        return Plan::query()->where('stripe_price_id', $priceId)->value('slug')
+            ?: (array_search($priceId, array_filter((array) config('services.stripe.prices')), true) ?: null);
     }
 
     private function resolveStatus(string $type, array $object): ?string

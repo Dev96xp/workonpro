@@ -125,7 +125,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                         <p class="font-semibold text-zinc-900 dark:text-yellow-300">{{ __('projects.upgrade_title') }}</p>
                         <p class="text-sm text-zinc-600 dark:text-zinc-300">{{ __('projects.upgrade_body') }}</p>
                     </div>
-                    <flux:badge color="yellow" icon="sparkles">Pro</flux:badge>
+                    <flux:button size="sm" variant="primary" icon="sparkles" href="{{ url('/plan') }}" wire:navigate>{{ __('projects.upgrade_to_respond') }}</flux:button>
                 </div>
             @endunless
 
@@ -180,7 +180,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                                 @elseif ($canRespond)
                                     <flux:button wire:click="openInterest({{ $project->id }})" variant="primary" size="sm" icon="hand-raised">{{ __('projects.interested') }}</flux:button>
                                 @else
-                                    <flux:button size="sm" icon="lock-closed" disabled>{{ __('projects.upgrade_to_respond') }}</flux:button>
+                                    <flux:button size="sm" icon="lock-closed" href="{{ url('/plan') }}" wire:navigate>{{ __('projects.upgrade_to_respond') }}</flux:button>
                                 @endif
                             </div>
                         </div>

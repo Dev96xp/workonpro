@@ -3,18 +3,16 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\PwaManifestController;
+use App\Http\Controllers\Tenant\BusinessCardController;
 use App\Http\Controllers\Tenant\ImageController;
 use App\Http\Middleware\SetLocale;
 use App\Models\Attendance;
-use App\Models\BusinessImage;
-use App\Models\BusinessProfile;
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Str;
 use Livewire\Volt\Volt;
 /*
 |--------------------------------------------------------------------------
@@ -40,50 +38,11 @@ Route::middleware([
 
     Route::get('/manifest.webmanifest', PwaManifestController::class)->name('tenant.pwa.manifest');
 
-    // Tarjeta de presentación digital del negocio
-    Route::get('/card', function () {
-        abort_unless(Tenant::hasFeature(tenant('plan'), 'businesscard'), 403);
-
-        $profile = BusinessProfile::first();
-        $businessName = $profile?->business_name ?: tenant('name');
-
-        return view('tenant.businesscard', [
-            'businessName' => $businessName,
-            'businessSlogan' => $profile?->slogan,
-            'businessAddress' => tenant()->isPersonal() ? null : $profile?->address,
-            'businessCity' => $profile?->city,
-            'businessPhone' => $profile?->phone,
-            'businessEmail' => $profile?->email,
-            'businessWa' => $profile?->whatsapp,
-            'logoImage' => BusinessImage::gallery()->where('is_logo', true)->first(),
-            'initials' => Str::of($businessName)->explode(' ')->take(2)->map(fn ($word) => Str::upper(Str::substr($word, 0, 1)))->implode('') ?: '?',
-            'tenantDomain' => request()->getHost(),
-        ]);
-    })->name('tenant.businesscard');
-
-    Route::get('/card/vcard', function () {
-        abort_unless(Tenant::hasFeature(tenant('plan'), 'businesscard'), 403);
-
-        $profile = BusinessProfile::first();
-        $businessName = $profile?->business_name ?: tenant('name');
-
-        $vcard = implode("\r\n", array_filter([
-            'BEGIN:VCARD',
-            'VERSION:3.0',
-            'FN:'.$businessName,
-            'ORG:'.$businessName,
-            $profile?->phone ? 'TEL;TYPE=WORK,VOICE:'.$profile->phone : null,
-            $profile?->email ? 'EMAIL:'.$profile->email : null,
-            $profile?->address && ! tenant()->isPersonal() ? 'ADR;TYPE=WORK:;;'.$profile->address.';'.$profile->city.';;;' : null,
-            'URL:'.url('/'),
-            'END:VCARD',
-        ]));
-
-        return response($vcard, 200, [
-            'Content-Type' => 'text/vcard; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="'.Str::slug($businessName).'.vcf"',
-        ]);
-    })->name('tenant.businesscard.vcard');
+    // Tarjeta de presentación digital del negocio y de cada empleado
+    Route::get('/card', [BusinessCardController::class, 'business'])->name('tenant.businesscard');
+    Route::get('/card/vcard', [BusinessCardController::class, 'businessVcard'])->name('tenant.businesscard.vcard');
+    Route::get('/card/{slug}', [BusinessCardController::class, 'employee'])->name('tenant.employee-card');
+    Route::get('/card/{slug}/vcard', [BusinessCardController::class, 'employeeVcard'])->name('tenant.employee-card.vcard');
 
     Route::get('/lang/{locale}', function (Request $request) {
         $locale = $request->route('locale');
@@ -213,5 +172,6 @@ Route::middleware([
             return view('tenant.invoice-print', ['invoice' => $invoice->load('items', 'payments', 'client', 'taxes')]);
         })->name('tenant.invoices.print');
         Volt::route('/settings', 'tenant.settings')->name('tenant.settings');
+        Volt::route('/plan', 'tenant.plan')->name('tenant.plan');
     });
 });

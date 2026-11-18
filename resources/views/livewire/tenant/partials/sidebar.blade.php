@@ -84,6 +84,10 @@
                 </flux:navlist.item>
             </flux:navlist.group>
         @endif
+        <flux:navlist.item href="{{ url('/plan') }}" icon="credit-card" wire:navigate
+            :current="request()->routeIs('tenant.plan')">
+            {{ __('billing.nav') }}
+        </flux:navlist.item>
         <flux:navlist.item href="{{ url('/settings') }}" icon="cog-6-tooth" wire:navigate
             :current="request()->routeIs('tenant.settings')">
             {{ __('tenant.nav.settings') }}

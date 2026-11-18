@@ -72,6 +72,7 @@ new #[Layout('components.layouts.tenant')] class extends Component {
             $hasEmployees ? ['url' => url('/attendance/payroll'), 'icon' => 'banknotes', 'label' => __('tenant.nav.payroll')] : null,
             Tenant::hasFeature(tenant('plan'), 'businesscard') ? ['url' => url('/card'), 'icon' => 'identification', 'label' => __('tenant.dashboard.business_card'), 'external' => true] : null,
             ['url' => url('/'), 'icon' => 'globe-alt', 'label' => __('tenant.dashboard.public_page'), 'external' => true],
+            ['url' => url('/plan'), 'icon' => 'credit-card', 'label' => __('billing.nav')],
             ['url' => url('/settings'), 'icon' => 'cog-6-tooth', 'label' => __('tenant.nav.settings')],
         ]));
 
@@ -113,10 +114,11 @@ new #[Layout('components.layouts.tenant')] class extends Component {
                         </div>
                         <h1 class="mt-3 text-3xl font-bold text-white sm:text-4xl">{{ $businessName }}</h1>
                         <p class="mt-2 text-zinc-400">{{ __('tenant.dashboard.welcome', ['name' => auth()->user()->name]) }}</p>
-                        <div class="mt-5 inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-4 py-1.5 text-sm font-semibold capitalize text-yellow-400">
+                        <a href="{{ url('/plan') }}" wire:navigate data-plan-badge class="mt-5 inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-4 py-1.5 text-sm font-semibold capitalize text-yellow-400 transition hover:border-yellow-400 hover:bg-yellow-400/20">
                             <span class="size-2 rounded-full bg-yellow-400"></span>
                             {{ __('tenant.dashboard.plan') }} {{ $plan }}
-                        </div>
+                            <flux:icon.chevron-right variant="micro" />
+                        </a>
                         <div
                             class="mt-4 flex w-fit items-center gap-2 rounded-full border border-zinc-700 bg-zinc-800/60 py-2 pl-5 pr-2 font-mono text-base text-zinc-300 sm:text-lg sm:absolute sm:top-0 sm:right-0 sm:mt-0"
                             x-data="{

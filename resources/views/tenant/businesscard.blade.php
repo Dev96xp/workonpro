@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $businessName }}</title>
+    <title>{{ $person ? $person->name.' · '.$businessName : $businessName }}</title>
     @vite('resources/css/welcome.css')
 </head>
 <body class="flex min-h-screen items-center justify-center overflow-x-hidden bg-zinc-900 px-4 py-10 text-zinc-900 antialiased">
@@ -20,7 +20,15 @@
 
         <div class="card-slash bg-white p-8 shadow-2xl" style="clip-path: polygon(0 0, 100% 0, 100% 92%, 96% 100%, 0 100%);">
             <div class="flex flex-col items-center text-center">
-                @if ($logoImage)
+                @if ($person)
+                    @if ($person->photoUrl())
+                        <img src="{{ $person->photoUrl() }}" alt="{{ $person->name }}" class="size-24 rounded-full object-cover ring-4 ring-yellow-400" data-employee-photo />
+                    @else
+                        <div class="flex size-24 items-center justify-center rounded-full bg-zinc-900 text-3xl font-black text-yellow-400 ring-4 ring-yellow-400" data-employee-initials>
+                            {{ $person->initials() }}
+                        </div>
+                    @endif
+                @elseif ($logoImage)
                     <img src="{{ $logoImage->url() }}" alt="{{ $businessName }}" class="size-20 rounded-full object-cover" />
                 @else
                     <div class="flex size-20 items-center justify-center rounded-full bg-zinc-900 text-2xl font-black text-yellow-400">
@@ -28,11 +36,30 @@
                     </div>
                 @endif
 
-                <h1 class="mt-5 text-3xl font-black tracking-tighter text-zinc-900">
-                    <a href="{{ url('/') }}" class="transition hover:text-yellow-500">{{ $businessName }}</a>
-                </h1>
+                @if ($person)
+                    <h1 class="mt-5 text-3xl font-black tracking-tighter text-zinc-900">{{ $person->name }}</h1>
 
-                @if ($businessSlogan)
+                    @if ($person->role)
+                        <div class="mt-2 inline-flex items-center gap-2">
+                            <div class="h-px w-6 bg-yellow-400"></div>
+                            <span class="text-xs font-bold uppercase tracking-[0.25em] text-zinc-500">{{ $person->role }}</span>
+                            <div class="h-px w-6 bg-yellow-400"></div>
+                        </div>
+                    @endif
+
+                    <a href="{{ url('/') }}" class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-zinc-700 transition hover:text-yellow-500" data-employee-business>
+                        @if ($logoImage)
+                            <img src="{{ $logoImage->url() }}" alt="{{ $businessName }}" class="size-6 rounded-full object-cover" />
+                        @endif
+                        {{ $businessName }}
+                    </a>
+                @else
+                    <h1 class="mt-5 text-3xl font-black tracking-tighter text-zinc-900">
+                        <a href="{{ url('/') }}" class="transition hover:text-yellow-500">{{ $businessName }}</a>
+                    </h1>
+                @endif
+
+                @if ($businessSlogan && ! $person)
                     <div class="mt-2 inline-flex items-center gap-2">
                         <div class="h-px w-6 bg-yellow-400"></div>
                         <span class="text-xs font-bold uppercase tracking-[0.25em] text-zinc-500">{{ $businessSlogan }}</span>
@@ -93,7 +120,7 @@
                 </div>
             @endif
 
-            <a href="{{ url('/card/vcard') }}" class="mt-3 flex w-full items-center justify-center gap-2 bg-yellow-400 px-4 py-3 text-sm font-black text-zinc-900 transition hover:bg-yellow-300">
+            <a href="{{ $vcardUrl }}" class="mt-3 flex w-full items-center justify-center gap-2 bg-yellow-400 px-4 py-3 text-sm font-black text-zinc-900 transition hover:bg-yellow-300">
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                 </svg>
